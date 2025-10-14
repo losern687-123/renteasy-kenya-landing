@@ -55,17 +55,17 @@ const Hero = () => {
           </div>
 
           {/* Trust indicators */}
-          <div className="pt-12 flex items-center justify-center gap-8 text-primary-foreground/70 text-sm">
+          <div className="pt-12 flex items-center justify-center gap-8 text-primary-foreground text-base font-medium">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+              <div className="w-2.5 h-2.5 bg-accent rounded-full animate-pulse shadow-lg shadow-accent/50" />
               <span>Secure & Encrypted</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+              <div className="w-2.5 h-2.5 bg-accent rounded-full animate-pulse shadow-lg shadow-accent/50" />
               <span>Cloud-Based</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+              <div className="w-2.5 h-2.5 bg-accent rounded-full animate-pulse shadow-lg shadow-accent/50" />
               <span>Always On Time</span>
             </div>
           </div>
