@@ -45,28 +45,23 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Product Column */}
+          {/* Quick Links Column */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Product</h4>
+            <h4 className="font-semibold text-foreground">Quick Links</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-200">
-                  Features
+                <a href="/" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+                  Home
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-200">
-                  Pricing
+                <a href="/auth" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+                  Login
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-200">
-                  For Tenants
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-200">
-                  For Landlords
+                <a href="/auth" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+                  Register
                 </a>
               </li>
             </ul>

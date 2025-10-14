@@ -40,17 +40,23 @@ const Hero = () => {
             <Button 
               size="lg" 
               className="bg-background text-primary hover:bg-background/90 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg px-8 py-6 rounded-xl font-semibold"
+              asChild
             >
-              Sign Up as Tenant
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <a href="/auth">
+                Sign Up as Tenant
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
             </Button>
             <Button 
               size="lg" 
               variant="outline"
               className="bg-primary-foreground/10 backdrop-blur-md border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg px-8 py-6 rounded-xl font-semibold"
+              asChild
             >
-              Sign Up as Landlord
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <a href="/auth">
+                Sign Up as Landlord
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
             </Button>
           </div>
 

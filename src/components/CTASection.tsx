@@ -35,9 +35,12 @@ const CTASection = () => {
               <Button 
                 size="lg"
                 className="bg-background text-primary hover:bg-background/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-lg px-10 py-7 rounded-xl font-semibold"
+                asChild
               >
-                Join the Waitlist
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <a href="/auth">
+                  Join the Waitlist
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </a>
               </Button>
             </div>
 
