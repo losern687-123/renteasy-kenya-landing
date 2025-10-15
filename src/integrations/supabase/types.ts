@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      rent_records: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          payment_date: string | null
+          property_name: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          payment_date?: string | null
+          property_name: string
+          status: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          payment_date?: string | null
+          property_name?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
