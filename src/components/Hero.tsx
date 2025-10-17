@@ -18,13 +18,6 @@ const Hero = () => {
       {/* Content */}
       <div className="container relative z-10 px-4 py-20 mx-auto text-center">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background/10 backdrop-blur-md border border-primary/20">
-            <span className="text-sm font-medium text-primary-foreground">
-              🇰🇪 Made for Kenya
-            </span>
-          </div>
-
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-bold text-primary-foreground leading-tight">
             Never forget rent day again
