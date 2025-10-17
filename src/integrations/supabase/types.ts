@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          location: string
+          name: string
+          rent_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          location: string
+          name: string
+          rent_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          location?: string
+          name?: string
+          rent_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rent_records: {
         Row: {
           amount: number
@@ -48,6 +78,7 @@ export type Database = {
           property_name: string
           status: string
           tenant_id: string
+          tenant_name: string | null
           updated_at: string
         }
         Insert: {
@@ -59,6 +90,7 @@ export type Database = {
           property_name: string
           status: string
           tenant_id: string
+          tenant_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -70,9 +102,51 @@ export type Database = {
           property_name?: string
           status?: string
           tenant_id?: string
+          tenant_name?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          landlord_id: string
+          name: string
+          phone: string
+          property_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          landlord_id: string
+          name: string
+          phone: string
+          property_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          landlord_id?: string
+          name?: string
+          phone?: string
+          property_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenants_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
