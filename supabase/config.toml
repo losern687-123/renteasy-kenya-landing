@@ -2,3 +2,6 @@ project_id = "zwewwdqjvauissxzojgi"
 
 [functions.send-waitlist-email]
 verify_jwt = false
+
+[functions.send-rent-reminder]
+verify_jwt = false

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -7,6 +7,8 @@ import { RentReminderBanner } from "@/components/dashboard/RentReminderBanner";
 import { AddPaymentForm } from "@/components/dashboard/AddPaymentForm";
 import { PaymentHistoryTable } from "@/components/dashboard/PaymentHistoryTable";
 import { EditPaymentDialog } from "@/components/dashboard/EditPaymentDialog";
+import { checkAndCreateRentNotifications } from "@/utils/notificationHelpers";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RentRecord {
   id: string;
@@ -43,6 +45,25 @@ export default function TenantDashboard() {
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    const checkNotifications = async () => {
+      if (!user) return;
+
+      // Get user email from profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.email) {
+        await checkAndCreateRentNotifications(user.id, profile.email);
+      }
+    };
+
+    checkNotifications();
+  }, [user]);
 
   return (
     <DashboardLayout>

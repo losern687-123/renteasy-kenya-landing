@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
-import { Home, Plus, History, Settings, LogOut } from "lucide-react";
+import { Home, Plus, History, Settings, LogOut, Bell } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { icon: Home, label: "Home", path: "/tenant-dashboard" },
     { icon: Plus, label: "Add Payment", path: "/tenant-dashboard/add-payment" },
     { icon: History, label: "History", path: "/tenant-dashboard/history" },
+    { icon: Bell, label: "Notifications", path: "/notifications" },
     { icon: Settings, label: "Settings", path: "/tenant-dashboard/settings" },
   ];
 
@@ -54,7 +56,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-2">
+          <div className="flex justify-center">
+            <NotificationBell />
+          </div>
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -69,10 +74,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Mobile Header */}
-        <header className="md:hidden bg-card/80 backdrop-blur-lg border-b border-border p-4">
+        <header className="md:hidden bg-card/80 backdrop-blur-lg border-b border-border p-4 flex justify-between items-center">
           <h1 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
             RentEasy Kenya
           </h1>
+          <NotificationBell />
         </header>
 
         {/* Content Area */}

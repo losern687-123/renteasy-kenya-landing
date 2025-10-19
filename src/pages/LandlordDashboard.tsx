@@ -2,6 +2,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Home, DollarSign, LogOut, Building2, UserPlus, Receipt } from "lucide-react";
@@ -34,6 +36,7 @@ export default function LandlordDashboard() {
     if (user) {
       loadDashboardData();
       loadUserName();
+      checkAndCreateLandlordNotifications(user.id);
     }
   }, [user, refreshKey]);
 
@@ -116,10 +119,13 @@ export default function LandlordDashboard() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             RentEasy Kenya
           </h1>
-          <Button variant="outline" onClick={signOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button variant="outline" onClick={signOut} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

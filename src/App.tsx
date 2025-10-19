@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import TenantDashboard from "./pages/TenantDashboard";
 import LandlordDashboard from "./pages/LandlordDashboard";
 import Waitlist from "./pages/Waitlist";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/tenant-dashboard" element={<TenantDashboard />} />
             <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
+            <Route path="/notifications" element={<Notifications />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
