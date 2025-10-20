@@ -90,18 +90,11 @@ export const Navbar = () => {
                 <ProfileDropdown />
               </>
             ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="ghost" className="hover-scale">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/auth">
-                  <Button className="bg-gradient-hero hover:opacity-90 transition-opacity hover-scale">
-                    Register
-                  </Button>
-                </Link>
-              </>
+              <Link to="/auth">
+                <Button variant="ghost" className="hover-scale">
+                  Login
+                </Button>
+              </Link>
             )}
           </div>
 
@@ -157,11 +150,6 @@ export const Navbar = () => {
                   <Link to="/auth" onClick={handleLinkClick}>
                     <Button variant="ghost" className="w-full">
                       Login
-                    </Button>
-                  </Link>
-                  <Link to="/auth" onClick={handleLinkClick}>
-                    <Button className="w-full bg-gradient-hero hover:opacity-90 transition-opacity">
-                      Register
                     </Button>
                   </Link>
                 </>
