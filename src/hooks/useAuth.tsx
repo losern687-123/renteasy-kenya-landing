@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userRole: 'tenant' | 'landlord' | null;
+  userRole: 'tenant' | 'landlord' | 'admin' | null;
   signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<'tenant' | 'landlord' | null>(null);
+  const [userRole, setUserRole] = useState<'tenant' | 'landlord' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .single();
             
             if (data) {
-              setUserRole(data.role as 'tenant' | 'landlord');
+              setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
             }
           }, 0);
         } else {
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .single();
           
           if (data) {
-            setUserRole(data.role as 'tenant' | 'landlord');
+            setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
           }
           setLoading(false);
         }, 0);
@@ -126,14 +126,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (roleData) {
-        const role = roleData.role as 'tenant' | 'landlord';
+        const role = roleData.role as 'tenant' | 'landlord' | 'admin';
         toast({
           title: "Welcome back!",
           description: `Logged in as ${role}`,
         });
         
         setTimeout(() => {
-          if (role === 'tenant') {
+          if (role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (role === 'tenant') {
             navigate('/tenant-dashboard');
           } else {
             navigate('/landlord-dashboard');

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { User, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import { User, Settings, LogOut, LayoutDashboard, Building2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -49,7 +49,11 @@ export const ProfileDropdown = ({ mobile = false }: ProfileDropdownProps) => {
     return user?.email?.[0]?.toUpperCase() || "U";
   };
 
-  const dashboardPath = userRole === "landlord" ? "/landlord-dashboard" : "/tenant-dashboard";
+  const dashboardPath = userRole === "admin" 
+    ? "/admin/dashboard" 
+    : userRole === "landlord" 
+    ? "/landlord-dashboard" 
+    : "/tenant-dashboard";
 
   if (mobile) {
     return (
@@ -71,6 +75,14 @@ export const ProfileDropdown = ({ mobile = false }: ProfileDropdownProps) => {
             Dashboard
           </Button>
         </Link>
+        {userRole === 'tenant' && (
+          <Link to="/apply-landlord">
+            <Button variant="ghost" className="w-full justify-start gap-2">
+              <Building2 className="h-4 w-4" />
+              Apply as Landlord
+            </Button>
+          </Link>
+        )}
         <Button
           variant="ghost"
           className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -113,6 +125,22 @@ export const ProfileDropdown = ({ mobile = false }: ProfileDropdownProps) => {
             Dashboard
           </Link>
         </DropdownMenuItem>
+        {userRole === 'tenant' && (
+          <DropdownMenuItem asChild>
+            <Link to="/apply-landlord" className="cursor-pointer">
+              <Building2 className="mr-2 h-4 w-4" />
+              Apply as Landlord
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {userRole === 'admin' && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin/dashboard" className="cursor-pointer">
+              <Shield className="mr-2 h-4 w-4" />
+              Admin Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link to="/tenant-dashboard/settings" className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />

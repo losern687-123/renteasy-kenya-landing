@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.mpesa-callback]
 verify_jwt = false
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.approve-landlord]
+verify_jwt = true

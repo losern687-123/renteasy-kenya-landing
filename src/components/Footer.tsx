@@ -64,6 +64,11 @@ const Footer = () => {
                   Register
                 </a>
               </li>
+              <li>
+                <a href="/admin/login" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-xs">
+                  Admin Login
+                </a>
+              </li>
             </ul>
           </div>
 
