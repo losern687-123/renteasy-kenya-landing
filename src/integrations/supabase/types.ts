@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      landlord_applications: {
+        Row: {
+          created_at: string
+          document_url: string | null
+          id: string
+          kra_pin: string
+          national_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          kra_pin: string
+          national_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          kra_pin?: string
+          national_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mpesa_payments: {
         Row: {
           amount: number
@@ -188,7 +260,9 @@ export type Database = {
           name: string
           phone: string
           property_id: string | null
+          status: string | null
           updated_at: string
+          verification_status: string | null
         }
         Insert: {
           created_at?: string
@@ -198,7 +272,9 @@ export type Database = {
           name: string
           phone: string
           property_id?: string | null
+          status?: string | null
           updated_at?: string
+          verification_status?: string | null
         }
         Update: {
           created_at?: string
@@ -208,7 +284,9 @@ export type Database = {
           name?: string
           phone?: string
           property_id?: string | null
+          status?: string | null
           updated_at?: string
+          verification_status?: string | null
         }
         Relationships: [
           {
