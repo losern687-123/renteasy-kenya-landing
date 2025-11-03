@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -6,7 +6,7 @@ const Footer = () => {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="grid md:grid-cols-4 gap-8 md:gap-12">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
           {/* Brand Column */}
           <div className="space-y-4">
             <h3 className="text-2xl font-bold text-primary">RentEasy Kenya</h3>
@@ -95,23 +95,6 @@ const Footer = () => {
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-200">
                   Contact
                 </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact Column */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Get in Touch</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <a href="mailto:hello@renteasykenya.com" className="hover:text-primary transition-colors duration-200">
-                  hello@renteasykenya.com
-                </a>
-              </li>
-              <li className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Nairobi, Kenya</span>
               </li>
             </ul>
           </div>
