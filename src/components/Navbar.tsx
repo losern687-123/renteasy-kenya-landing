@@ -9,10 +9,8 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { name: "Home", path: "/" },
-  { name: "About", path: "/#about" },
   { name: "Dashboard", path: "/tenant-dashboard", auth: true },
   { name: "Waitlist", path: "/waitlist" },
-  { name: "Contact", path: "/#contact" },
 ];
 
 export const Navbar = () => {
