@@ -1,60 +1,102 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Users } from "lucide-react";
+import { motion } from "framer-motion";
 
 const CTASection = () => {
   return (
-    <section className="py-24 px-4 relative overflow-hidden">
-      {/* Background gradient */}
+    <section className="py-32 px-4 relative overflow-hidden">
+      {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAtNC40MTggMy41ODItOCA4LThzOCAzLjU4MiA4IDgtMy41ODIgOC04IDgtOC0zLjU4Mi04LTh6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+      <div className="absolute inset-0 bg-gradient-mesh opacity-40 animate-gradient-shift" style={{ backgroundSize: "300% 300%" }} />
+      
+      {/* Floating elements */}
+      <div className="absolute top-1/4 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-float" />
+      <div className="absolute bottom-1/4 right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-float" style={{ animationDelay: "2s" }} />
       
       <div className="container mx-auto max-w-5xl relative z-10">
-        <div className="bg-primary-foreground/10 backdrop-blur-lg rounded-3xl p-12 md:p-16 border border-primary-foreground/20 shadow-2xl">
-          <div className="text-center space-y-8 animate-fade-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 md:p-20 border border-white/20 shadow-2xl"
+        >
+          <div className="text-center space-y-8">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 backdrop-blur-sm border border-accent/30">
-              <Sparkles className="h-4 w-4 text-accent" />
-              <span className="text-sm font-medium text-primary-foreground">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30"
+            >
+              <Sparkles className="h-4 w-4 text-white" />
+              <span className="text-sm font-semibold text-white">
                 Limited Early Access
               </span>
-            </div>
+            </motion.div>
 
             {/* Heading */}
-            <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground">
-              Get Early Access to RentEasy Kenya
-            </h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-5xl md:text-6xl font-display font-bold text-white leading-tight"
+            >
+              Get Early Access to
+              <span className="block mt-2">RentEasy Kenya</span>
+            </motion.h2>
 
             {/* Description */}
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed"
+            >
               Join thousands of Kenyans already simplifying their rent management. 
               Be among the first to experience stress-free rent tracking.
-            </p>
+            </motion.p>
 
             {/* CTA Button */}
-            <div className="pt-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="pt-4"
+            >
               <Button 
                 size="lg"
-                className="bg-background text-primary hover:bg-background/90 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-lg px-10 py-7 rounded-xl font-semibold"
+                className="group bg-white text-primary hover:bg-white/95 shadow-2xl hover:shadow-white/20 transition-all duration-500 hover:scale-105 text-lg px-12 py-8 rounded-2xl font-semibold"
                 asChild
               >
                 <a href="/waitlist">
-                  Join the Waitlist
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <span>Join the Waitlist</span>
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
-            </div>
+            </motion.div>
 
             {/* Social proof */}
-            <div className="flex items-center justify-center gap-2 text-primary-foreground/70 text-sm pt-4">
-              <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-accent border-2 border-primary" />
-                <div className="w-8 h-8 rounded-full bg-secondary border-2 border-primary" />
-                <div className="w-8 h-8 rounded-full bg-accent/80 border-2 border-primary" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex items-center justify-center gap-3 text-white/80 text-sm pt-6"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span className="font-medium">500+ early adopters</span>
               </div>
-              <span className="ml-2">Join 500+ early adopters</span>
-            </div>
+              <div className="w-1.5 h-1.5 bg-white/50 rounded-full" />
+              <span>Join the community</span>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
