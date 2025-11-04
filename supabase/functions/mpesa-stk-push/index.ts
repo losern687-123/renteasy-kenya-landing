@@ -14,6 +14,33 @@ interface STKPushRequest {
   tenantName: string;
 }
 
+// Input validation function
+function validatePaymentInput(data: STKPushRequest): { valid: boolean; error?: string } {
+  // Validate phone number (Kenyan format after formatting: 254XXXXXXXXX)
+  const phoneRegex = /^(\+?254|0)?[17]\d{8}$/;
+  if (!data.phoneNumber || !phoneRegex.test(data.phoneNumber.replace(/\s/g, ''))) {
+    return { valid: false, error: "Invalid Kenyan phone number format" };
+  }
+
+  // Validate amount (between 1 and 1,000,000 KES)
+  if (!data.amount || typeof data.amount !== 'number' || data.amount < 1 || data.amount > 1000000) {
+    return { valid: false, error: "Amount must be between 1 and 1,000,000 KES" };
+  }
+
+  // Validate tenant ID (must be UUID)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!data.tenantId || !uuidRegex.test(data.tenantId)) {
+    return { valid: false, error: "Invalid tenant ID" };
+  }
+
+  // Validate tenant name
+  if (!data.tenantName || data.tenantName.trim().length === 0 || data.tenantName.length > 100) {
+    return { valid: false, error: "Invalid tenant name (must be 1-100 characters)" };
+  }
+
+  return { valid: true };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -21,9 +48,73 @@ serve(async (req) => {
   }
 
   try {
-    const { phoneNumber, amount, tenantId, tenantName }: STKPushRequest = await req.json();
+    // Authenticate the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     
-    console.log('Initiating M-Pesa STK Push:', { phoneNumber, amount, tenantId, tenantName });
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const requestData: STKPushRequest = await req.json();
+
+    // Validate input
+    const validation = validatePaymentInput(requestData);
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ success: false, error: validation.error }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const { phoneNumber, amount, tenantId, tenantName } = requestData;
+
+    // Verify the authenticated user is the tenant making the payment
+    if (user.id !== tenantId) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Forbidden: You can only make payments for your own account' 
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Sanitize for logging - don't log full phone or PII
+    console.log('M-Pesa STK Push initiated:', {
+      tenantId,
+      amount,
+      phonePrefix: phoneNumber.substring(0, 6) + '****',
+    });
 
     // Get M-Pesa credentials from environment
     const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
@@ -49,12 +140,11 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token generation failed:', errorText);
-      throw new Error(`Failed to get access token: ${errorText}`);
+      console.error('Token generation failed');
+      throw new Error('Failed to get access token');
     }
 
     const { access_token } = await tokenResponse.json();
-    console.log('Access token obtained successfully');
 
     // Step 2: Generate timestamp and password
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
@@ -65,8 +155,6 @@ serve(async (req) => {
     if (formattedPhone.startsWith('+')) formattedPhone = formattedPhone.substring(1);
     if (formattedPhone.startsWith('0')) formattedPhone = '254' + formattedPhone.substring(1);
     if (!formattedPhone.startsWith('254')) formattedPhone = '254' + formattedPhone;
-
-    console.log('Formatted phone number:', formattedPhone);
 
     // Step 3: Initiate STK Push
     const stkPushPayload = {
@@ -80,10 +168,8 @@ serve(async (req) => {
       PhoneNumber: formattedPhone,
       CallBackURL: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`,
       AccountReference: `RENT-${tenantId.substring(0, 8)}`,
-      TransactionDesc: `Rent payment for ${tenantName}`,
+      TransactionDesc: `Rent payment for ${tenantName.trim().substring(0, 30)}`,
     };
-
-    console.log('STK Push payload:', { ...stkPushPayload, Password: '[REDACTED]' });
 
     const stkResponse = await fetch(
       'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
@@ -98,7 +184,6 @@ serve(async (req) => {
     );
 
     const stkResult = await stkResponse.json();
-    console.log('STK Push response:', stkResult);
 
     if (!stkResponse.ok || stkResult.ResponseCode !== '0') {
       throw new Error(stkResult.errorMessage || stkResult.ResponseDescription || 'STK Push failed');
@@ -114,7 +199,7 @@ serve(async (req) => {
       .from('mpesa_payments')
       .insert({
         tenant_id: tenantId,
-        tenant_name: tenantName,
+        tenant_name: tenantName.trim(),
         amount: amount,
         phone_number: formattedPhone,
         merchant_request_id: stkResult.MerchantRequestID,
@@ -125,11 +210,11 @@ serve(async (req) => {
       .single();
 
     if (dbError) {
-      console.error('Database error:', dbError);
-      throw new Error(`Failed to store payment record: ${dbError.message}`);
+      console.error('Database error:', dbError.message);
+      throw new Error('Failed to store payment record');
     }
 
-    console.log('Payment record created:', paymentRecord);
+    console.log('Payment record created successfully');
 
     return new Response(
       JSON.stringify({
@@ -145,11 +230,11 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error('Error in mpesa-stk-push function:', error);
+    console.error('Error in mpesa-stk-push function:', error.message);
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'An error occurred processing the payment'
+        error: 'Payment initiation failed'
       }),
       {
         status: 500,

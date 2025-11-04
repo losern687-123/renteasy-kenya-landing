@@ -14,17 +14,23 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    console.log('M-Pesa callback received:', JSON.stringify(payload, null, 2));
+    
+    // Log only essential identifiers, NOT sensitive data like phone numbers or amounts
+    const { Body } = payload;
+    const { stkCallback } = Body;
+    
+    console.log('M-Pesa callback received:', {
+      merchantRequestId: stkCallback?.MerchantRequestID || 'N/A',
+      checkoutRequestId: stkCallback?.CheckoutRequestID || 'N/A',
+      resultCode: stkCallback?.ResultCode || 'N/A',
+      timestamp: new Date().toISOString(),
+    });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Extract callback data
-    const { Body } = payload;
-    const { stkCallback } = Body;
-    
     const merchantRequestId = stkCallback.MerchantRequestID;
     const checkoutRequestId = stkCallback.CheckoutRequestID;
     const resultCode = stkCallback.ResultCode;
@@ -52,11 +58,15 @@ serve(async (req) => {
       .single();
 
     if (updateError) {
-      console.error('Error updating payment:', updateError);
+      console.error('Error updating payment:', updateError.message);
       throw updateError;
     }
 
-    console.log('Payment updated successfully:', payment);
+    console.log('Payment status updated:', {
+      paymentId: payment.id,
+      status: payment.status,
+      receiptNumber: mpesaReceiptNumber || 'N/A',
+    });
 
     // If payment successful, create notification for landlord
     if (resultCode === 0 && payment) {
@@ -75,6 +85,8 @@ serve(async (req) => {
             type: 'payment_received',
             message: `New payment of KES ${payment.amount} received from ${payment.tenant_name}`,
           });
+        
+        console.log('Landlord notification created');
       }
     }
 
@@ -86,9 +98,9 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error('Error in mpesa-callback function:', error);
+    console.error('Error in mpesa-callback function:', error.message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Callback processing failed' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
