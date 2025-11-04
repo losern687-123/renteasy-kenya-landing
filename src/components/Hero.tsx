@@ -1,42 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import fluidGraphic from "@/assets/fluid-graphic.png";
+import heroBackground from "@/assets/hero-bg.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Animated gradient mesh background */}
-      <div className="absolute inset-0 bg-gradient-mesh opacity-60 animate-gradient-shift" style={{ backgroundSize: "300% 300%" }} />
-      
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl animate-glow" />
-
-      {/* 3D Fluid Graphic */}
-      <motion.div
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-[50%] h-[80%] opacity-60 pointer-events-none"
-        initial={{ opacity: 0, x: 100, rotate: -10 }}
-        animate={{ 
-          opacity: 0.6, 
-          x: 0, 
-          rotate: 0,
-          y: [0, -20, 0],
-        }}
-        transition={{ 
-          opacity: { duration: 1.2 },
-          x: { duration: 1.2 },
-          rotate: { duration: 1.2 },
-          y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-        }}
-      >
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
         <img 
-          src={fluidGraphic} 
-          alt="" 
-          className="w-full h-full object-contain animate-glow"
+          src={heroBackground} 
+          alt="Modern residential property" 
+          className="w-full h-full object-cover"
         />
-      </motion.div>
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-primary/20" />
+      </div>
+      
+      {/* Subtle decorative elements */}
+      <div className="absolute top-20 right-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+      <div className="absolute bottom-20 left-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "3s" }} />
 
       {/* Content */}
       <div className="container relative z-10 px-4 py-20 mx-auto">
