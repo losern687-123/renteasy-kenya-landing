@@ -118,17 +118,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (!error && data.user) {
-      // Fetch role to redirect appropriately
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .single();
+      // Fetch role and profile to redirect appropriately
+      const [roleResponse, profileResponse] = await Promise.all([
+        supabase.from('user_roles').select('role').eq('user_id', data.user.id).single(),
+        supabase.from('profiles').select('name').eq('id', data.user.id).single()
+      ]);
 
-      if (roleData) {
-        const role = roleData.role as 'tenant' | 'landlord' | 'admin';
+      if (roleResponse.data) {
+        const role = roleResponse.data.role as 'tenant' | 'landlord' | 'admin';
+        const userName = profileResponse.data?.name || 'User';
+        
+        // Check if this is first login by comparing created_at and last_sign_in_at
+        const createdAt = new Date(data.user.created_at).getTime();
+        const lastSignIn = new Date(data.user.last_sign_in_at || data.user.created_at).getTime();
+        const isFirstLogin = (lastSignIn - createdAt) < 60000; // Within 1 minute of account creation
+        
         toast({
-          title: "Welcome back!",
+          title: isFirstLogin ? `Welcome ${userName}!` : "Welcome back!",
           description: `Logged in as ${role}`,
         });
         
