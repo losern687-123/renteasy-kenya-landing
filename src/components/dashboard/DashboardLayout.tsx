@@ -20,7 +20,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { icon: Plus, label: "Add Payment", path: "/tenant-dashboard/add-payment" },
     { icon: History, label: "History", path: "/tenant-dashboard/history" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
-    { icon: Settings, label: "Settings", path: "/tenant-dashboard/settings" },
+    { icon: Settings, label: "Settings", path: "/tenant/settings" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

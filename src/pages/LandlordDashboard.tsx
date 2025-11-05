@@ -13,6 +13,7 @@ import AddTenantForm from "@/components/landlord/AddTenantForm";
 import PropertiesTable from "@/components/landlord/PropertiesTable";
 import TenantsTable from "@/components/landlord/TenantsTable";
 import RecordPaymentForm from "@/components/landlord/RecordPaymentForm";
+import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
 
 interface DashboardStats {
   totalProperties: number;
@@ -257,6 +258,7 @@ export default function LandlordDashboard() {
                 </CardContent>
               </Card>
             </div>
+            <LandlordPaymentsView refresh={refreshKey > 0} />
           </TabsContent>
         </Tabs>
       </main>

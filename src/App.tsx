@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TenantDashboard from "./pages/TenantDashboard";
+import TenantSettings from "./pages/TenantSettings";
 import LandlordDashboard from "./pages/LandlordDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/tenant-dashboard" element={<TenantDashboard />} />
+            <Route path="/tenant/settings" element={<TenantSettings />} />
             <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
