@@ -163,21 +163,30 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          landlord_code: string | null
           name: string
+          payment_alerts_enabled: boolean | null
+          rent_reminders_enabled: boolean | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          landlord_code?: string | null
           name: string
+          payment_alerts_enabled?: boolean | null
+          rent_reminders_enabled?: boolean | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          landlord_code?: string | null
           name?: string
+          payment_alerts_enabled?: boolean | null
+          rent_reminders_enabled?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -219,7 +228,9 @@ export type Database = {
           due_date: string
           id: string
           payment_date: string | null
+          payment_method: string | null
           property_name: string
+          receipt_url: string | null
           status: string
           tenant_id: string
           tenant_name: string | null
@@ -231,7 +242,9 @@ export type Database = {
           due_date: string
           id?: string
           payment_date?: string | null
+          payment_method?: string | null
           property_name: string
+          receipt_url?: string | null
           status: string
           tenant_id: string
           tenant_name?: string | null
@@ -243,7 +256,9 @@ export type Database = {
           due_date?: string
           id?: string
           payment_date?: string | null
+          payment_method?: string | null
           property_name?: string
+          receipt_url?: string | null
           status?: string
           tenant_id?: string
           tenant_name?: string | null
@@ -321,6 +336,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_landlord_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
