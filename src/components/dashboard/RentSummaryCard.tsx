@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const RentSummaryCard = () => {
@@ -96,34 +96,44 @@ export const RentSummaryCard = () => {
 
   if (loading) {
     return (
-      <Card className="backdrop-blur-sm bg-card/50 border-2">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
         <CardHeader>
-          <CardTitle>Current Month Rent Status</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            Rent Status
+          </CardTitle>
+          <CardDescription>Current month overview</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse h-20 bg-muted rounded-lg"></div>
+          <div className="animate-pulse h-24 bg-muted/50 rounded-xl"></div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="backdrop-blur-sm bg-card/50 border-2">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle>Current Month Rent Status</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5 text-primary" />
+          Rent Status
+        </CardTitle>
+        <CardDescription>Current month overview</CardDescription>
       </CardHeader>
       <CardContent>
         <div
           className={cn(
-            "flex items-center gap-4 p-6 rounded-lg border-2",
+            "flex items-center gap-4 p-6 rounded-xl border-2 transition-all hover:scale-[1.02]",
             config.bgColor,
             config.borderColor
           )}
         >
-          <Icon className={cn("h-12 w-12", config.color)} />
-          <div>
-            <p className="text-sm text-muted-foreground">Status</p>
-            <p className={cn("text-2xl font-bold", config.color)}>{config.text}</p>
+          <div className={cn("rounded-xl p-3", config.bgColor)}>
+            <Icon className={cn("h-10 w-10", config.color)} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-muted-foreground">Current Status</p>
+            <p className={cn("text-3xl font-bold tracking-tight", config.color)}>{config.text}</p>
           </div>
         </div>
       </CardContent>

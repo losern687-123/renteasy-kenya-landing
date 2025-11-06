@@ -87,7 +87,7 @@ export const AddPaymentForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-card/50 border-2">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle>Add Rent Payment Record</CardTitle>
         <CardDescription>Track your rent payments and keep your records organized</CardDescription>
@@ -146,9 +146,9 @@ export const AddPaymentForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             </Select>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full bg-gradient-hero hover:opacity-90 transition-all hover:scale-[1.02]" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Payment Record
+            {isSubmitting ? "Adding..." : "Add Payment Record"}
           </Button>
         </form>
       </CardContent>

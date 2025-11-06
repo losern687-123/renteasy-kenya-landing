@@ -114,15 +114,18 @@ export default function LandlordDashboard() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            RentEasy Kenya
-          </h1>
-          <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-10 shadow-sm">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+              RentEasy Kenya
+            </h1>
+            <p className="text-xs text-muted-foreground">Landlord Portal</p>
+          </div>
+          <div className="flex items-center gap-3">
             <NotificationBell />
-            <Button variant="outline" onClick={signOut} className="gap-2">
+            <Button variant="outline" onClick={signOut} className="gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors">
               <LogOut className="w-4 h-4" />
               Logout
             </Button>
@@ -130,78 +133,80 @@ export default function LandlordDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
+      <main className="container mx-auto px-6 py-8">
+        <div className="mb-8 space-y-2">
+          <h2 className="text-4xl font-bold tracking-tight">
             {userName ? `Welcome back, ${userName}` : "Landlord Dashboard"}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Manage your properties and track rent payments effortlessly.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-primary/20 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <Home className="w-6 h-6 text-primary" />
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="pb-3">
+              <div className="w-14 h-14 bg-gradient-hero rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                <Home className="w-7 h-7 text-white" />
               </div>
-              <CardTitle>Properties</CardTitle>
-              <CardDescription>Total managed</CardDescription>
+              <CardTitle className="text-base">Properties</CardTitle>
+              <CardDescription className="text-xs">Total managed</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-primary">{stats.totalProperties}</p>
+              <p className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">{stats.totalProperties}</p>
             </CardContent>
           </Card>
 
-          <Card className="border-accent/20 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-accent" />
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="pb-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                <Users className="w-7 h-7 text-white" />
               </div>
-              <CardTitle>Tenants</CardTitle>
-              <CardDescription>Active tenants</CardDescription>
+              <CardTitle className="text-base">Tenants</CardTitle>
+              <CardDescription className="text-xs">Active tenants</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-accent">{stats.totalTenants}</p>
+              <p className="text-3xl font-bold text-blue-600">{stats.totalTenants}</p>
             </CardContent>
           </Card>
 
-          <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
-                <DollarSign className="w-6 h-6 text-secondary" />
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="pb-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                <DollarSign className="w-7 h-7 text-white" />
               </div>
-              <CardTitle>This Month</CardTitle>
-              <CardDescription>Expected collections</CardDescription>
+              <CardTitle className="text-base">Expected</CardTitle>
+              <CardDescription className="text-xs">This month</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-secondary">KES {stats.monthlyExpected.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground mt-2">{collectionPercentage}% collected</p>
+              <p className="text-3xl font-bold text-amber-600">KES {stats.monthlyExpected.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-2">{collectionPercentage}% collected</p>
             </CardContent>
           </Card>
 
-          <Card className="border-green-500/20 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
-                <Receipt className="w-6 h-6 text-green-500" />
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="pb-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                <Receipt className="w-7 h-7 text-white" />
               </div>
-              <CardTitle>Collected</CardTitle>
-              <CardDescription>This month</CardDescription>
+              <CardTitle className="text-base">Collected</CardTitle>
+              <CardDescription className="text-xs">This month</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-500">KES {stats.monthlyCollected.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-green-600">KES {stats.monthlyCollected.toLocaleString()}</p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="tenants">Tenants</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-          </TabsList>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+                <TabsTrigger value="properties" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Properties</TabsTrigger>
+                <TabsTrigger value="tenants" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Tenants</TabsTrigger>
+                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Payments</TabsTrigger>
+              </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -224,43 +229,48 @@ export default function LandlordDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="payments" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <RecordPaymentForm onSuccess={handleRefresh} />
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Summary</CardTitle>
-                  <CardDescription>Track rent collections</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Expected This Month</span>
-                      <span className="font-semibold">KES {stats.monthlyExpected.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Collected</span>
-                      <span className="font-semibold text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Pending</span>
-                      <span className="font-semibold text-yellow-600">
-                        KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="pt-4 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Collection Rate</span>
-                        <span className="font-bold text-primary">{collectionPercentage}%</span>
+              <TabsContent value="payments" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <RecordPaymentForm onSuccess={handleRefresh} />
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-primary" />
+                        Payment Summary
+                      </CardTitle>
+                      <CardDescription>Track rent collections</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center py-3 border-b border-border/50">
+                          <span className="text-muted-foreground font-medium">Expected This Month</span>
+                          <span className="font-bold text-lg">KES {stats.monthlyExpected.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-border/50">
+                          <span className="text-muted-foreground font-medium">Collected</span>
+                          <span className="font-bold text-lg text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-border/50">
+                          <span className="text-muted-foreground font-medium">Pending</span>
+                          <span className="font-bold text-lg text-amber-600">
+                            KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="pt-4 bg-muted/30 rounded-lg p-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-base">Collection Rate</span>
+                            <span className="font-bold text-2xl bg-gradient-hero bg-clip-text text-transparent">{collectionPercentage}%</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <LandlordPaymentsView refresh={refreshKey > 0} />
-          </TabsContent>
-        </Tabs>
+                    </CardContent>
+                  </Card>
+                </div>
+                <LandlordPaymentsView refresh={refreshKey > 0} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

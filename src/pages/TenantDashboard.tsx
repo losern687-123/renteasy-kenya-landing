@@ -71,38 +71,53 @@ export default function TenantDashboard() {
 
   return (
     <DashboardLayout>
-      <RentReminderBanner key={refreshKey} />
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Tenant Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Manage your rent payments and view history</p>
+          </div>
+          <Button
+            onClick={() => setIsMpesaModalOpen(true)}
+            className="bg-gradient-hero hover:opacity-90 transition-all hover:scale-105 shadow-lg"
+            size="lg"
+          >
+            <CreditCard className="mr-2 h-5 w-5" />
+            Pay via M-Pesa
+          </Button>
+        </div>
 
-      <div className="mb-6">
-        <Button
-          onClick={() => setIsMpesaModalOpen(true)}
-          className="bg-gradient-hero hover:opacity-90 transition-opacity"
-          size="lg"
-        >
-          <CreditCard className="mr-2 h-5 w-5" />
-          Make Rent Payment via M-Pesa
-        </Button>
+        <RentReminderBanner key={refreshKey} />
+
+        {/* Main Content Grid */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-6">
+            <RentSummaryCard key={refreshKey} />
+          </div>
+          <div className="space-y-6">
+            <AddPaymentForm onSuccess={handleSuccess} />
+          </div>
+        </div>
+
+        {/* Payment History */}
+        <div className="mt-8">
+          <PaymentHistoryTable key={refreshKey} onEdit={handleEdit} />
+        </div>
+
+        <EditPaymentDialog
+          record={editingRecord}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSuccess={handleSuccess}
+        />
+
+        <MpesaPaymentModal
+          open={isMpesaModalOpen}
+          onOpenChange={setIsMpesaModalOpen}
+          onSuccess={handleSuccess}
+        />
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <RentSummaryCard key={refreshKey} />
-        <AddPaymentForm onSuccess={handleSuccess} />
-      </div>
-
-      <PaymentHistoryTable key={refreshKey} onEdit={handleEdit} />
-
-      <EditPaymentDialog
-        record={editingRecord}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSuccess={handleSuccess}
-      />
-
-      <MpesaPaymentModal
-        open={isMpesaModalOpen}
-        onOpenChange={setIsMpesaModalOpen}
-        onSuccess={handleSuccess}
-      />
     </DashboardLayout>
   );
 }

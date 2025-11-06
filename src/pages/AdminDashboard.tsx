@@ -7,8 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Users, CheckCircle, XCircle, Clock, Building2, DollarSign, TrendingUp, FileText } from "lucide-react";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { MetricCard } from "@/components/admin/MetricCard";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Legend
+} from "recharts";
 
 interface LandlordApplication {
   id: string;
@@ -114,17 +127,20 @@ const AdminDashboard = () => {
   };
 
   const ApplicationCard = ({ app }: { app: LandlordApplication }) => (
-    <Card>
+    <Card className="border-border/50 hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <div>
+          <div className="space-y-1">
             <CardTitle className="text-lg">{app.profiles.name}</CardTitle>
-            <CardDescription>{app.profiles.email}</CardDescription>
+            <CardDescription className="text-sm">{app.profiles.email}</CardDescription>
           </div>
-          <Badge variant={
-            app.status === 'approved' ? 'default' :
-            app.status === 'rejected' ? 'destructive' : 'secondary'
-          }>
+          <Badge 
+            variant={
+              app.status === 'approved' ? 'default' :
+              app.status === 'rejected' ? 'destructive' : 'secondary'
+            }
+            className="capitalize"
+          >
             {app.status}
           </Badge>
         </div>
@@ -196,85 +212,183 @@ const AdminDashboard = () => {
   const approvedApps = applications.filter(app => app.status === 'approved');
   const rejectedApps = applications.filter(app => app.status === 'rejected');
 
+  // Mock data for charts
+  const weeklyData = [
+    { name: 'Mon', applications: 4 },
+    { name: 'Tue', applications: 3 },
+    { name: 'Wed', applications: 7 },
+    { name: 'Thu', applications: 5 },
+    { name: 'Fri', applications: 6 },
+    { name: 'Sat', applications: 2 },
+    { name: 'Sun', applications: 3 },
+  ];
+
+  const monthlyPayments = [
+    { month: 'Jan', amount: 45000 },
+    { month: 'Feb', amount: 52000 },
+    { month: 'Mar', amount: 48000 },
+    { month: 'Apr', amount: 61000 },
+    { month: 'May', amount: 55000 },
+    { month: 'Jun', amount: 67000 },
+  ];
+
   return (
-    <DashboardLayout>
+    <AdminLayout title="Dashboard" subtitle="Welcome back, Admin">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage landlord applications and user roles</p>
+        {/* Metrics Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Total Landlords"
+            value={approvedApps.length}
+            change="+12%"
+            trend="up"
+            icon={Building2}
+            iconColor="text-primary"
+            iconBgColor="bg-primary/10"
+          />
+          <MetricCard
+            title="Pending Applications"
+            value={pendingApps.length}
+            icon={Clock}
+            iconColor="text-amber-600"
+            iconBgColor="bg-amber-600/10"
+          />
+          <MetricCard
+            title="Monthly Revenue"
+            value="KES 67,000"
+            change="+22%"
+            trend="up"
+            icon={DollarSign}
+            iconColor="text-green-600"
+            iconBgColor="bg-green-600/10"
+          />
+          <MetricCard
+            title="Active Tenants"
+            value="156"
+            change="+8%"
+            trend="up"
+            icon={Users}
+            iconColor="text-blue-600"
+            iconBgColor="bg-blue-600/10"
+          />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+        {/* Charts */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Weekly Applications</CardTitle>
+              <CardDescription>New landlord applications this week</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingApps.length}</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Bar dataKey="applications" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Payment Trends</CardTitle>
+              <CardDescription>Total rent payments processed</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{approvedApps.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{rejectedApps.length}</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyPayments}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending">
-              Pending ({pendingApps.length})
-            </TabsTrigger>
-            <TabsTrigger value="approved">
-              Approved ({approvedApps.length})
-            </TabsTrigger>
-            <TabsTrigger value="rejected">
-              Rejected ({rejectedApps.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Applications Section */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Landlord Applications</CardTitle>
+                <CardDescription>Review and manage landlord applications</CardDescription>
+              </div>
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="pending" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="pending" className="gap-2">
+                  <Clock className="h-4 w-4" />
+                  Pending ({pendingApps.length})
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Approved ({approvedApps.length})
+                </TabsTrigger>
+                <TabsTrigger value="rejected" className="gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Rejected ({rejectedApps.length})
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="pending" className="space-y-4">
-            {isLoading ? (
-              <p className="text-center text-muted-foreground py-8">Loading...</p>
-            ) : pendingApps.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No pending applications</p>
-            ) : (
-              pendingApps.map(app => <ApplicationCard key={app.id} app={app} />)
-            )}
-          </TabsContent>
+              <TabsContent value="pending" className="space-y-4">
+                {isLoading ? (
+                  <p className="text-center text-muted-foreground py-8">Loading...</p>
+                ) : pendingApps.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No pending applications</p>
+                ) : (
+                  pendingApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                )}
+              </TabsContent>
 
-          <TabsContent value="approved" className="space-y-4">
-            {approvedApps.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No approved applications</p>
-            ) : (
-              approvedApps.map(app => <ApplicationCard key={app.id} app={app} />)
-            )}
-          </TabsContent>
+              <TabsContent value="approved" className="space-y-4">
+                {approvedApps.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No approved applications</p>
+                ) : (
+                  approvedApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                )}
+              </TabsContent>
 
-          <TabsContent value="rejected" className="space-y-4">
-            {rejectedApps.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No rejected applications</p>
-            ) : (
-              rejectedApps.map(app => <ApplicationCard key={app.id} app={app} />)
-            )}
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="rejected" className="space-y-4">
+                {rejectedApps.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No rejected applications</p>
+                ) : (
+                  rejectedApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
+    </AdminLayout>
   );
 };
 
