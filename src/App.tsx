@@ -13,6 +13,11 @@ import TenantHistory from "./pages/TenantHistory";
 import LandlordDashboard from "./pages/LandlordDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLandlords from "./pages/AdminLandlords";
+import AdminTenants from "./pages/AdminTenants";
+import AdminPayments from "./pages/AdminPayments";
+import AdminActivityLogs from "./pages/AdminActivityLogs";
+import AdminSettings from "./pages/AdminSettings";
 import ApplyAsLandlord from "./pages/ApplyAsLandlord";
 import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
@@ -38,6 +43,11 @@ const App = () => (
             <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/landlords" element={<AdminLandlords />} />
+            <Route path="/admin/tenants" element={<AdminTenants />} />
+            <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/activity" element={<AdminActivityLogs />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/apply-landlord" element={<ApplyAsLandlord />} />
             <Route path="/notifications" element={<Notifications />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

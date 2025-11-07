@@ -2,10 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Users, 
-  UserCheck, 
   DollarSign, 
-  FileText, 
-  BarChart3, 
   Activity, 
   Settings,
   Building2
@@ -17,8 +14,6 @@ const navigation = [
   { name: "Landlords", href: "/admin/landlords", icon: Building2 },
   { name: "Tenants", href: "/admin/tenants", icon: Users },
   { name: "Payments", href: "/admin/payments", icon: DollarSign },
-  { name: "Applications", href: "/admin/applications", icon: FileText },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
   { name: "Activity Logs", href: "/admin/activity", icon: Activity },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
