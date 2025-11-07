@@ -32,14 +32,39 @@ export default function LandlordDashboard() {
   });
   const [refreshKey, setRefreshKey] = useState(0);
   const [userName, setUserName] = useState("");
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (user) {
+      checkVerificationStatus();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && isVerified) {
       loadDashboardData();
       loadUserName();
       checkAndCreateLandlordNotifications(user.id);
     }
-  }, [user, refreshKey]);
+  }, [user, refreshKey, isVerified]);
+
+  const checkVerificationStatus = async () => {
+    if (!user) return;
+
+    // Check if user has landlord role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (roleData?.role !== 'landlord') {
+      setIsVerified(false);
+      return;
+    }
+
+    setIsVerified(true);
+  };
 
   const loadUserName = async () => {
     if (!user) return;
@@ -112,6 +137,23 @@ export default function LandlordDashboard() {
   const collectionPercentage = stats.monthlyExpected > 0 
     ? Math.round((stats.monthlyCollected / stats.monthlyExpected) * 100) 
     : 0;
+
+  // Redirect to pending verification page if not verified
+  if (isVerified === false) {
+    return <Navigate to="/pending-verification" replace />;
+  }
+
+  // Show loading state while checking verification
+  if (loading || isVerified === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">

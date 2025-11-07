@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
 
 const tenantSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
@@ -63,15 +64,26 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("tenants").insert({
+      const { data: tenantData, error } = await supabase.from("tenants").insert({
         landlord_id: user.id,
         name: data.name,
         email: data.email,
         phone: data.phone,
         property_id: data.property_id,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Log activity
+      await logActivity({
+        action: ActivityActions.TENANT_ADDED,
+        entityType: EntityTypes.TENANT,
+        entityId: tenantData.id,
+        details: {
+          tenant_name: data.name,
+          property_id: data.property_id,
+        }
+      });
 
       toast.success("Tenant added successfully!");
       reset();

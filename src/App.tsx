@@ -19,6 +19,7 @@ import AdminPayments from "./pages/AdminPayments";
 import AdminActivityLogs from "./pages/AdminActivityLogs";
 import AdminSettings from "./pages/AdminSettings";
 import ApplyAsLandlord from "./pages/ApplyAsLandlord";
+import PendingVerification from "./pages/PendingVerification";
 import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/admin/activity" element={<AdminActivityLogs />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/apply-landlord" element={<ApplyAsLandlord />} />
+            <Route path="/pending-verification" element={<PendingVerification />} />
             <Route path="/notifications" element={<Notifications />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

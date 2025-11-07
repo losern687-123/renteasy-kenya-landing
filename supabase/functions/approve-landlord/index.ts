@@ -88,6 +88,20 @@ serve(async (req) => {
       throw new Error('Failed to update application');
     }
 
+    // Log activity - admin reviewed application
+    await supabase
+      .from('activity_logs')
+      .insert({
+        user_id: user.id,
+        action: approved ? 'landlord_approved' : 'landlord_rejected',
+        entity_type: 'landlord_application',
+        entity_id: applicationId,
+        details: {
+          applicant_id: application.user_id,
+          rejection_reason: rejectionReason,
+        }
+      });
+
     // If approved, update user role to landlord
     if (approved) {
       const { error: roleError } = await supabase

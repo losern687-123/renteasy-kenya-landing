@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
 
 const formSchema = z.object({
   property_name: z.string().min(1, "Property name is required"),
@@ -57,14 +58,14 @@ export const AddPaymentForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.from("rent_records").insert({
+    const { data: insertedData, error } = await supabase.from("rent_records").insert({
       tenant_id: user.id,
       property_name: data.property_name,
       amount: Number(data.amount),
       payment_date: data.payment_date || null,
       due_date: data.due_date,
       status: data.status,
-    });
+    }).select().single();
 
     setIsSubmitting(false);
 
@@ -76,6 +77,18 @@ export const AddPaymentForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       });
       return;
     }
+
+    // Log activity
+    await logActivity({
+      action: ActivityActions.PAYMENT_RECORDED,
+      entityType: EntityTypes.PAYMENT,
+      entityId: insertedData.id,
+      details: {
+        property_name: data.property_name,
+        amount: Number(data.amount),
+        status: data.status,
+      }
+    });
 
     toast({
       title: "Success",

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
 
 const propertySchema = z.object({
   name: z.string().min(1, "Property name is required").max(100),
@@ -34,14 +35,26 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("properties").insert({
+      const { data: propertyData, error } = await supabase.from("properties").insert({
         landlord_id: user.id,
         name: data.name,
         location: data.location,
         rent_amount: parseFloat(data.rent_amount),
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Log activity
+      await logActivity({
+        action: ActivityActions.PROPERTY_ADDED,
+        entityType: EntityTypes.PROPERTY,
+        entityId: propertyData.id,
+        details: {
+          property_name: data.name,
+          location: data.location,
+          rent_amount: parseFloat(data.rent_amount),
+        }
+      });
 
       toast.success("Property added successfully!");
       reset();

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
 
 const paymentSchema = z.object({
   tenant_id: z.string().min(1, "Please select a tenant"),
@@ -86,6 +87,19 @@ export default function RecordPaymentForm({ onSuccess }: { onSuccess?: () => voi
         .eq("id", rentRecords[0].id);
 
       if (updateError) throw updateError;
+
+      // Log activity
+      await logActivity({
+        action: ActivityActions.PAYMENT_CONFIRMED,
+        entityType: EntityTypes.PAYMENT,
+        entityId: rentRecords[0].id,
+        details: {
+          tenant_id: data.tenant_id,
+          tenant_name: rentRecords[0].tenant_name,
+          amount: rentRecords[0].amount,
+          property: rentRecords[0].property_name,
+        }
+      });
 
       toast.success("Payment recorded successfully!");
       setSelectedTenant("");
