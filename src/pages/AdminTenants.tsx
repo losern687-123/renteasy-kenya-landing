@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,13 +35,16 @@ interface Tenant {
 }
 
 const AdminTenants = () => {
+  const { isAuthorized, isLoading: authLoading } = useAdminAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetchTenants();
-  }, []);
+    if (isAuthorized) {
+      fetchTenants();
+    }
+  }, [isAuthorized]);
 
   const fetchTenants = async () => {
     try {
@@ -71,6 +75,17 @@ const AdminTenants = () => {
 
   const activeCount = tenants.filter(t => t.status === 'active').length;
   const totalTenants = tenants.length;
+
+  if (authLoading || !isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout title="Tenants" subtitle="View and manage all tenants on the platform">

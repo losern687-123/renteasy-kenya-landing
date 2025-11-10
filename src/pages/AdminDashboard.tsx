@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,36 +39,17 @@ interface LandlordApplication {
 }
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+  const { isAuthorized, isLoading: authLoading } = useAdminAuth();
   const [applications, setApplications] = useState<LandlordApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    checkAdminAccess();
-    fetchApplications();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      navigate("/admin/login");
-      return;
+    if (isAuthorized) {
+      fetchApplications();
     }
-
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!roleData || roleData.role !== 'admin') {
-      toast.error("Access denied. Admin privileges required.");
-      navigate("/");
-    }
-  };
+  }, [isAuthorized]);
 
   const fetchApplications = async () => {
     try {
@@ -231,6 +212,17 @@ const AdminDashboard = () => {
     { month: 'May', amount: 55000 },
     { month: 'Jun', amount: 67000 },
   ];
+
+  if (authLoading || !isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout title="Dashboard" subtitle="Welcome back, Admin">

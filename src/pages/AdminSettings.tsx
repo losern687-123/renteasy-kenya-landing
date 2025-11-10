@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +12,17 @@ import { Settings, Lock, Bell } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const AdminSettings = () => {
+  const { isAuthorized, isLoading: authLoading } = useAdminAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [loginAlerts, setLoginAlerts] = useState(true);
+
+  useEffect(() => {
+    // Any initialization can go here
+  }, []);
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
@@ -48,6 +54,17 @@ const AdminSettings = () => {
       setIsChangingPassword(false);
     }
   };
+
+  if (authLoading || !isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout title="Settings" subtitle="Manage admin account settings and preferences">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ interface LandlordApplication {
 }
 
 const AdminLandlords = () => {
+  const { isAuthorized, isLoading: authLoading } = useAdminAuth();
   const [applications, setApplications] = useState<LandlordApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -47,8 +49,10 @@ const AdminLandlords = () => {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
 
   useEffect(() => {
-    fetchApplications();
-  }, []);
+    if (isAuthorized) {
+      fetchApplications();
+    }
+  }, [isAuthorized]);
 
   const fetchApplications = async () => {
     try {
@@ -111,6 +115,17 @@ const AdminLandlords = () => {
   const pendingCount = applications.filter(app => app.status === 'pending').length;
   const approvedCount = applications.filter(app => app.status === 'approved').length;
   const rejectedCount = applications.filter(app => app.status === 'rejected').length;
+
+  if (authLoading || !isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout title="Landlords" subtitle="Manage landlord applications and verifications">

@@ -102,6 +102,13 @@ serve(async (req) => {
         }
       });
 
+    // Get applicant profile for email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', application.user_id)
+      .single();
+
     // If approved, update user role to landlord
     if (approved) {
       const { error: roleError } = await supabase
@@ -141,6 +148,29 @@ serve(async (req) => {
       if (notifError) {
         console.error('Error creating notification:', notifError);
       }
+    }
+
+    // Send email notification via Resend
+    try {
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      const supabaseServiceClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        serviceRoleKey ?? '',
+      );
+
+      await supabaseServiceClient.functions.invoke('notify-landlord', {
+        body: {
+          userId: application.user_id,
+          approved,
+          rejectionReason,
+          userName: profile?.name,
+          userEmail: profile?.email,
+        }
+      });
+      console.log('Email notification sent successfully');
+    } catch (emailError: any) {
+      console.error('Failed to send email notification:', emailError);
+      // Don't fail the entire operation if email fails
     }
 
     return new Response(

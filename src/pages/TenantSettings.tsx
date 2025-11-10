@@ -176,62 +176,94 @@ export default function TenantSettings() {
       return;
     }
 
+    // Validate code format
+    if (landlordCode.length !== 8) {
+      toast.error("Landlord code must be 8 characters");
+      return;
+    }
+
     setIsUpdating(true);
 
-    // Find landlord by code
-    const { data: landlordProfile, error: landlordError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("landlord_code", landlordCode.toUpperCase())
-      .single();
+    try {
+      // Find landlord by code with role verification
+      const { data: landlordProfile, error: landlordError } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          user_roles!inner(role)
+        `)
+        .eq("landlord_code", landlordCode.toUpperCase())
+        .single();
 
-    if (landlordError || !landlordProfile) {
-      toast.error("Invalid landlord code");
-      setIsUpdating(false);
-      return;
-    }
+      if (landlordError || !landlordProfile) {
+        toast.error("Invalid landlord code");
+        setIsUpdating(false);
+        return;
+      }
 
-    // Check if already connected
-    const { data: existingTenant } = await supabase
-      .from("tenants")
-      .select("id")
-      .eq("id", user.id)
-      .single();
+      // Verify landlord role
+      const userRole = (landlordProfile as any).user_roles?.role;
+      if (userRole !== 'landlord') {
+        toast.error("Invalid landlord code");
+        setIsUpdating(false);
+        return;
+      }
 
-    if (existingTenant) {
-      toast.error("You are already connected to a landlord");
-      setIsUpdating(false);
-      return;
-    }
+      // Check landlord application status
+      const { data: application } = await supabase
+        .from("landlord_applications")
+        .select("status")
+        .eq("user_id", landlordProfile.id)
+        .single();
 
-    // Get profile data
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name, email")
-      .eq("id", user.id)
-      .single();
+      if (!application || application.status !== 'approved') {
+        toast.error("Landlord account not yet verified by admin");
+        setIsUpdating(false);
+        return;
+      }
 
-    // Create tenant connection
-    const { error } = await supabase
-      .from("tenants")
-      .insert({
-        id: user.id,
-        landlord_id: landlordProfile.id,
-        name: profile?.name || "",
-        email: profile?.email || "",
-        phone: user.phone || "",
-        verification_status: "pending",
-      });
+      // Check if already connected
+      const { data: existingTenant } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("id", user.id)
+        .single();
 
-    setIsUpdating(false);
+      if (existingTenant) {
+        toast.error("You are already connected to a landlord");
+        setIsUpdating(false);
+        return;
+      }
 
-    if (error) {
-      toast.error("Failed to connect with landlord");
-      console.error(error);
-    } else {
+      // Get profile data
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Create tenant connection
+      const { error } = await supabase
+        .from("tenants")
+        .insert({
+          id: user.id,
+          landlord_id: landlordProfile.id,
+          name: profile?.name || "",
+          email: profile?.email || "",
+          phone: user.phone || "",
+          verification_status: "pending",
+        });
+
+      if (error) throw error;
+
       toast.success("Connection request sent to landlord");
       setConnectionStatus("pending");
       setLandlordCode("");
+    } catch (error: any) {
+      console.error("Connection error:", error);
+      toast.error("Failed to connect with landlord");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
