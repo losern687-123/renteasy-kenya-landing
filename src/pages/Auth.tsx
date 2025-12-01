@@ -9,6 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 import { Building2, UserCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { useRoleRedirect } from "@/hooks/useRoleRedirect";
 
 const emailSchema = z.string().email("Invalid email address").max(255, "Email must be less than 255 characters");
 const passwordSchema = z.string()
@@ -21,6 +22,7 @@ const nameSchema = z.string().trim().min(1, "Name cannot be empty").max(100, "Na
 
 export default function Auth() {
   const { user, signUp, signIn, loading } = useAuth();
+  const { redirectBasedOnRole } = useRoleRedirect();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +31,8 @@ export default function Auth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (user && !loading) {
-    return <Navigate to="/" replace />;
+    redirectBasedOnRole();
+    return null;
   }
 
   const validateInputs = () => {
@@ -68,6 +71,9 @@ export default function Auth() {
             description: error.message,
             variant: "destructive",
           });
+        } else {
+          // Redirect after successful login
+          await redirectBasedOnRole();
         }
       } else {
         const { error } = await signUp(email, password, name, role);
@@ -85,6 +91,9 @@ export default function Auth() {
               variant: "destructive",
             });
           }
+        } else {
+          // Redirect after successful signup
+          await redirectBasedOnRole();
         }
       }
     } finally {
