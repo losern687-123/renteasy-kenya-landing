@@ -164,6 +164,7 @@ export type Database = {
           email: string
           id: string
           landlord_code: string | null
+          landlord_id: string | null
           name: string
           payment_alerts_enabled: boolean | null
           rent_reminders_enabled: boolean | null
@@ -174,6 +175,7 @@ export type Database = {
           email: string
           id: string
           landlord_code?: string | null
+          landlord_id?: string | null
           name: string
           payment_alerts_enabled?: boolean | null
           rent_reminders_enabled?: boolean | null
@@ -184,6 +186,7 @@ export type Database = {
           email?: string
           id?: string
           landlord_code?: string | null
+          landlord_id?: string | null
           name?: string
           payment_alerts_enabled?: boolean | null
           rent_reminders_enabled?: boolean | null
@@ -272,6 +275,7 @@ export type Database = {
           email: string
           id: string
           landlord_id: string
+          linked_landlord_id: string | null
           name: string
           phone: string
           property_id: string | null
@@ -284,6 +288,7 @@ export type Database = {
           email: string
           id?: string
           landlord_id: string
+          linked_landlord_id?: string | null
           name: string
           phone: string
           property_id?: string | null
@@ -296,6 +301,7 @@ export type Database = {
           email?: string
           id?: string
           landlord_id?: string
+          linked_landlord_id?: string | null
           name?: string
           phone?: string
           property_id?: string | null
@@ -337,6 +343,7 @@ export type Database = {
     }
     Functions: {
       generate_landlord_code: { Args: never; Returns: string }
+      generate_unique_landlord_id: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

@@ -14,6 +14,7 @@ interface NotifyLandlordRequest {
   rejectionReason?: string;
   userName?: string;
   userEmail?: string;
+  landlordId?: string;
 }
 
 serve(async (req) => {
@@ -59,9 +60,9 @@ serve(async (req) => {
       );
     }
 
-    const { userId, approved, rejectionReason, userName, userEmail }: NotifyLandlordRequest = await req.json();
+    const { userId, approved, rejectionReason, userName, userEmail, landlordId }: NotifyLandlordRequest = await req.json();
     
-    console.log('Sending landlord notification email:', { userId, approved, userEmail });
+    console.log('Sending landlord notification email:', { userId, approved, userEmail, landlordId });
 
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -83,6 +84,7 @@ serve(async (req) => {
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+              .landlord-id { background: white; padding: 20px; border: 2px solid #667eea; border-radius: 8px; text-align: center; margin: 20px 0; }
               .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
               .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
             </style>
@@ -95,6 +97,14 @@ serve(async (req) => {
               <div class="content">
                 <h2>Welcome to RentEasy Kenya, ${userName || 'Landlord'}!</h2>
                 <p>We're excited to inform you that your landlord application has been <strong>approved</strong>!</p>
+                
+                <div class="landlord-id">
+                  <p style="margin: 0; font-size: 14px; color: #666;">Your Unique Landlord ID:</p>
+                  <p style="margin: 8px 0 0 0; font-size: 28px; font-weight: bold; color: #667eea;">${landlordId || 'N/A'}</p>
+                </div>
+                
+                <p><strong>Important:</strong> Share this Landlord ID with your tenants so they can link their accounts to you during registration.</p>
+                
                 <p>You can now access all landlord features including:</p>
                 <ul>
                   <li>Property management</li>
@@ -183,6 +193,7 @@ serve(async (req) => {
         details: {
           email: userEmail,
           approved,
+          landlordId,
           sent_at: new Date().toISOString(),
         }
       });

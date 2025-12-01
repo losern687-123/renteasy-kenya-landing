@@ -109,7 +109,7 @@ serve(async (req) => {
       .eq('id', application.user_id)
       .single();
 
-    // If approved, update user role to landlord
+    // If approved, update user role to landlord and generate landlord ID
     if (approved) {
       const { error: roleError } = await supabase
         .from('user_roles')
@@ -119,6 +119,29 @@ serve(async (req) => {
       if (roleError) {
         console.error('Error updating user role:', roleError);
         throw new Error('Failed to update user role');
+      }
+
+      // Generate unique landlord ID
+      const { data: landlordIdData, error: landlordIdError } = await supabase
+        .rpc('generate_unique_landlord_id');
+
+      if (landlordIdError || !landlordIdData) {
+        console.error('Error generating landlord ID:', landlordIdError);
+        throw new Error('Failed to generate landlord ID');
+      }
+
+      const landlordId = landlordIdData as string;
+      console.log('Generated landlord ID:', landlordId);
+
+      // Update profile with landlord ID
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ landlord_id: landlordId })
+        .eq('id', application.user_id);
+
+      if (profileError) {
+        console.error('Error updating profile with landlord ID:', profileError);
+        throw new Error('Failed to update profile with landlord ID');
       }
 
       // Create notification for the user
@@ -158,6 +181,17 @@ serve(async (req) => {
         serviceRoleKey ?? '',
       );
 
+      // Get landlord ID for approved applications
+      let landlordId = null;
+      if (approved) {
+        const { data: profileData } = await supabaseServiceClient
+          .from('profiles')
+          .select('landlord_id')
+          .eq('id', application.user_id)
+          .single();
+        landlordId = profileData?.landlord_id;
+      }
+
       await supabaseServiceClient.functions.invoke('notify-landlord', {
         body: {
           userId: application.user_id,
@@ -165,6 +199,7 @@ serve(async (req) => {
           rejectionReason,
           userName: profile?.name,
           userEmail: profile?.email,
+          landlordId,
         }
       });
       console.log('Email notification sent successfully');
