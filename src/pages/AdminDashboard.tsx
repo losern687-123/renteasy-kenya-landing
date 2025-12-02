@@ -7,9 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, CheckCircle, XCircle, Clock, Building2, DollarSign, TrendingUp, FileText } from "lucide-react";
+import { 
+  Users, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Building2, 
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown,
+  FileText,
+  Activity,
+  Eye,
+  MoreHorizontal
+} from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { MetricCard } from "@/components/admin/MetricCard";
 import { 
   BarChart, 
   Bar, 
@@ -20,8 +32,28 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  Legend
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area
 } from "recharts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
 
 interface LandlordApplication {
   id: string;
@@ -35,19 +67,37 @@ interface LandlordApplication {
   profiles: {
     name: string;
     email: string;
+    landlord_id: string | null;
   };
+}
+
+interface DashboardMetrics {
+  totalTenants: number;
+  totalLandlords: number;
+  pendingApplications: number;
+  totalPayments: number;
+  monthlyRevenue: number;
 }
 
 const AdminDashboard = () => {
   const { isAuthorized, isLoading: authLoading } = useAdminAuth();
   const [applications, setApplications] = useState<LandlordApplication[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalTenants: 0,
+    totalLandlords: 0,
+    pendingApplications: 0,
+    totalPayments: 0,
+    monthlyRevenue: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<{ [key: string]: string }>({});
+  const [showRejectionInput, setShowRejectionInput] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthorized) {
       fetchApplications();
+      fetchMetrics();
     }
   }, [isAuthorized]);
 
@@ -59,7 +109,8 @@ const AdminDashboard = () => {
           *,
           profiles (
             name,
-            email
+            email,
+            landlord_id
           )
         `)
         .order('created_at', { ascending: false });
@@ -71,6 +122,28 @@ const AdminDashboard = () => {
       toast.error("Failed to load applications");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchMetrics = async () => {
+    try {
+      const [tenantsRes, landlordsRes, paymentsRes] = await Promise.all([
+        supabase.from('tenants').select('id', { count: 'exact', head: true }),
+        supabase.from('landlord_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+        supabase.from('rent_records').select('amount').eq('status', 'paid')
+      ]);
+
+      const totalRevenue = paymentsRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+      setMetrics({
+        totalTenants: tenantsRes.count || 0,
+        totalLandlords: landlordsRes.count || 0,
+        pendingApplications: applications.filter(a => a.status === 'pending').length,
+        totalPayments: paymentsRes.data?.length || 0,
+        monthlyRevenue: totalRevenue
+      });
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
     }
   };
 
@@ -96,6 +169,7 @@ const AdminDashboard = () => {
           delete newState[applicationId];
           return newState;
         });
+        setShowRejectionInput(null);
       } else {
         toast.error(data.error || "Failed to process application");
       }
@@ -107,115 +181,39 @@ const AdminDashboard = () => {
     }
   };
 
-  const ApplicationCard = ({ app }: { app: LandlordApplication }) => (
-    <Card className="border-border/50 hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{app.profiles.name}</CardTitle>
-            <CardDescription className="text-sm">{app.profiles.email}</CardDescription>
-          </div>
-          <Badge 
-            variant={
-              app.status === 'approved' ? 'default' :
-              app.status === 'rejected' ? 'destructive' : 'secondary'
-            }
-            className="capitalize"
-          >
-            {app.status}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">National ID</p>
-            <p className="font-medium">{app.national_id}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">KRA PIN</p>
-            <p className="font-medium">{app.kra_pin}</p>
-          </div>
-        </div>
-        
-        {app.document_url && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={app.document_url} target="_blank" rel="noopener noreferrer">
-              View Document
-            </a>
-          </Button>
-        )}
-
-        {app.status === 'pending' && (
-          <div className="space-y-3 pt-2 border-t">
-            <Textarea
-              placeholder="Reason for rejection (optional)"
-              value={rejectionReason[app.id] || ''}
-              onChange={(e) => setRejectionReason(prev => ({
-                ...prev,
-                [app.id]: e.target.value
-              }))}
-              className="min-h-[80px]"
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleApproval(app.id, true)}
-                disabled={processingId === app.id}
-                className="flex-1"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Approve
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleApproval(app.id, false)}
-                disabled={processingId === app.id}
-                className="flex-1"
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Reject
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {app.status === 'rejected' && app.rejection_reason && (
-          <div className="pt-2 border-t">
-            <p className="text-sm text-muted-foreground">Rejection Reason:</p>
-            <p className="text-sm">{app.rejection_reason}</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-
   const pendingApps = applications.filter(app => app.status === 'pending');
   const approvedApps = applications.filter(app => app.status === 'approved');
   const rejectedApps = applications.filter(app => app.status === 'rejected');
 
-  // Mock data for charts
+  // Chart data
   const weeklyData = [
-    { name: 'Mon', applications: 4 },
-    { name: 'Tue', applications: 3 },
-    { name: 'Wed', applications: 7 },
-    { name: 'Thu', applications: 5 },
-    { name: 'Fri', applications: 6 },
-    { name: 'Sat', applications: 2 },
-    { name: 'Sun', applications: 3 },
+    { name: 'Mon', applications: 4, payments: 12 },
+    { name: 'Tue', applications: 3, payments: 8 },
+    { name: 'Wed', applications: 7, payments: 15 },
+    { name: 'Thu', applications: 5, payments: 11 },
+    { name: 'Fri', applications: 6, payments: 18 },
+    { name: 'Sat', applications: 2, payments: 6 },
+    { name: 'Sun', applications: 3, payments: 4 },
   ];
 
-  const monthlyPayments = [
-    { month: 'Jan', amount: 45000 },
-    { month: 'Feb', amount: 52000 },
-    { month: 'Mar', amount: 48000 },
-    { month: 'Apr', amount: 61000 },
-    { month: 'May', amount: 55000 },
-    { month: 'Jun', amount: 67000 },
+  const applicationStatusData = [
+    { name: 'Approved', value: approvedApps.length, color: 'hsl(var(--primary))' },
+    { name: 'Pending', value: pendingApps.length, color: 'hsl(45 90% 55%)' },
+    { name: 'Rejected', value: rejectedApps.length, color: 'hsl(var(--destructive))' },
+  ];
+
+  const monthlyTrend = [
+    { month: 'Jul', landlords: 12, tenants: 45 },
+    { month: 'Aug', landlords: 18, tenants: 62 },
+    { month: 'Sep', landlords: 24, tenants: 78 },
+    { month: 'Oct', landlords: 31, tenants: 95 },
+    { month: 'Nov', landlords: 38, tenants: 112 },
+    { month: 'Dec', landlords: 45, tenants: 134 },
   ];
 
   if (authLoading || !isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
@@ -225,155 +223,436 @@ const AdminDashboard = () => {
   }
 
   return (
-    <AdminLayout title="Dashboard" subtitle="Welcome back, Admin">
-      <div className="space-y-6">
-        {/* Metrics Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Total Landlords"
-            value={approvedApps.length}
-            change="+12%"
-            trend="up"
-            icon={Building2}
-            iconColor="text-primary"
-            iconBgColor="bg-primary/10"
-          />
-          <MetricCard
-            title="Pending Applications"
-            value={pendingApps.length}
-            icon={Clock}
-            iconColor="text-amber-600"
-            iconBgColor="bg-amber-600/10"
-          />
-          <MetricCard
-            title="Monthly Revenue"
-            value="KES 67,000"
-            change="+22%"
-            trend="up"
-            icon={DollarSign}
-            iconColor="text-green-600"
-            iconBgColor="bg-green-600/10"
-          />
-          <MetricCard
-            title="Active Tenants"
-            value="156"
-            change="+8%"
-            trend="up"
-            icon={Users}
-            iconColor="text-blue-600"
-            iconBgColor="bg-blue-600/10"
-          />
-        </div>
-
-        {/* Charts */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Weekly Applications</CardTitle>
-              <CardDescription>New landlord applications this week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Bar dataKey="applications" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+    <AdminLayout title="Dashboard Overview" subtitle="Monitor platform performance and manage applications">
+      <div className="space-y-8">
+        {/* Quick Stats Row */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Landlords</p>
+                  <p className="text-3xl font-bold text-primary">{approvedApps.length}</p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-sm">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-green-500 font-medium">+12%</span>
+                <span className="text-muted-foreground ml-1">vs last month</span>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
+                  <p className="text-3xl font-bold text-amber-600">{pendingApps.length}</p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-sm">
+                <span className="text-muted-foreground">Requires attention</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                  <p className="text-3xl font-bold text-destructive">{rejectedApps.length}</p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-destructive/20 flex items-center justify-center">
+                  <XCircle className="h-6 w-6 text-destructive" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-sm">
+                <span className="text-muted-foreground">Total rejections</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Tenants</p>
+                  <p className="text-3xl font-bold text-blue-600">{metrics.totalTenants}</p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-sm">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-green-500 font-medium">+8%</span>
+                <span className="text-muted-foreground ml-1">growth</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+                  <p className="text-3xl font-bold text-green-600">KES {metrics.monthlyRevenue.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-sm">
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-green-500 font-medium">+22%</span>
+                <span className="text-muted-foreground ml-1">this month</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2 border-border/50 bg-card/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Payment Trends</CardTitle>
-              <CardDescription>Total rent payments processed</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Platform Growth
+              </CardTitle>
+              <CardDescription>Monthly landlord and tenant registrations</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyPayments}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" />
-                  <YAxis className="text-xs" />
+                <AreaChart data={monthlyTrend}>
+                  <defs>
+                    <linearGradient id="landlordGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="tenantGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(220 70% 50%)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(220 70% 50%)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+                  <XAxis dataKey="month" className="text-xs" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis className="text-xs" stroke="hsl(var(--muted-foreground))" />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                   />
                   <Legend />
-                  <Line 
+                  <Area 
                     type="monotone" 
-                    dataKey="amount" 
+                    dataKey="landlords" 
                     stroke="hsl(var(--primary))" 
+                    fillOpacity={1}
+                    fill="url(#landlordGradient)"
                     strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))' }}
                   />
-                </LineChart>
+                  <Area 
+                    type="monotone" 
+                    dataKey="tenants" 
+                    stroke="hsl(220 70% 50%)" 
+                    fillOpacity={1}
+                    fill="url(#tenantGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Application Status
+              </CardTitle>
+              <CardDescription>Distribution of landlord applications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={applicationStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={4}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {applicationStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center gap-4 mt-4">
+                {applicationStatusData.map((item) => (
+                  <div key={item.name} className="flex items-center gap-2">
+                    <div 
+                      className="h-3 w-3 rounded-full" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-sm text-muted-foreground">{item.name}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Applications Section */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        {/* Applications Table */}
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Landlord Applications</CardTitle>
-                <CardDescription>Review and manage landlord applications</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Landlord Applications
+                </CardTitle>
+                <CardDescription>Review and manage landlord verification requests</CardDescription>
               </div>
-              <FileText className="h-8 w-8 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
+                  {pendingApps.length} Pending
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="pending" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="pending" className="gap-2">
+              <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+                <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700">
                   <Clock className="h-4 w-4" />
                   Pending ({pendingApps.length})
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="gap-2">
+                <TabsTrigger value="approved" className="gap-2 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-700">
                   <CheckCircle className="h-4 w-4" />
                   Approved ({approvedApps.length})
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="gap-2">
+                <TabsTrigger value="rejected" className="gap-2 data-[state=active]:bg-destructive/20 data-[state=active]:text-destructive">
                   <XCircle className="h-4 w-4" />
                   Rejected ({rejectedApps.length})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="pending" className="space-y-4">
+              <TabsContent value="pending">
                 {isLoading ? (
-                  <p className="text-center text-muted-foreground py-8">Loading...</p>
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
                 ) : pendingApps.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No pending applications</p>
+                  <div className="text-center py-12">
+                    <Clock className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No pending applications</p>
+                  </div>
                 ) : (
-                  pendingApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                  <div className="rounded-lg border border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Applicant</TableHead>
+                          <TableHead>National ID</TableHead>
+                          <TableHead>KRA PIN</TableHead>
+                          <TableHead>Applied</TableHead>
+                          <TableHead>Document</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingApps.map((app) => (
+                          <TableRow key={app.id} className="hover:bg-muted/20">
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{app.profiles.name}</p>
+                                <p className="text-sm text-muted-foreground">{app.profiles.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
+                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {format(new Date(app.created_at), 'MMM dd, yyyy')}
+                            </TableCell>
+                            <TableCell>
+                              {app.document_url ? (
+                                <a 
+                                  href={app.document_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-1 text-sm"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  View
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">None</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {showRejectionInput === app.id ? (
+                                <div className="flex flex-col gap-2 items-end">
+                                  <Textarea
+                                    placeholder="Reason for rejection..."
+                                    value={rejectionReason[app.id] || ''}
+                                    onChange={(e) => setRejectionReason(prev => ({
+                                      ...prev,
+                                      [app.id]: e.target.value
+                                    }))}
+                                    className="w-64 min-h-[60px] text-sm"
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setShowRejectionInput(null)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleApproval(app.id, false)}
+                                      disabled={processingId === app.id}
+                                    >
+                                      Confirm Reject
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleApproval(app.id, true)}
+                                    disabled={processingId === app.id}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => setShowRejectionInput(app.id)}
+                                    disabled={processingId === app.id}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="approved" className="space-y-4">
+              <TabsContent value="approved">
                 {approvedApps.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No approved applications</p>
+                  <div className="text-center py-12">
+                    <CheckCircle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No approved applications yet</p>
+                  </div>
                 ) : (
-                  approvedApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                  <div className="rounded-lg border border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Landlord</TableHead>
+                          <TableHead>Landlord ID</TableHead>
+                          <TableHead>National ID</TableHead>
+                          <TableHead>KRA PIN</TableHead>
+                          <TableHead>Approved Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {approvedApps.map((app) => (
+                          <TableRow key={app.id} className="hover:bg-muted/20">
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{app.profiles.name}</p>
+                                <p className="text-sm text-muted-foreground">{app.profiles.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-mono bg-primary/10 text-primary border-primary/30">
+                                {app.profiles.landlord_id || 'N/A'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
+                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {format(new Date(app.created_at), 'MMM dd, yyyy')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="rejected" className="space-y-4">
+              <TabsContent value="rejected">
                 {rejectedApps.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No rejected applications</p>
+                  <div className="text-center py-12">
+                    <XCircle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No rejected applications</p>
+                  </div>
                 ) : (
-                  rejectedApps.map(app => <ApplicationCard key={app.id} app={app} />)
+                  <div className="rounded-lg border border-border/50 overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Applicant</TableHead>
+                          <TableHead>National ID</TableHead>
+                          <TableHead>KRA PIN</TableHead>
+                          <TableHead>Rejected Date</TableHead>
+                          <TableHead>Reason</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rejectedApps.map((app) => (
+                          <TableRow key={app.id} className="hover:bg-muted/20">
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{app.profiles.name}</p>
+                                <p className="text-sm text-muted-foreground">{app.profiles.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
+                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {format(new Date(app.created_at), 'MMM dd, yyyy')}
+                            </TableCell>
+                            <TableCell>
+                              <p className="text-sm text-destructive max-w-xs truncate">
+                                {app.rejection_reason || 'No reason provided'}
+                              </p>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </TabsContent>
             </Tabs>

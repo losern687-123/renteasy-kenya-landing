@@ -8,10 +8,13 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   userRole: 'tenant' | 'landlord' | 'admin' | null;
+  landlordStatus: 'pending' | 'approved' | 'rejected' | null;
+  isApprovedLandlord: boolean;
   signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
+  refreshLandlordStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,8 +23,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<'tenant' | 'landlord' | 'admin' | null>(null);
+  const [landlordStatus, setLandlordStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const fetchLandlordStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from('landlord_applications')
+      .select('status')
+      .eq('user_id', userId)
+      .single();
+    
+    if (data) {
+      setLandlordStatus(data.status as 'pending' | 'approved' | 'rejected');
+    } else {
+      setLandlordStatus(null);
+    }
+  };
+
+  const refreshLandlordStatus = async () => {
+    if (user) {
+      await fetchLandlordStatus(user.id);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -30,7 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch user role when authenticated
+        // Fetch user role and landlord status when authenticated
         if (session?.user) {
           setTimeout(async () => {
             const { data } = await supabase
@@ -41,10 +65,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             
             if (data) {
               setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
+              
+              // Fetch landlord status if user is a landlord
+              if (data.role === 'landlord') {
+                await fetchLandlordStatus(session.user.id);
+              }
             }
           }, 0);
         } else {
           setUserRole(null);
+          setLandlordStatus(null);
         }
         
         setLoading(false);
@@ -66,6 +96,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (data) {
             setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
+            
+            // Fetch landlord status if user is a landlord
+            if (data.role === 'landlord') {
+              await fetchLandlordStatus(session.user.id);
+            }
           }
           setLoading(false);
         }, 0);
@@ -76,6 +111,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
   const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord') => {
     const redirectUrl = `${window.location.origin}/`;
@@ -98,12 +135,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Welcome to RentEasy Kenya",
       });
       
-      // Redirect based on role
+      // Redirect based on role - landlords go to pending page
       setTimeout(() => {
         if (role === 'tenant') {
           navigate('/tenant-dashboard');
         } else {
-          navigate('/landlord-dashboard');
+          // New landlords are pending by default
+          navigate('/landlord/pending');
         }
       }, 500);
     }
@@ -118,15 +156,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (!error && data.user) {
-      // Fetch role and profile to redirect appropriately
-      const [roleResponse, profileResponse] = await Promise.all([
+      // Fetch role, profile, and landlord application status
+      const [roleResponse, profileResponse, applicationResponse] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', data.user.id).single(),
-        supabase.from('profiles').select('name').eq('id', data.user.id).single()
+        supabase.from('profiles').select('name').eq('id', data.user.id).single(),
+        supabase.from('landlord_applications').select('status').eq('user_id', data.user.id).single()
       ]);
 
       if (roleResponse.data) {
         const role = roleResponse.data.role as 'tenant' | 'landlord' | 'admin';
         const userName = profileResponse.data?.name || 'User';
+        const applicationStatus = applicationResponse.data?.status as 'pending' | 'approved' | 'rejected' | null;
         
         // Check if this is first login by comparing created_at and last_sign_in_at
         const createdAt = new Date(data.user.created_at).getTime();
@@ -143,8 +183,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             navigate('/admin/dashboard');
           } else if (role === 'tenant') {
             navigate('/tenant-dashboard');
-          } else {
-            navigate('/landlord-dashboard');
+          } else if (role === 'landlord') {
+            // Redirect based on landlord application status
+            if (applicationStatus === 'approved') {
+              navigate('/landlord-dashboard');
+            } else if (applicationStatus === 'rejected') {
+              navigate('/landlord/rejected');
+            } else {
+              navigate('/landlord/pending');
+            }
           }
         }, 500);
       }
@@ -156,6 +203,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserRole(null);
+    setLandlordStatus(null);
     toast({
       title: "Signed out",
       description: "You have been signed out successfully",
@@ -164,7 +212,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, userRole, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      userRole, 
+      landlordStatus,
+      isApprovedLandlord,
+      signUp, 
+      signIn, 
+      signOut, 
+      loading,
+      refreshLandlordStatus
+    }}>
       {children}
     </AuthContext.Provider>
   );
