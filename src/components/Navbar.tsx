@@ -7,16 +7,10 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "Dashboard", path: "/tenant-dashboard", auth: true },
-  { name: "Waitlist", path: "/waitlist" },
-];
-
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, userRole, isApprovedLandlord, landlordStatus } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -27,6 +21,34 @@ export const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Build navigation links based on user role and status
+  const getNavLinks = () => {
+    const links = [{ name: "Home", path: "/" }];
+    
+    if (user) {
+      if (userRole === 'tenant') {
+        links.push({ name: "Dashboard", path: "/tenant-dashboard" });
+        links.push({ name: "Apply as Landlord", path: "/apply-landlord" });
+      } else if (userRole === 'landlord') {
+        if (isApprovedLandlord) {
+          links.push({ name: "Dashboard", path: "/landlord-dashboard" });
+        } else if (landlordStatus === 'pending') {
+          links.push({ name: "Verification Status", path: "/landlord/pending" });
+        } else if (landlordStatus === 'rejected') {
+          links.push({ name: "Application Status", path: "/landlord/rejected" });
+        }
+      } else if (userRole === 'admin') {
+        links.push({ name: "Admin Dashboard", path: "/admin/dashboard" });
+      }
+    }
+    
+    links.push({ name: "Waitlist", path: "/waitlist" });
+    
+    return links;
+  };
+
+  const navLinks = getNavLinks();
 
   const isActivePath = (path: string) => {
     if (path.startsWith("/#")) return false;
@@ -62,22 +84,20 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks
-              .filter((link) => !link.auth || user)
-              .map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    "relative text-sm font-medium transition-colors hover:text-primary story-link",
-                    isActivePath(link.path)
-                      ? "text-primary font-semibold"
-                      : "text-foreground/80"
-                  )}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={cn(
+                  "relative text-sm font-medium transition-colors hover:text-primary story-link",
+                  isActivePath(link.path)
+                    ? "text-primary font-semibold"
+                    : "text-foreground/80"
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
 
           {/* Desktop Actions */}
@@ -122,23 +142,21 @@ export const Navbar = () => {
           )}
         >
           <div className="flex flex-col gap-2 pt-4 animate-fade-in">
-            {navLinks
-              .filter((link) => !link.auth || user)
-              .map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={handleLinkClick}
-                  className={cn(
-                    "px-4 py-2 rounded-lg transition-colors hover:bg-muted",
-                    isActivePath(link.path)
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-foreground/80"
-                  )}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={handleLinkClick}
+                className={cn(
+                  "px-4 py-2 rounded-lg transition-colors hover:bg-muted",
+                  isActivePath(link.path)
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-foreground/80"
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
 
             <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
               {user ? (
