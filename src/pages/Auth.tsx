@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { Link, Navigate } from "react-router-dom";
-import { Building2, UserCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Building2, UserCircle, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
+import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.string().email("Invalid email address").max(255, "Email must be less than 255 characters");
 const passwordSchema = z.string()
@@ -19,6 +20,7 @@ const passwordSchema = z.string()
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 const nameSchema = z.string().trim().min(1, "Name cannot be empty").max(100, "Name must be less than 100 characters");
+const landlordIdSchema = z.string().trim().min(1, "Landlord ID is required").regex(/^LND-\d{6}$/, "Invalid Landlord ID format (e.g., LND-123456)");
 
 export default function Auth() {
   const { user, signUp, signIn, loading } = useAuth();
@@ -28,19 +30,80 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
+  const [landlordId, setLandlordId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingLandlord, setIsValidatingLandlord] = useState(false);
 
   if (user && !loading) {
     redirectBasedOnRole();
     return null;
   }
 
-  const validateInputs = () => {
+  const validateLandlordId = async (id: string): Promise<{ valid: boolean; error?: string }> => {
+    try {
+      // Check if landlord ID exists in profiles and if they're approved
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, landlord_id')
+        .eq('landlord_id', id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error checking landlord ID:', profileError);
+        return { valid: false, error: "Error validating landlord ID. Please try again." };
+      }
+
+      if (!profile) {
+        return { valid: false, error: "This landlord ID does not exist." };
+      }
+
+      // Check if landlord is approved
+      const { data: application, error: appError } = await supabase
+        .from('landlord_applications')
+        .select('status')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+
+      if (appError) {
+        console.error('Error checking landlord application:', appError);
+        return { valid: false, error: "Error validating landlord status. Please try again." };
+      }
+
+      if (!application || application.status !== 'approved') {
+        return { valid: false, error: "This landlord ID is not approved yet." };
+      }
+
+      return { valid: true };
+    } catch (error) {
+      console.error('Unexpected error validating landlord:', error);
+      return { valid: false, error: "An unexpected error occurred." };
+    }
+  };
+
+  const validateInputs = async () => {
     try {
       emailSchema.parse(email);
       passwordSchema.parse(password);
       if (!isLogin) {
         nameSchema.parse(name);
+        
+        // For tenants, validate landlord ID
+        if (role === 'tenant') {
+          landlordIdSchema.parse(landlordId);
+          
+          setIsValidatingLandlord(true);
+          const validation = await validateLandlordId(landlordId);
+          setIsValidatingLandlord(false);
+          
+          if (!validation.valid) {
+            toast({
+              title: "Invalid Landlord ID",
+              description: validation.error,
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
       }
       return true;
     } catch (error) {
@@ -58,7 +121,8 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateInputs()) return;
+    const isValid = await validateInputs();
+    if (!isValid) return;
     
     setIsSubmitting(true);
 
@@ -72,11 +136,11 @@ export default function Auth() {
             variant: "destructive",
           });
         } else {
-          // Redirect after successful login
           await redirectBasedOnRole();
         }
       } else {
-        const { error } = await signUp(email, password, name, role);
+        // Pass landlord ID for tenant registration
+        const { error } = await signUp(email, password, name, role, role === 'tenant' ? landlordId : undefined);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({
@@ -92,7 +156,6 @@ export default function Auth() {
             });
           }
         } else {
-          // Redirect after successful signup
           await redirectBasedOnRole();
         }
       }
@@ -154,6 +217,25 @@ export default function Auth() {
                       </TabsList>
                     </Tabs>
                   </div>
+
+                  {role === 'tenant' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="landlordId">Landlord ID Number</Label>
+                      <Input
+                        id="landlordId"
+                        type="text"
+                        placeholder="LND-123456"
+                        value={landlordId}
+                        onChange={(e) => setLandlordId(e.target.value.toUpperCase())}
+                        required
+                        maxLength={10}
+                        className="uppercase"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Ask your landlord for their unique ID (e.g., LND-123456)
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -183,8 +265,17 @@ export default function Auth() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Please wait..." : (isLogin ? "Login" : "Create Account")}
+              <Button type="submit" className="w-full" disabled={isSubmitting || isValidatingLandlord}>
+                {isValidatingLandlord ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Validating Landlord...
+                  </>
+                ) : isSubmitting ? (
+                  "Please wait..."
+                ) : (
+                  isLogin ? "Login" : "Create Account"
+                )}
               </Button>
             </form>
           </CardContent>

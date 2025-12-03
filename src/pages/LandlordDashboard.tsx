@@ -6,7 +6,8 @@ import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Home, DollarSign, LogOut, Building2, UserPlus, Receipt } from "lucide-react";
+import { Users, Home, DollarSign, LogOut, Receipt, Copy, CheckCircle, IdCard } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AddPropertyForm from "@/components/landlord/AddPropertyForm";
 import AddTenantForm from "@/components/landlord/AddTenantForm";
@@ -33,6 +34,8 @@ export default function LandlordDashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [userName, setUserName] = useState("");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [landlordId, setLandlordId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -71,12 +74,27 @@ export default function LandlordDashboard() {
     
     const { data } = await supabase
       .from("profiles")
-      .select("name")
+      .select("name, landlord_id")
       .eq("id", user.id)
       .single();
 
     if (data?.name) {
       setUserName(data.name);
+    }
+    if (data?.landlord_id) {
+      setLandlordId(data.landlord_id);
+    }
+  };
+
+  const copyLandlordId = () => {
+    if (landlordId) {
+      navigator.clipboard.writeText(landlordId);
+      setCopiedId(true);
+      toast({
+        title: "Copied!",
+        description: "Landlord ID copied to clipboard. Share it with your tenants.",
+      });
+      setTimeout(() => setCopiedId(false), 2000);
     }
   };
 
@@ -176,13 +194,50 @@ export default function LandlordDashboard() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        <div className="mb-8 space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight">
-            {userName ? `Welcome back, ${userName}` : "Landlord Dashboard"}
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            Manage your properties and track rent payments effortlessly.
-          </p>
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h2 className="text-4xl font-bold tracking-tight">
+                {userName ? `Welcome back, ${userName}` : "Landlord Dashboard"}
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Manage your properties and track rent payments effortlessly.
+              </p>
+            </div>
+            
+            {landlordId && (
+              <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm w-full sm:w-auto">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                    <IdCard className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground font-medium">Your Landlord ID</p>
+                    <p className="text-xl font-bold text-primary tracking-wider">{landlordId}</p>
+                    <p className="text-xs text-muted-foreground">Share this with your tenants</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyLandlordId}
+                    className="gap-2 border-primary/30 hover:bg-primary/10"
+                  >
+                    {copiedId ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
