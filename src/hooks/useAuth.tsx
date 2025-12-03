@@ -10,7 +10,7 @@ interface AuthContextType {
   userRole: 'tenant' | 'landlord' | 'admin' | null;
   landlordStatus: 'pending' | 'approved' | 'rejected' | null;
   isApprovedLandlord: boolean;
-  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord', linkedLandlordId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
-  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord') => {
+  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord', linkedLandlordId?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -124,12 +124,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           name,
-          role
+          role,
+          linked_landlord_id: linkedLandlordId || null
         }
       }
     });
 
     if (!error && data.user) {
+      // If tenant with linked landlord ID, create the tenant record
+      if (role === 'tenant' && linkedLandlordId) {
+        // Get the landlord's user ID from their landlord_id
+        const { data: landlordProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('landlord_id', linkedLandlordId)
+          .single();
+
+        if (landlordProfile) {
+          // Create tenant record linked to this landlord
+          await supabase
+            .from('tenants')
+            .insert({
+              name,
+              email,
+              phone: '', // Will be updated in settings
+              landlord_id: landlordProfile.id,
+              linked_landlord_id: linkedLandlordId,
+              verification_status: 'pending'
+            });
+        }
+      }
+
       toast({
         title: "Account created!",
         description: "Welcome to RentEasy Kenya",
