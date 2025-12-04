@@ -182,6 +182,8 @@ serve(async (req) => {
 
     console.log("Email sent successfully:", emailResponse);
 
+    const emailId = (emailResponse as any)?.data?.id || (emailResponse as any)?.id || 'unknown';
+
     // Log email activity
     await supabase
       .from('activity_logs')
@@ -189,7 +191,7 @@ serve(async (req) => {
         user_id: userId,
         action: approved ? 'landlord_approval_email_sent' : 'landlord_rejection_email_sent',
         entity_type: 'email_notification',
-        entity_id: emailResponse.id,
+        entity_id: emailId,
         details: {
           email: userEmail,
           approved,
@@ -202,7 +204,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: 'Email sent successfully',
-        emailId: emailResponse.id,
+        emailId: emailId,
       }),
       {
         status: 200,
