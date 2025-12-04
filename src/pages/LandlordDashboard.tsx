@@ -6,7 +6,7 @@ import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Home, DollarSign, LogOut, Receipt, Copy, CheckCircle, IdCard } from "lucide-react";
+import { Users, Home, DollarSign, LogOut, Receipt, Copy, CheckCircle, IdCard, Menu } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AddPropertyForm from "@/components/landlord/AddPropertyForm";
@@ -15,6 +15,9 @@ import PropertiesTable from "@/components/landlord/PropertiesTable";
 import TenantsTable from "@/components/landlord/TenantsTable";
 import RecordPaymentForm from "@/components/landlord/RecordPaymentForm";
 import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
+import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 
 interface DashboardStats {
   totalProperties: number;
@@ -54,7 +57,6 @@ export default function LandlordDashboard() {
   const checkVerificationStatus = async () => {
     if (!user) return;
 
-    // Check if user has landlord role
     const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
@@ -101,22 +103,18 @@ export default function LandlordDashboard() {
   const loadDashboardData = async () => {
     if (!user) return;
 
-    // Load properties
     const { data: properties } = await supabase
       .from("properties")
       .select("*")
       .eq("landlord_id", user.id);
 
-    // Load tenants
     const { data: tenants } = await supabase
       .from("tenants")
       .select("*")
       .eq("landlord_id", user.id);
 
-    // Calculate monthly expected from properties
     const monthlyExpected = properties?.reduce((sum, prop) => sum + Number(prop.rent_amount), 0) || 0;
 
-    // Calculate monthly collected from rent_records
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
@@ -156,12 +154,10 @@ export default function LandlordDashboard() {
     ? Math.round((stats.monthlyCollected / stats.monthlyExpected) * 100) 
     : 0;
 
-  // Redirect to pending verification page if not verified
   if (isVerified === false) {
     return <Navigate to="/pending-verification" replace />;
   }
 
-  // Show loading state while checking verification
   if (loading || isVerified === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
@@ -173,202 +169,290 @@ export default function LandlordDashboard() {
     );
   }
 
+  const menuItems = [
+    { label: "Overview", value: "overview" },
+    { label: "Properties", value: "properties" },
+    { label: "Tenants", value: "tenants" },
+    { label: "Payments", value: "payments" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              RentEasy Kenya
-            </h1>
-            <p className="text-xs text-muted-foreground">Landlord Portal</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-            <Button variant="outline" onClick={signOut} className="gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors">
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-8">
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="text-4xl font-bold tracking-tight">
-                {userName ? `Welcome back, ${userName}` : "Landlord Dashboard"}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Manage your properties and track rent payments effortlessly.
-              </p>
+    <PageTransition>
+      <div className="min-h-screen bg-gradient-subtle">
+        <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent truncate">
+                RentEasy Kenya
+              </h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">Landlord Portal</p>
             </div>
-            
-            {landlordId && (
-              <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm w-full sm:w-auto">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
-                    <IdCard className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground font-medium">Your Landlord ID</p>
-                    <p className="text-xl font-bold text-primary tracking-wider">{landlordId}</p>
-                    <p className="text-xs text-muted-foreground">Share this with your tenants</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={copyLandlordId}
-                    className="gap-2 border-primary/30 hover:bg-primary/10"
-                  >
-                    {copiedId ? (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        Copy
-                      </>
-                    )}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <NotificationBell />
+              <Button 
+                variant="outline" 
+                onClick={signOut} 
+                className="gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors hidden sm:flex"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+              {/* Mobile Menu */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="sm:hidden h-10 w-10">
+                    <Menu className="h-5 w-5" />
                   </Button>
-                </CardContent>
-              </Card>
-            )}
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] p-0">
+                  <div className="flex flex-col h-full">
+                    <div className="p-6 border-b border-border">
+                      <h2 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+                        Menu
+                      </h2>
+                    </div>
+                    <div className="flex-1 p-4">
+                      <p className="text-sm text-muted-foreground mb-4">Quick Actions</p>
+                      {landlordId && (
+                        <div className="bg-primary/5 rounded-lg p-4 mb-4">
+                          <p className="text-xs text-muted-foreground">Your Landlord ID</p>
+                          <p className="text-lg font-bold text-primary">{landlordId}</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={copyLandlordId}
+                            className="mt-2 w-full"
+                          >
+                            {copiedId ? "Copied!" : "Copy ID"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 border-t border-border">
+                      <SheetClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-3 h-14 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={signOut}
+                        >
+                          <LogOut className="h-5 w-5" />
+                          Logout
+                        </Button>
+                      </SheetClose>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
-        </div>
+        </header>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="pb-3">
-              <div className="w-14 h-14 bg-gradient-hero rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                <Home className="w-7 h-7 text-white" />
-              </div>
-              <CardTitle className="text-base">Properties</CardTitle>
-              <CardDescription className="text-xs">Total managed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">{stats.totalProperties}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="pb-3">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <CardTitle className="text-base">Tenants</CardTitle>
-              <CardDescription className="text-xs">Active tenants</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-blue-600">{stats.totalTenants}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="pb-3">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                <DollarSign className="w-7 h-7 text-white" />
-              </div>
-              <CardTitle className="text-base">Expected</CardTitle>
-              <CardDescription className="text-xs">This month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-amber-600">KES {stats.monthlyExpected.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground mt-2">{collectionPercentage}% collected</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="pb-3">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                <Receipt className="w-7 h-7 text-white" />
-              </div>
-              <CardTitle className="text-base">Collected</CardTitle>
-              <CardDescription className="text-xs">This month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-green-600">KES {stats.monthlyCollected.toLocaleString()}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-6">
-            <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
-                <TabsTrigger value="properties" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Properties</TabsTrigger>
-                <TabsTrigger value="tenants" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Tenants</TabsTrigger>
-                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Payments</TabsTrigger>
-              </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <PropertiesTable refresh={refreshKey > 0} />
-              <TenantsTable refresh={refreshKey > 0} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="properties" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <AddPropertyForm onSuccess={handleRefresh} />
-              <PropertiesTable refresh={refreshKey > 0} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tenants" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <AddTenantForm onSuccess={handleRefresh} />
-              <TenantsTable refresh={refreshKey > 0} />
-            </div>
-          </TabsContent>
-
-              <TabsContent value="payments" className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <RecordPaymentForm onSuccess={handleRefresh} />
-                  <Card className="border-border/50">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5 text-primary" />
-                        Payment Summary
-                      </CardTitle>
-                      <CardDescription>Track rent collections</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center py-3 border-b border-border/50">
-                          <span className="text-muted-foreground font-medium">Expected This Month</span>
-                          <span className="font-bold text-lg">KES {stats.monthlyExpected.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 border-b border-border/50">
-                          <span className="text-muted-foreground font-medium">Collected</span>
-                          <span className="font-bold text-lg text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 border-b border-border/50">
-                          <span className="text-muted-foreground font-medium">Pending</span>
-                          <span className="font-bold text-lg text-amber-600">
-                            KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="pt-4 bg-muted/30 rounded-lg p-4">
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold text-base">Collection Rate</span>
-                            <span className="font-bold text-2xl bg-gradient-hero bg-clip-text text-transparent">{collectionPercentage}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+        <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+          <FadeIn>
+            <div className="mb-6 sm:mb-8 space-y-4">
+              <div className="flex flex-col gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+                    {userName ? `Welcome, ${userName}` : "Landlord Dashboard"}
+                  </h2>
+                  <p className="text-muted-foreground text-sm sm:text-lg">
+                    Manage your properties and track rent payments.
+                  </p>
                 </div>
-                <LandlordPaymentsView refresh={refreshKey > 0} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+                
+                {landlordId && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm">
+                      <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                          <IdCard className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground font-medium">Your Landlord ID</p>
+                          <p className="text-lg sm:text-xl font-bold text-primary tracking-wider truncate">{landlordId}</p>
+                          <p className="text-xs text-muted-foreground hidden sm:block">Share this with your tenants</p>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={copyLandlordId}
+                          className="gap-2 border-primary/30 hover:bg-primary/10 w-full sm:w-auto"
+                        >
+                          {copiedId ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </FadeIn>
+
+          <StaggerContainer staggerDelay={0.1}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+              <StaggerItem>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-hero rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-lg">
+                      <Home className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-sm sm:text-base">Properties</CardTitle>
+                    <CardDescription className="text-xs hidden sm:block">Total managed</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6 pt-0">
+                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">{stats.totalProperties}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+
+              <StaggerItem>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-lg">
+                      <Users className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-sm sm:text-base">Tenants</CardTitle>
+                    <CardDescription className="text-xs hidden sm:block">Active tenants</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6 pt-0">
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.totalTenants}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+
+              <StaggerItem>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-lg">
+                      <DollarSign className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-sm sm:text-base">Expected</CardTitle>
+                    <CardDescription className="text-xs hidden sm:block">This month</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6 pt-0">
+                    <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-amber-600">
+                      <span className="text-xs sm:text-sm">KES</span> {stats.monthlyExpected.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{collectionPercentage}% collected</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+
+              <StaggerItem>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-lg">
+                      <Receipt className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-sm sm:text-base">Collected</CardTitle>
+                    <CardDescription className="text-xs hidden sm:block">This month</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6 pt-0">
+                    <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-green-600">
+                      <span className="text-xs sm:text-sm">KES</span> {stats.monthlyCollected.toLocaleString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+            </div>
+          </StaggerContainer>
+
+          <FadeIn delay={0.3}>
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-3 sm:p-6">
+                <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+                  <TabsList className="grid w-full grid-cols-4 h-10 sm:h-12 bg-muted/50 p-1">
+                    {menuItems.map((item) => (
+                      <TabsTrigger 
+                        key={item.value}
+                        value={item.value} 
+                        className="text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      >
+                        {item.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                      <PropertiesTable refresh={refreshKey > 0} />
+                      <TenantsTable refresh={refreshKey > 0} />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="properties" className="space-y-4 sm:space-y-6">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                      <AddPropertyForm onSuccess={handleRefresh} />
+                      <PropertiesTable refresh={refreshKey > 0} />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="tenants" className="space-y-4 sm:space-y-6">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                      <AddTenantForm onSuccess={handleRefresh} />
+                      <TenantsTable refresh={refreshKey > 0} />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="payments" className="space-y-4 sm:space-y-6">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                      <RecordPaymentForm onSuccess={handleRefresh} />
+                      <Card className="border-border/50">
+                        <CardHeader className="p-3 sm:p-6">
+                          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                            Payment Summary
+                          </CardTitle>
+                          <CardDescription className="text-xs sm:text-sm">Track rent collections</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-3 sm:p-6 pt-0">
+                          <div className="space-y-3 sm:space-y-4">
+                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Expected</span>
+                              <span className="font-bold text-sm sm:text-lg">KES {stats.monthlyExpected.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Collected</span>
+                              <span className="font-bold text-sm sm:text-lg text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Pending</span>
+                              <span className="font-bold text-sm sm:text-lg text-amber-600">
+                                KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="pt-3 sm:pt-4 bg-muted/30 rounded-lg p-3 sm:p-4">
+                              <div className="flex justify-between items-center">
+                                <span className="font-semibold text-sm sm:text-base">Collection Rate</span>
+                                <span className="font-bold text-xl sm:text-2xl bg-gradient-hero bg-clip-text text-transparent">{collectionPercentage}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <LandlordPaymentsView refresh={refreshKey > 0} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </FadeIn>
+        </main>
+      </div>
+    </PageTransition>
   );
 }

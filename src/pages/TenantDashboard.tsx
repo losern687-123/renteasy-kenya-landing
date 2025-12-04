@@ -12,6 +12,8 @@ import { checkAndCreateRentNotifications } from "@/utils/notificationHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import { motion } from "framer-motion";
 
 interface RentRecord {
   id: string;
@@ -54,7 +56,6 @@ export default function TenantDashboard() {
     const checkNotifications = async () => {
       if (!user) return;
 
-      // Get user email from profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("email")
@@ -71,39 +72,52 @@ export default function TenantDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Welcome Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tenant Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Manage your rent payments and view history</p>
+        <FadeIn>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tenant Dashboard</h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your rent payments and view history</p>
+            </div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => setIsMpesaModalOpen(true)}
+                className="bg-gradient-hero hover:opacity-90 transition-all shadow-lg w-full sm:w-auto h-12 sm:h-11 text-base"
+                size="lg"
+              >
+                <CreditCard className="mr-2 h-5 w-5" />
+                Pay via M-Pesa
+              </Button>
+            </motion.div>
           </div>
-          <Button
-            onClick={() => setIsMpesaModalOpen(true)}
-            className="bg-gradient-hero hover:opacity-90 transition-all hover:scale-105 shadow-lg"
-            size="lg"
-          >
-            <CreditCard className="mr-2 h-5 w-5" />
-            Pay via M-Pesa
-          </Button>
-        </div>
+        </FadeIn>
 
-        <RentReminderBanner key={refreshKey} />
+        <FadeIn delay={0.1}>
+          <RentReminderBanner key={refreshKey} />
+        </FadeIn>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <RentSummaryCard key={refreshKey} />
+        <StaggerContainer staggerDelay={0.1}>
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+            <StaggerItem>
+              <RentSummaryCard key={refreshKey} />
+            </StaggerItem>
+            <StaggerItem>
+              <AddPaymentForm onSuccess={handleSuccess} />
+            </StaggerItem>
           </div>
-          <div className="space-y-6">
-            <AddPaymentForm onSuccess={handleSuccess} />
-          </div>
-        </div>
+        </StaggerContainer>
 
         {/* Payment History */}
-        <div className="mt-8">
-          <PaymentHistoryTable key={refreshKey} onEdit={handleEdit} />
-        </div>
+        <FadeIn delay={0.3}>
+          <div className="mt-4 sm:mt-8">
+            <PaymentHistoryTable key={refreshKey} onEdit={handleEdit} />
+          </div>
+        </FadeIn>
 
         <EditPaymentDialog
           record={editingRecord}
