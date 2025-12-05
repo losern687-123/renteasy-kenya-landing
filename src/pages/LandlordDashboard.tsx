@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -18,6 +18,8 @@ import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
 import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
+import { LandlordDashboardSkeleton } from "@/components/ui/skeletons";
 
 interface DashboardStats {
   totalProperties: number;
@@ -134,12 +136,28 @@ export default function LandlordDashboard() {
     });
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
-  };
+  }, []);
+
+  const handlePullRefresh = useCallback(async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setRefreshKey(prev => prev + 1);
+  }, []);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-subtle">
+        <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+            <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+          <LandlordDashboardSkeleton />
+        </main>
+      </div>
+    );
   }
 
   if (!user) {
@@ -158,13 +176,17 @@ export default function LandlordDashboard() {
     return <Navigate to="/pending-verification" replace />;
   }
 
-  if (loading || isVerified === null) {
+  if (isVerified === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-subtle">
+        <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+            <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+          <LandlordDashboardSkeleton />
+        </main>
       </div>
     );
   }
@@ -248,6 +270,7 @@ export default function LandlordDashboard() {
         </header>
 
         <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+          <PullToRefresh onRefresh={handlePullRefresh} className="min-h-full">
           <FadeIn>
             <div className="mb-6 sm:mb-8 space-y-4">
               <div className="flex flex-col gap-4">
@@ -451,6 +474,7 @@ export default function LandlordDashboard() {
               </CardContent>
             </Card>
           </FadeIn>
+          </PullToRefresh>
         </main>
       </div>
     </PageTransition>
