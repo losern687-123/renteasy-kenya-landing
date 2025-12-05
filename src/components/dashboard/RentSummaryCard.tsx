@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, Clock, AlertCircle, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CardSkeleton } from "@/components/ui/skeletons";
 
 export const RentSummaryCard = () => {
   const { user } = useAuth();
@@ -95,20 +96,7 @@ export const RentSummaryCard = () => {
   const Icon = config.icon;
 
   if (loading) {
-    return (
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            Rent Status
-          </CardTitle>
-          <CardDescription>Current month overview</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse h-24 bg-muted/50 rounded-xl"></div>
-        </CardContent>
-      </Card>
-    );
+    return <CardSkeleton />;
   }
 
   return (

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { TableSkeleton } from "@/components/ui/skeletons";
+
 interface Property {
   id: string;
   name: string;
@@ -41,7 +43,7 @@ export default function PropertiesTable({ refresh }: { refresh?: boolean }) {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading properties...</div>;
+    return <TableSkeleton rows={4} columns={3} />;
   }
 
   return (

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { TableSkeleton } from "@/components/ui/skeletons";
 
 interface RentRecord {
   id: string;
@@ -112,18 +113,7 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
   };
 
   if (loading) {
-    return (
-      <Card className="backdrop-blur-sm bg-card/50 border-2">
-        <CardHeader>
-          <CardTitle>Payment History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <TableSkeleton rows={5} columns={6} />;
   }
 
   return (

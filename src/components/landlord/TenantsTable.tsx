@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { TableSkeleton } from "@/components/ui/skeletons";
 
 interface Tenant {
   id: string;
@@ -76,7 +77,7 @@ export default function TenantsTable({ refresh }: { refresh?: boolean }) {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading tenants...</div>;
+    return <TableSkeleton rows={4} columns={5} />;
   }
 
   return (
