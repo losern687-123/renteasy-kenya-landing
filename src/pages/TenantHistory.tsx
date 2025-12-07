@@ -172,113 +172,149 @@ export default function TenantHistory() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Paid (This Month)</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-6 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Paid (This Month)</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(summary.monthlyPaid)}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{formatCurrency(summary.monthlyPaid)}</div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-6 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(summary.pending)}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{formatCurrency(summary.pending)}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters & History Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>Payment History</CardTitle>
-            <CardDescription>View and download your payment records</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Payment History</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">View and download your payment records</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
               <div className="space-y-2">
-                <Label htmlFor="filter-property">
-                  <Filter className="inline h-4 w-4 mr-1" />
-                  Property Name
+                <Label htmlFor="filter-property" className="text-xs sm:text-sm">
+                  <Filter className="inline h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  Property
                 </Label>
                 <Input
                   id="filter-property"
                   value={filterProperty}
                   onChange={(e) => setFilterProperty(e.target.value)}
                   placeholder="Filter by property"
+                  className="h-9 text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="filter-start">Start Date</Label>
+                <Label htmlFor="filter-start" className="text-xs sm:text-sm">Start Date</Label>
                 <Input
                   id="filter-start"
                   type="date"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
+                  className="h-9 text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="filter-end">End Date</Label>
+                <Label htmlFor="filter-end" className="text-xs sm:text-sm">End Date</Label>
                 <Input
                   id="filter-end"
                   type="date"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
+                  className="h-9 text-sm"
                 />
               </div>
             </div>
 
-            {/* Table */}
+            {/* Mobile Card View */}
             {filteredRecords.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-muted-foreground py-8 text-sm">
                 {records.length === 0 ? "No payment records found" : "No payments match the filters"}
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Property</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRecords.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell>{formatDate(record.payment_date || record.due_date)}</TableCell>
-                        <TableCell>{record.property_name}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(record.amount)}</TableCell>
-                        <TableCell>{record.payment_method || "M-Pesa"}</TableCell>
-                        <TableCell>{getStatusBadge(record.status)}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => generatePDF(record)}
-                            className="gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            Receipt
-                          </Button>
-                        </TableCell>
+              <>
+                {/* Mobile Cards */}
+                <div className="sm:hidden space-y-3">
+                  {filteredRecords.map((record) => (
+                    <div key={record.id} className="p-4 border rounded-lg bg-card space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{record.property_name}</p>
+                          <p className="text-xs text-muted-foreground">{formatDate(record.payment_date || record.due_date)}</p>
+                        </div>
+                        {getStatusBadge(record.status)}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-lg font-bold">{formatCurrency(record.amount)}</p>
+                          <p className="text-xs text-muted-foreground">{record.payment_method || "M-Pesa"}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => generatePDF(record)}
+                          className="gap-1 h-8 text-xs"
+                        >
+                          <Download className="h-3 w-3" />
+                          Receipt
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Property</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRecords.map((record) => (
+                        <TableRow key={record.id}>
+                          <TableCell className="text-sm">{formatDate(record.payment_date || record.due_date)}</TableCell>
+                          <TableCell className="text-sm">{record.property_name}</TableCell>
+                          <TableCell className="font-medium text-sm">{formatCurrency(record.amount)}</TableCell>
+                          <TableCell className="text-sm">{record.payment_method || "M-Pesa"}</TableCell>
+                          <TableCell>{getStatusBadge(record.status)}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => generatePDF(record)}
+                              className="gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              Receipt
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

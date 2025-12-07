@@ -98,12 +98,12 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Add New Tenant</CardTitle>
-        <CardDescription>Enter tenant details and assign to a property</CardDescription>
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-base sm:text-lg">Add New Tenant</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Enter tenant details and assign to a property</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           <div>
             <Label htmlFor="name">Tenant Name</Label>
             <Input

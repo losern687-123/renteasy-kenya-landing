@@ -24,7 +24,11 @@ const navigation = [
   { name: "Settings", href: "/admin/settings", icon: Settings, description: "Configuration" },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -34,8 +38,12 @@ export function AdminSidebar() {
     navigate("/");
   };
 
+  const handleNavClick = () => {
+    onNavigate?.();
+  };
+
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-[hsl(155_25%_10%)] border-r border-[hsl(155_15%_18%)]">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 lg:w-64 bg-[hsl(155_25%_10%)] border-r border-[hsl(155_15%_18%)]">
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-20 items-center border-b border-[hsl(155_15%_18%)] px-6">
@@ -61,6 +69,7 @@ export function AdminSidebar() {
               <Link
                 key={item.name}
                 to={item.href}
+                onClick={handleNavClick}
                 className={cn(
                   "group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200",
                   isActive

@@ -317,22 +317,22 @@ export default function TenantSettings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="gap-2">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
+            <TabsTrigger value="profile" className="gap-2 text-xs sm:text-sm py-2">
               <User className="h-4 w-4" />
-              Profile
+              <span className="hidden xs:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
+            <TabsTrigger value="notifications" className="gap-2 text-xs sm:text-sm py-2">
               <Bell className="h-4 w-4" />
-              Notifications
+              <span className="hidden xs:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="landlord" className="gap-2">
+            <TabsTrigger value="landlord" className="gap-2 text-xs sm:text-sm py-2">
               <LinkIcon className="h-4 w-4" />
-              Landlord
+              <span className="hidden xs:inline">Landlord</span>
             </TabsTrigger>
-            <TabsTrigger value="account" className="gap-2">
+            <TabsTrigger value="account" className="gap-2 text-xs sm:text-sm py-2">
               <Lock className="h-4 w-4" />
-              Account
+              <span className="hidden xs:inline">Account</span>
             </TabsTrigger>
           </TabsList>
 
