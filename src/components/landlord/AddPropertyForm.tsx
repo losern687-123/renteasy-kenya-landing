@@ -68,12 +68,12 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Add New Property</CardTitle>
-        <CardDescription>Enter property details to add to your portfolio</CardDescription>
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-base sm:text-lg">Add New Property</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Enter property details to add to your portfolio</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           <div>
             <Label htmlFor="name">Property Name</Label>
             <Input

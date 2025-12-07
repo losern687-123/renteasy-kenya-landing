@@ -226,111 +226,108 @@ const AdminDashboard = () => {
     <AdminLayout title="Dashboard Overview" subtitle="Monitor platform performance and manage applications">
       <div className="space-y-8">
         {/* Quick Stats Row */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Landlords</p>
-                  <p className="text-3xl font-bold text-primary">{approvedApps.length}</p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Landlords</p>
+                  <p className="text-xl sm:text-3xl font-bold text-primary">{approvedApps.length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-primary" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                  <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
               </div>
-              <div className="mt-2 flex items-center text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-1" />
                 <span className="text-green-500 font-medium">+12%</span>
-                <span className="text-muted-foreground ml-1">vs last month</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
-                  <p className="text-3xl font-bold text-amber-600">{pendingApps.length}</p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Pending</p>
+                  <p className="text-xl sm:text-3xl font-bold text-amber-600">{pendingApps.length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-amber-600" />
-                </div>
-              </div>
-              <div className="mt-2 flex items-center text-sm">
-                <span className="text-muted-foreground">Requires attention</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Rejected</p>
-                  <p className="text-3xl font-bold text-destructive">{rejectedApps.length}</p>
-                </div>
-                <div className="h-12 w-12 rounded-xl bg-destructive/20 flex items-center justify-center">
-                  <XCircle className="h-6 w-6 text-destructive" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
                 </div>
               </div>
-              <div className="mt-2 flex items-center text-sm">
-                <span className="text-muted-foreground">Total rejections</span>
+              <div className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                Needs review
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Tenants</p>
-                  <p className="text-3xl font-bold text-blue-600">{metrics.totalTenants}</p>
+          <Card className="bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20 hidden sm:block">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Rejected</p>
+                  <p className="text-xl sm:text-3xl font-bold text-destructive">{rejectedApps.length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0">
+                  <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
                 </div>
               </div>
-              <div className="mt-2 flex items-center text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              <div className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                Total rejections
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 hidden sm:block">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Tenants</p>
+                  <p className="text-xl sm:text-3xl font-bold text-blue-600">{metrics.totalTenants}</p>
+                </div>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-1" />
                 <span className="text-green-500 font-medium">+8%</span>
-                <span className="text-muted-foreground ml-1">growth</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                  <p className="text-3xl font-bold text-green-600">KES {metrics.monthlyRevenue.toLocaleString()}</p>
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 col-span-2 sm:col-span-1">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Revenue</p>
+                  <p className="text-lg sm:text-3xl font-bold text-green-600">KES {metrics.monthlyRevenue.toLocaleString()}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+                  <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 </div>
               </div>
-              <div className="mt-2 flex items-center text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-1" />
                 <span className="text-green-500 font-medium">+22%</span>
-                <span className="text-muted-foreground ml-1">this month</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Charts Row */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2 border-border/50 bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Platform Growth
               </CardTitle>
-              <CardDescription>Monthly landlord and tenant registrations</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Monthly landlord and tenant registrations</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-4 sm:p-6 pt-0">
+              <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={monthlyTrend}>
                   <defs>
                     <linearGradient id="landlordGradient" x1="0" y1="0" x2="0" y2="1">
@@ -376,25 +373,24 @@ const AdminDashboard = () => {
           </Card>
 
           <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Application Status
               </CardTitle>
-              <CardDescription>Distribution of landlord applications</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Distribution of applications</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
+            <CardContent className="p-4 sm:p-6 pt-0">
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={applicationStatusData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
+                    innerRadius={40}
+                    outerRadius={70}
                     paddingAngle={4}
                     dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
                   >
                     {applicationStatusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -403,14 +399,14 @@ const AdminDashboard = () => {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mt-4">
                 {applicationStatusData.map((item) => (
-                  <div key={item.name} className="flex items-center gap-2">
+                  <div key={item.name} className="flex items-center gap-1 sm:gap-2">
                     <div 
-                      className="h-3 w-3 rounded-full" 
+                      className="h-2 w-2 sm:h-3 sm:w-3 rounded-full" 
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-sm text-muted-foreground">{item.name}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{item.name}: {item.value}</span>
                   </div>
                 ))}
               </div>
@@ -420,34 +416,32 @@ const AdminDashboard = () => {
 
         {/* Applications Table */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Landlord Applications
                 </CardTitle>
-                <CardDescription>Review and manage landlord verification requests</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Manage verification requests</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
-                  {pendingApps.length} Pending
-                </Badge>
-              </div>
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 w-fit">
+                {pendingApps.length} Pending
+              </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             <Tabs defaultValue="pending" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-                <TabsTrigger value="pending" className="gap-2 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700">
-                  <Clock className="h-4 w-4" />
-                  Pending ({pendingApps.length})
+              <TabsList className="grid w-full grid-cols-3 bg-muted/50 h-auto p-1">
+                <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Pending</span> ({pendingApps.length})
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="gap-2 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-700">
-                  <CheckCircle className="h-4 w-4" />
-                  Approved ({approvedApps.length})
+                <TabsTrigger value="approved" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-700">
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Approved</span> ({approvedApps.length})
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="gap-2 data-[state=active]:bg-destructive/20 data-[state=active]:text-destructive">
+                <TabsTrigger value="rejected" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2 data-[state=active]:bg-destructive/20 data-[state=active]:text-destructive">
                   <XCircle className="h-4 w-4" />
                   Rejected ({rejectedApps.length})
                 </TabsTrigger>

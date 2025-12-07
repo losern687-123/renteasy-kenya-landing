@@ -105,13 +105,13 @@ export default function TenantAddPayment() {
 
   return (
     <DashboardLayout>
-      <Card>
-        <CardHeader>
-          <CardTitle>Record Payment</CardTitle>
-          <CardDescription>Record your rent payment details</CardDescription>
+      <Card className="mx-auto max-w-2xl">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">Record Payment</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Record your rent payment details</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div className="space-y-2">
               <Label htmlFor="property_name">Property Name *</Label>
               <Input
@@ -186,11 +186,19 @@ export default function TenantAddPayment() {
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/tenant-dashboard")}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
                 disabled={loading || uploadingReceipt}
-                className="flex-1"
+                className="w-full sm:flex-1"
               >
                 {loading || uploadingReceipt ? (
                   <>
@@ -200,13 +208,6 @@ export default function TenantAddPayment() {
                 ) : (
                   "Record Payment"
                 )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/tenant-dashboard")}
-              >
-                Cancel
               </Button>
             </div>
           </form>

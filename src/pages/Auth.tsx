@@ -165,28 +165,28 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 py-8">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
             RentEasy Kenya
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {isLogin ? "Welcome back to RentEasy Kenya" : "Join RentEasy Kenya today"}
           </p>
         </div>
 
         <Card className="border-primary/20 shadow-xl">
-          <CardHeader>
-            <CardTitle>{isLogin ? "Login" : "Create Account"}</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">{isLogin ? "Login" : "Create Account"}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               {isLogin 
                 ? "Enter your credentials to access your dashboard" 
                 : "Choose your role and create your account"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {!isLogin && (
                 <>
                   <div className="space-y-2">
@@ -279,8 +279,8 @@ export default function Auth() {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-sm text-center text-muted-foreground">
+          <CardFooter className="flex flex-col space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+            <div className="text-xs sm:text-sm text-center text-muted-foreground">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
@@ -290,13 +290,13 @@ export default function Auth() {
               </button>
             </div>
             {isLogin && (
-              <div className="text-sm text-center">
+              <div className="text-xs sm:text-sm text-center">
                 <span className="text-muted-foreground">Forgot password? </span>
                 <span className="text-muted-foreground/60">(Coming soon)</span>
               </div>
             )}
             <div className="text-center">
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
                 ← Back to home
               </Link>
             </div>
