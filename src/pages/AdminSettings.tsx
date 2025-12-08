@@ -8,11 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Lock, Bell } from "lucide-react";
+import { Settings, Lock, Bell, Palette, Sun, Moon, Monitor, CheckCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/hooks/useTheme";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { motion } from "framer-motion";
 
 const AdminSettings = () => {
   const { isAuthorized, isLoading: authLoading } = useAdminAuth();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,6 +59,12 @@ const AdminSettings = () => {
     }
   };
 
+  const themeOptions = [
+    { value: "light" as const, label: "Light", icon: Sun, description: "Bright theme" },
+    { value: "dark" as const, label: "Dark", icon: Moon, description: "Dark theme" },
+    { value: "system" as const, label: "System", icon: Monitor, description: "Auto" },
+  ];
+
   if (authLoading || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -68,8 +78,12 @@ const AdminSettings = () => {
 
   return (
     <AdminLayout title="Settings" subtitle="Manage admin account settings and preferences">
-      <Tabs defaultValue="security" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+      <Tabs defaultValue="appearance" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsTrigger value="appearance" className="gap-2">
+            <Palette className="h-4 w-4" />
+            Appearance
+          </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Lock className="h-4 w-4" />
             Security
@@ -79,6 +93,72 @@ const AdminSettings = () => {
             Notifications
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="appearance" className="space-y-6">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                <CardTitle>Theme</CardTitle>
+              </div>
+              <CardDescription>
+                Customize the appearance of the admin dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {themeOptions.map((option) => {
+                  const Icon = option.icon;
+                  const isSelected = theme === option.value;
+                  
+                  return (
+                    <motion.button
+                      key={option.value}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setTheme(option.value)}
+                      className={`relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all duration-200 touch-feedback ${
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      }`}
+                    >
+                      <div
+                        className={`rounded-full p-3 transition-colors duration-200 ${
+                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {option.description}
+                      </span>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-2 right-2"
+                        >
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label>Quick Toggle</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Switch modes instantly
+                  </p>
+                </div>
+                <ThemeToggle variant="switch" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm">

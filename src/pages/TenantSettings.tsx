@@ -10,10 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Bell, Link as LinkIcon, Lock, Copy, CheckCircle } from "lucide-react";
+import { Loader2, User, Bell, Link as LinkIcon, Lock, Copy, CheckCircle, Palette, Sun, Moon, Monitor } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useTheme } from "@/hooks/useTheme";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { motion } from "framer-motion";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -32,6 +35,86 @@ const passwordSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
+
+function AppearanceSettings() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  const themeOptions = [
+    { value: "light" as const, label: "Light", icon: Sun, description: "Light mode for bright environments" },
+    { value: "dark" as const, label: "Dark", icon: Moon, description: "Dark mode for low-light environments" },
+    { value: "system" as const, label: "System", icon: Monitor, description: "Automatically match system settings" },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Appearance</CardTitle>
+        <CardDescription>Customize how RentEasy looks on your device</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <Label>Theme</Label>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {themeOptions.map((option) => {
+              const Icon = option.icon;
+              const isSelected = theme === option.value;
+              
+              return (
+                <motion.button
+                  key={option.value}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setTheme(option.value)}
+                  className={`relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all duration-200 touch-feedback ${
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                  }`}
+                >
+                  <div
+                    className={`rounded-full p-3 transition-colors duration-200 ${
+                      isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-xs text-muted-foreground text-center">
+                    {option.description}
+                  </span>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-2 right-2"
+                    >
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    </motion.div>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <Label>Quick Toggle</Label>
+            <p className="text-sm text-muted-foreground">
+              Switch between light and dark mode instantly
+            </p>
+          </div>
+          <ThemeToggle variant="switch" />
+        </div>
+
+        <div className="rounded-lg border p-4 bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            Currently using <span className="font-medium text-foreground">{resolvedTheme}</span> mode
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function TenantSettings() {
   const { user, userRole, loading, signOut } = useAuth();
@@ -317,10 +400,14 @@ export default function TenantSettings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1 p-1">
             <TabsTrigger value="profile" className="gap-2 text-xs sm:text-sm py-2">
               <User className="h-4 w-4" />
               <span className="hidden xs:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="gap-2 text-xs sm:text-sm py-2">
+              <Palette className="h-4 w-4" />
+              <span className="hidden xs:inline">Appearance</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2 text-xs sm:text-sm py-2">
               <Bell className="h-4 w-4" />
@@ -395,6 +482,10 @@ export default function TenantSettings() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <AppearanceSettings />
           </TabsContent>
 
           <TabsContent value="notifications">
