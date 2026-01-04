@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -17,9 +17,11 @@ import RecordPaymentForm from "@/components/landlord/RecordPaymentForm";
 import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
 import { PageTransition, FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { LandlordDashboardSkeleton } from "@/components/ui/skeletons";
+import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface DashboardStats {
   totalProperties: number;
@@ -41,7 +43,33 @@ export default function LandlordDashboard() {
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [landlordId, setLandlordId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const { impactLight } = useHaptics();
 
+  const tabOrder = ["overview", "properties", "tenants", "payments"];
+
+  const navigateTab = useCallback((direction: "next" | "prev") => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    let newIndex: number;
+    
+    if (direction === "next") {
+      newIndex = currentIndex < tabOrder.length - 1 ? currentIndex + 1 : currentIndex;
+    } else {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
+    }
+    
+    if (newIndex !== currentIndex) {
+      setActiveTab(tabOrder[newIndex]);
+      impactLight();
+    }
+  }, [activeTab, impactLight]);
+
+  useSwipeGesture(tabsContainerRef, {
+    onSwipeLeft: () => navigateTab("next"),
+    onSwipeRight: () => navigateTab("prev"),
+    threshold: 50,
+  });
   useEffect(() => {
     if (user) {
       checkVerificationStatus();
@@ -401,79 +429,91 @@ export default function LandlordDashboard() {
           <FadeIn delay={0.3}>
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
               <CardContent className="p-3 sm:p-6">
-                <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
                   <TabsList className="grid w-full grid-cols-4 h-10 sm:h-12 bg-muted/50 p-1">
                     {menuItems.map((item) => (
                       <TabsTrigger 
                         key={item.value}
                         value={item.value} 
-                        className="text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                        className="text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                       >
                         {item.label}
                       </TabsTrigger>
                     ))}
                   </TabsList>
 
-                  <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                      <PropertiesTable refresh={refreshKey > 0} />
-                      <TenantsTable refresh={refreshKey > 0} />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="properties" className="space-y-4 sm:space-y-6">
-                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                      <AddPropertyForm onSuccess={handleRefresh} />
-                      <PropertiesTable refresh={refreshKey > 0} />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="tenants" className="space-y-4 sm:space-y-6">
-                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                      <AddTenantForm onSuccess={handleRefresh} />
-                      <TenantsTable refresh={refreshKey > 0} />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="payments" className="space-y-4 sm:space-y-6">
-                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                      <RecordPaymentForm onSuccess={handleRefresh} />
-                      <Card className="border-border/50">
-                        <CardHeader className="p-3 sm:p-6">
-                          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                            Payment Summary
-                          </CardTitle>
-                          <CardDescription className="text-xs sm:text-sm">Track rent collections</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-3 sm:p-6 pt-0">
-                          <div className="space-y-3 sm:space-y-4">
-                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
-                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Expected</span>
-                              <span className="font-bold text-sm sm:text-lg">KES {stats.monthlyExpected.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
-                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Collected</span>
-                              <span className="font-bold text-sm sm:text-lg text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
-                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">Pending</span>
-                              <span className="font-bold text-sm sm:text-lg text-amber-600">
-                                KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="pt-3 sm:pt-4 bg-muted/30 rounded-lg p-3 sm:p-4">
-                              <div className="flex justify-between items-center">
-                                <span className="font-semibold text-sm sm:text-base">Collection Rate</span>
-                                <span className="font-bold text-xl sm:text-2xl bg-gradient-hero bg-clip-text text-transparent">{collectionPercentage}%</span>
-                              </div>
-                            </div>
+                  <div ref={tabsContainerRef} className="touch-pan-y">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-0">
+                          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                            <PropertiesTable refresh={refreshKey > 0} />
+                            <TenantsTable refresh={refreshKey > 0} />
                           </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    <LandlordPaymentsView refresh={refreshKey > 0} />
-                  </TabsContent>
+                        </TabsContent>
+
+                        <TabsContent value="properties" className="space-y-4 sm:space-y-6 mt-0">
+                          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                            <AddPropertyForm onSuccess={handleRefresh} />
+                            <PropertiesTable refresh={refreshKey > 0} />
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="tenants" className="space-y-4 sm:space-y-6 mt-0">
+                          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                            <AddTenantForm onSuccess={handleRefresh} />
+                            <TenantsTable refresh={refreshKey > 0} />
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="payments" className="space-y-4 sm:space-y-6 mt-0">
+                          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                            <RecordPaymentForm onSuccess={handleRefresh} />
+                            <Card className="border-border/50">
+                              <CardHeader className="p-3 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                                  Payment Summary
+                                </CardTitle>
+                                <CardDescription className="text-xs sm:text-sm">Track rent collections</CardDescription>
+                              </CardHeader>
+                              <CardContent className="p-3 sm:p-6 pt-0">
+                                <div className="space-y-3 sm:space-y-4">
+                                  <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                                    <span className="text-muted-foreground font-medium text-xs sm:text-sm">Expected</span>
+                                    <span className="font-bold text-sm sm:text-lg">KES {stats.monthlyExpected.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                                    <span className="text-muted-foreground font-medium text-xs sm:text-sm">Collected</span>
+                                    <span className="font-bold text-sm sm:text-lg text-green-600">KES {stats.monthlyCollected.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-2 sm:py-3 border-b border-border/50">
+                                    <span className="text-muted-foreground font-medium text-xs sm:text-sm">Pending</span>
+                                    <span className="font-bold text-sm sm:text-lg text-amber-600">
+                                      KES {(stats.monthlyExpected - stats.monthlyCollected).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="pt-3 sm:pt-4 bg-muted/30 rounded-lg p-3 sm:p-4">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-semibold text-sm sm:text-base">Collection Rate</span>
+                                      <span className="font-bold text-xl sm:text-2xl bg-gradient-hero bg-clip-text text-transparent">{collectionPercentage}%</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                          <LandlordPaymentsView refresh={refreshKey > 0} />
+                        </TabsContent>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                 </Tabs>
               </CardContent>
             </Card>
