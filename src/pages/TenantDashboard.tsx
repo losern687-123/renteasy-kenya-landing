@@ -16,6 +16,7 @@ import { FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransiti
 import { motion } from "framer-motion";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { DashboardSkeleton } from "@/components/ui/skeletons";
+import { toast } from "@/hooks/use-toast";
 
 interface RentRecord {
   id: string;
@@ -37,6 +38,10 @@ export default function TenantDashboard() {
   const handleRefresh = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     setRefreshKey(prev => prev + 1);
+    toast({
+      title: "Refreshed",
+      description: "Dashboard data updated successfully",
+    });
   }, []);
 
   useEffect(() => {
