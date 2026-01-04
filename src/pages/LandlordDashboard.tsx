@@ -143,6 +143,10 @@ export default function LandlordDashboard() {
   const handlePullRefresh = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     setRefreshKey(prev => prev + 1);
+    toast({
+      title: "Refreshed",
+      description: "Dashboard data updated successfully",
+    });
   }, []);
 
   if (loading) {
