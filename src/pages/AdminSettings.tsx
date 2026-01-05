@@ -39,8 +39,31 @@ const AdminSettings = () => {
       return;
     }
 
+    if (!currentPassword) {
+      toast.error("Please enter your current password");
+      return;
+    }
+
     setIsChangingPassword(true);
     try {
+      // Step 1: Re-authenticate with current password to verify identity
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser?.email) {
+        toast.error("Unable to verify user session");
+        return;
+      }
+
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: currentUser.email,
+        password: currentPassword,
+      });
+
+      if (authError) {
+        toast.error("Current password is incorrect");
+        return;
+      }
+
+      // Step 2: Update to new password
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });

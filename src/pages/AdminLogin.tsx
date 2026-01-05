@@ -25,27 +25,41 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('admin-auth', {
-        body: { email, password }
+      // Use standard Supabase authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (error) throw error;
-
-      if (data.success) {
-        // Set the session
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-
-        toast.success("Admin login successful");
-        navigate("/admin/dashboard");
-      } else {
-        toast.error(data.error || "Invalid admin credentials");
+      if (error) {
+        toast.error("Invalid credentials");
+        return;
       }
+
+      if (!data.user) {
+        toast.error("Authentication failed");
+        return;
+      }
+
+      // Verify admin role server-side
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (roleError || !roleData || roleData.role !== 'admin') {
+        // Sign out if not an admin
+        await supabase.auth.signOut();
+        toast.error("Access denied. Admin privileges required.");
+        return;
+      }
+
+      toast.success("Admin login successful");
+      navigate("/admin/dashboard");
     } catch (error: any) {
       console.error("Admin login error:", error);
-      toast.error(error.message || "Failed to authenticate");
+      toast.error("Failed to authenticate");
     } finally {
       setIsLoading(false);
     }

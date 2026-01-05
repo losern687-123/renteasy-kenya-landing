@@ -40,11 +40,16 @@ export default function TenantAddPayment() {
       throw uploadError;
     }
 
-    const { data: { publicUrl } } = supabase.storage
+    // Use signed URL for private bucket instead of public URL
+    const { data: signedData, error: signError } = await supabase.storage
       .from('payment-receipts')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 86400); // 24 hours expiry
 
-    return publicUrl;
+    if (signError) {
+      throw signError;
+    }
+
+    return signedData.signedUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

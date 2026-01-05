@@ -238,19 +238,43 @@ export default function TenantSettings() {
   const onPasswordSubmit = async (data: PasswordFormData) => {
     setIsUpdating(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password: data.newPassword,
-    });
+    try {
+      // Step 1: Re-authenticate with current password to verify identity
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser?.email) {
+        toast.error("Unable to verify user session");
+        setIsUpdating(false);
+        return;
+      }
 
-    setIsUpdating(false);
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: currentUser.email,
+        password: data.currentPassword,
+      });
 
-    if (error) {
-      toast.error(error.message);
-      return;
+      if (authError) {
+        toast.error("Current password is incorrect");
+        setIsUpdating(false);
+        return;
+      }
+
+      // Step 2: Update to new password
+      const { error } = await supabase.auth.updateUser({
+        password: data.newPassword,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Password updated successfully");
+      passwordForm.reset();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setIsUpdating(false);
     }
-
-    toast.success("Password updated successfully");
-    passwordForm.reset();
   };
 
   const handleLandlordConnect = async () => {
