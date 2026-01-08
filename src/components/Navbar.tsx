@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export const Navbar = () => {
@@ -120,6 +121,7 @@ export const Navbar = () => {
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-4">
+              <ThemeToggle variant="icon" />
               {user ? (
                 <>
                   <NotificationBell />
@@ -136,6 +138,7 @@ export const Navbar = () => {
 
             {/* Mobile/Tablet Actions */}
             <div className="lg:hidden flex items-center gap-2">
+              <ThemeToggle variant="icon" />
               {user && <NotificationBell />}
               <Button
                 variant="ghost"
