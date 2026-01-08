@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { RouteGuard } from "@/components/RouteGuard";
+import { FloatingThemeToggle } from "@/components/FloatingThemeToggle";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TenantDashboard from "./pages/TenantDashboard";
@@ -38,6 +39,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <FloatingThemeToggle />
         <BrowserRouter>
           <AuthProvider>
             <Routes>

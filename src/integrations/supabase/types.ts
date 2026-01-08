@@ -168,6 +168,7 @@ export type Database = {
           name: string
           payment_alerts_enabled: boolean | null
           rent_reminders_enabled: boolean | null
+          theme_preference: string | null
           updated_at: string
         }
         Insert: {
@@ -179,6 +180,7 @@ export type Database = {
           name: string
           payment_alerts_enabled?: boolean | null
           rent_reminders_enabled?: boolean | null
+          theme_preference?: string | null
           updated_at?: string
         }
         Update: {
@@ -190,6 +192,7 @@ export type Database = {
           name?: string
           payment_alerts_enabled?: boolean | null
           rent_reminders_enabled?: boolean | null
+          theme_preference?: string | null
           updated_at?: string
         }
         Relationships: []

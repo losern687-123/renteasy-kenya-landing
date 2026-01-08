@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Theme = "light" | "dark" | "system";
 
@@ -7,6 +8,7 @@ interface ThemeContextType {
   resolvedTheme: "light" | "dark";
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,6 +25,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return "system";
     return (localStorage.getItem(THEME_KEY) as Theme) || "system";
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -31,10 +35,55 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return stored;
   });
 
+  // Fetch theme from database on auth change
+  useEffect(() => {
+    const fetchThemeFromDB = async (uid: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('theme_preference')
+          .eq('id', uid)
+          .single();
+
+        if (!error && data?.theme_preference) {
+          const dbTheme = data.theme_preference as Theme;
+          setThemeState(dbTheme);
+          localStorage.setItem(THEME_KEY, dbTheme);
+        }
+      } catch (err) {
+        console.error('Error fetching theme preference:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+        fetchThemeFromDB(session.user.id);
+      } else {
+        setUserId(null);
+        setIsLoading(false);
+      }
+    });
+
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+        fetchThemeFromDB(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Apply theme to DOM
   useEffect(() => {
     const root = document.documentElement;
     
-    // Add transition class for smooth theme switching
     root.classList.add("theme-transition");
     
     const resolved = theme === "system" ? getSystemTheme() : theme;
@@ -48,7 +97,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     
     localStorage.setItem(THEME_KEY, theme);
     
-    // Remove transition class after animation completes
     const timeout = setTimeout(() => {
       root.classList.remove("theme-transition");
     }, 300);
@@ -56,6 +104,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, [theme]);
 
+  // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     
@@ -75,20 +124,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
+  // Save theme to database
+  const syncThemeToDB = useCallback(async (newTheme: Theme) => {
+    if (!userId) return;
+    
+    try {
+      await supabase
+        .from('profiles')
+        .update({ theme_preference: newTheme })
+        .eq('id', userId);
+    } catch (err) {
+      console.error('Error saving theme preference:', err);
+    }
+  }, [userId]);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => {
-      if (prev === "light") return "dark";
-      if (prev === "dark") return "light";
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    syncThemeToDB(newTheme);
+  }, [syncThemeToDB]);
+
+  const toggleTheme = useCallback(() => {
+    const newTheme = (() => {
+      if (theme === "light") return "dark";
+      if (theme === "dark") return "light";
       return getSystemTheme() === "dark" ? "light" : "dark";
-    });
-  };
+    })();
+    setTheme(newTheme);
+  }, [theme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme, isLoading }}>
       {children}
     </ThemeContext.Provider>
   );
