@@ -44,29 +44,6 @@ export default function TenantDashboard() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => setIsInitialLoad(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
-
-  if (loading || isInitialLoad) {
-    return (
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (userRole === "landlord") {
-    return <Navigate to="/landlord-dashboard" replace />;
-  }
-
   const handleEdit = (record: RentRecord) => {
     setEditingRecord(record);
     setIsEditDialogOpen(true);
@@ -75,6 +52,13 @@ export default function TenantDashboard() {
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setIsInitialLoad(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const checkNotifications = async () => {
@@ -93,6 +77,22 @@ export default function TenantDashboard() {
 
     checkNotifications();
   }, [user]);
+
+  if (loading || isInitialLoad) {
+    return (
+      <DashboardLayout>
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (userRole === "landlord") {
+    return <Navigate to="/landlord-dashboard" replace />;
+  }
 
   return (
     <DashboardLayout>
