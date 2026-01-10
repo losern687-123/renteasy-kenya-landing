@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeletons";
 
@@ -31,7 +30,6 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
   const { user } = useAuth();
   const [records, setRecords] = useState<RentRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchRecords = async () => {
     if (!user) return;
@@ -59,28 +57,6 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
   useEffect(() => {
     fetchRecords();
   }, [user]);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
-    setDeletingId(id);
-    const { error } = await supabase.from("rent_records").delete().eq("id", id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete record",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Record deleted successfully",
-      });
-      fetchRecords();
-    }
-    setDeletingId(null);
-  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
@@ -149,28 +125,13 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
                     <TableCell>{formatDate(record.payment_date)}</TableCell>
                     <TableCell>{getStatusBadge(record.status)}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit?.(record)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(record.id)}
-                          disabled={deletingId === record.id}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          {deletingId === record.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit?.(record)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
