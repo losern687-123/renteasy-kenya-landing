@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.approve-landlord]
 verify_jwt = true
+
+[functions.check-subscription-limits]
+verify_jwt = true

@@ -86,6 +86,63 @@ export type Database = {
         }
         Relationships: []
       }
+      landlord_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          billing_cycle: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          landlord_id: string
+          start_date: string | null
+          status: string
+          tier_id: string
+          trial_ends_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          landlord_id: string
+          start_date?: string | null
+          status?: string
+          tier_id: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          landlord_id?: string
+          start_date?: string | null
+          status?: string
+          tier_id?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landlord_subscriptions_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "landlord_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mpesa_payments: {
         Row: {
           amount: number
@@ -161,6 +218,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          current_tier: string | null
           email: string
           id: string
           landlord_code: string | null
@@ -173,6 +231,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_tier?: string | null
           email: string
           id: string
           landlord_code?: string | null
@@ -185,6 +244,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_tier?: string | null
           email?: string
           id?: string
           landlord_code?: string | null
@@ -269,6 +329,171 @@ export type Database = {
           tenant_id?: string
           tenant_name?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          landlord_id: string
+          metadata: Json | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          landlord_id: string
+          metadata?: Json | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          landlord_id?: string
+          metadata?: Json | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "landlord_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_requests: {
+        Row: {
+          admin_notes: string | null
+          billing_cycle: string | null
+          company_name: string | null
+          created_at: string | null
+          id: string
+          landlord_id: string
+          phone_number: string
+          requested_tier_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          billing_cycle?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          landlord_id: string
+          phone_number: string
+          requested_tier_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          billing_cycle?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          landlord_id?: string
+          phone_number?: string
+          requested_tier_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_requests_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_requested_tier_id_fkey"
+            columns: ["requested_tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_tiers: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_properties: number | null
+          max_tenants: number | null
+          name: string
+          price_annual: number
+          price_monthly: number
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_properties?: number | null
+          max_tenants?: number | null
+          name: string
+          price_annual?: number
+          price_monthly?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_properties?: number | null
+          max_tenants?: number | null
+          name?: string
+          price_annual?: number
+          price_monthly?: number
+          sort_order?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }

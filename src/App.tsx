@@ -27,6 +27,8 @@ import ApplyAsLandlord from "./pages/ApplyAsLandlord";
 import PendingVerification from "./pages/PendingVerification";
 import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
+import SubscriptionSettings from "./pages/SubscriptionSettings";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AccessDenied from "./pages/AccessDenied";
 import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
@@ -98,6 +100,14 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            <Route 
+              path="/landlord/subscription" 
+              element={
+                <RouteGuard allowedRoles={['landlord']} requireApprovedLandlord={true}>
+                  <SubscriptionSettings />
+                </RouteGuard>
+              } 
+            />
             <Route path="/landlord/pending" element={<LandlordPending />} />
             <Route path="/landlord/rejected" element={<LandlordRejected />} />
             <Route path="/apply-landlord" element={<ApplyAsLandlord />} />
@@ -151,6 +161,14 @@ const App = () => (
               element={
                 <RouteGuard allowedRoles={['admin']}>
                   <AdminSettings />
+                </RouteGuard>
+              } 
+            />
+            <Route 
+              path="/admin/subscriptions" 
+              element={
+                <RouteGuard allowedRoles={['admin']}>
+                  <AdminSubscriptions />
                 </RouteGuard>
               } 
             />

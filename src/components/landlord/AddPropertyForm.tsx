@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { LimitAlert } from "@/components/subscription/LimitAlert";
+import { Badge } from "@/components/ui/badge";
 
 const propertySchema = z.object({
   name: z.string().min(1, "Property name is required").max(100),
@@ -19,9 +22,15 @@ const propertySchema = z.object({
 
 type PropertyFormData = z.infer<typeof propertySchema>;
 
-export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void }) {
+interface AddPropertyFormProps {
+  onSuccess?: () => void;
+  onUpgradeClick?: () => void;
+}
+
+export default function AddPropertyForm({ onSuccess, onUpgradeClick }: AddPropertyFormProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { canAddProperty, propertyCount, propertyLimit, tierName, displayName } = useSubscriptionLimits();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -30,6 +39,11 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
   const onSubmit = async (data: PropertyFormData) => {
     if (!user) {
       toast.error("You must be logged in to add a property");
+      return;
+    }
+
+    if (!canAddProperty) {
+      toast.error(`You've reached the property limit for your ${displayName} plan`);
       return;
     }
 
@@ -66,13 +80,34 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
     }
   };
 
+  const isAtLimit = !canAddProperty && propertyLimit !== null;
+
   return (
     <Card>
       <CardHeader className="p-4 sm:p-6">
-        <CardTitle className="text-base sm:text-lg">Add New Property</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Enter property details to add to your portfolio</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base sm:text-lg">Add New Property</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Enter property details to add to your portfolio</CardDescription>
+          </div>
+          {propertyLimit !== null && (
+            <Badge variant="outline" className="text-xs">
+              {propertyCount}/{propertyLimit}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0">
+      <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+        {isAtLimit && propertyLimit !== null && (
+          <LimitAlert
+            type="properties"
+            current={propertyCount}
+            limit={propertyLimit}
+            tierName={displayName}
+            onUpgrade={onUpgradeClick || (() => {})}
+          />
+        )}
+        
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           <div>
             <Label htmlFor="name">Property Name</Label>
@@ -80,6 +115,7 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
               id="name"
               {...register("name")}
               placeholder="e.g., Apartment 3B"
+              disabled={isAtLimit}
             />
             {errors.name && (
               <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
@@ -92,6 +128,7 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
               id="location"
               {...register("location")}
               placeholder="e.g., Westlands, Nairobi"
+              disabled={isAtLimit}
             />
             {errors.location && (
               <p className="text-sm text-destructive mt-1">{errors.location.message}</p>
@@ -105,14 +142,15 @@ export default function AddPropertyForm({ onSuccess }: { onSuccess?: () => void 
               type="number"
               {...register("rent_amount")}
               placeholder="e.g., 25000"
+              disabled={isAtLimit}
             />
             {errors.rent_amount && (
               <p className="text-sm text-destructive mt-1">{errors.rent_amount.message}</p>
             )}
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Adding..." : "Add Property"}
+          <Button type="submit" disabled={isSubmitting || isAtLimit} className="w-full">
+            {isSubmitting ? "Adding..." : isAtLimit ? "Upgrade to Add More" : "Add Property"}
           </Button>
         </form>
       </CardContent>
