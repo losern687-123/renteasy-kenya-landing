@@ -8,7 +8,8 @@ import {
   Settings,
   Building2,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Landlords", href: "/admin/landlords", icon: Building2, description: "Manage applications" },
   { name: "Tenants", href: "/admin/tenants", icon: Users, description: "View all tenants" },
   { name: "Payments", href: "/admin/payments", icon: DollarSign, description: "Transaction history" },
+  { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard, description: "Manage plans" },
   { name: "Activity Logs", href: "/admin/activity", icon: Activity, description: "System events" },
   { name: "Settings", href: "/admin/settings", icon: Settings, description: "Configuration" },
 ];

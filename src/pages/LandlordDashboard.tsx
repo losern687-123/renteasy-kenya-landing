@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
@@ -22,6 +22,9 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { LandlordDashboardSkeleton } from "@/components/ui/skeletons";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import { useHaptics } from "@/hooks/useHaptics";
+import { SubscriptionOverviewCard } from "@/components/subscription/SubscriptionOverviewCard";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { useSubscriptionLimits, useSubscriptionTiers } from "@/hooks/useSubscriptionLimits";
 
 interface DashboardStats {
   totalProperties: number;
@@ -32,6 +35,7 @@ interface DashboardStats {
 
 export default function LandlordDashboard() {
   const { user, userRole, signOut, loading } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalProperties: 0,
     totalTenants: 0,
@@ -44,8 +48,13 @@ export default function LandlordDashboard() {
   const [landlordId, setLandlordId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const { impactLight } = useHaptics();
+
+  // Subscription data
+  const subscriptionLimits = useSubscriptionLimits();
+  const { data: tiers } = useSubscriptionTiers();
 
   const tabOrder = ["overview", "properties", "tenants", "payments"];
 
@@ -354,6 +363,27 @@ export default function LandlordDashboard() {
                   </motion.div>
                 )}
               </div>
+
+              {/* Subscription Overview Card */}
+              {!subscriptionLimits.isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <SubscriptionOverviewCard
+                    tierName={subscriptionLimits.tierName as any}
+                    displayName={subscriptionLimits.displayName}
+                    propertyCount={subscriptionLimits.propertyCount}
+                    propertyLimit={subscriptionLimits.propertyLimit}
+                    tenantCount={subscriptionLimits.tenantCount}
+                    tenantLimit={subscriptionLimits.tenantLimit}
+                    renewalDate={subscriptionLimits.renewalDate || undefined}
+                    onUpgrade={() => setUpgradeModalOpen(true)}
+                    onViewDetails={() => navigate("/landlord/subscription")}
+                  />
+                </motion.div>
+              )}
             </div>
           </FadeIn>
 
@@ -520,6 +550,19 @@ export default function LandlordDashboard() {
           </FadeIn>
           </PullToRefresh>
         </main>
+
+        {/* Upgrade Modal */}
+        {tiers && (
+          <UpgradeModal
+            open={upgradeModalOpen}
+            onOpenChange={setUpgradeModalOpen}
+            tiers={tiers.map(t => ({
+              ...t,
+              features: t.features as string[],
+            }))}
+            currentTier={subscriptionLimits.tierName}
+          />
+        )}
       </div>
     </PageTransition>
   );

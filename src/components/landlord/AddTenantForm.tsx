@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { logActivity, ActivityActions, EntityTypes } from "@/utils/activityLogger";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { LimitAlert } from "@/components/subscription/LimitAlert";
+import { Badge } from "@/components/ui/badge";
 
 const tenantSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
@@ -26,11 +29,17 @@ interface Property {
   name: string;
 }
 
-export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void }) {
+interface AddTenantFormProps {
+  onSuccess?: () => void;
+  onUpgradeClick?: () => void;
+}
+
+export default function AddTenantForm({ onSuccess, onUpgradeClick }: AddTenantFormProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState("");
+  const { canAddTenant, tenantCount, tenantLimit, tierName, displayName } = useSubscriptionLimits();
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),
@@ -59,6 +68,11 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
   const onSubmit = async (data: TenantFormData) => {
     if (!user) {
       toast.error("You must be logged in to add a tenant");
+      return;
+    }
+
+    if (!canAddTenant) {
+      toast.error(`You've reached the tenant limit for your ${displayName} plan`);
       return;
     }
 
@@ -96,13 +110,34 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
     }
   };
 
+  const isAtLimit = !canAddTenant && tenantLimit !== null;
+
   return (
     <Card>
       <CardHeader className="p-4 sm:p-6">
-        <CardTitle className="text-base sm:text-lg">Add New Tenant</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Enter tenant details and assign to a property</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base sm:text-lg">Add New Tenant</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Enter tenant details and assign to a property</CardDescription>
+          </div>
+          {tenantLimit !== null && (
+            <Badge variant="outline" className="text-xs">
+              {tenantCount}/{tenantLimit}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0">
+      <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+        {isAtLimit && tenantLimit !== null && (
+          <LimitAlert
+            type="tenants"
+            current={tenantCount}
+            limit={tenantLimit}
+            tierName={displayName}
+            onUpgrade={onUpgradeClick || (() => {})}
+          />
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           <div>
             <Label htmlFor="name">Tenant Name</Label>
@@ -110,6 +145,7 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
               id="name"
               {...register("name")}
               placeholder="e.g., John Kamau"
+              disabled={isAtLimit}
             />
             {errors.name && (
               <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
@@ -123,6 +159,7 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
               type="email"
               {...register("email")}
               placeholder="e.g., john@example.com"
+              disabled={isAtLimit}
             />
             {errors.email && (
               <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
@@ -135,6 +172,7 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
               id="phone"
               {...register("phone")}
               placeholder="e.g., 0712345678"
+              disabled={isAtLimit}
             />
             {errors.phone && (
               <p className="text-sm text-destructive mt-1">{errors.phone.message}</p>
@@ -149,6 +187,7 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
                 setSelectedProperty(value);
                 setValue("property_id", value);
               }}
+              disabled={isAtLimit}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a property" />
@@ -166,8 +205,8 @@ export default function AddTenantForm({ onSuccess }: { onSuccess?: () => void })
             )}
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Adding..." : "Add Tenant"}
+          <Button type="submit" disabled={isSubmitting || isAtLimit} className="w-full">
+            {isSubmitting ? "Adding..." : isAtLimit ? "Upgrade to Add More" : "Add Tenant"}
           </Button>
         </form>
       </CardContent>
