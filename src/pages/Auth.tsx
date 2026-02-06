@@ -291,8 +291,12 @@ export default function Auth() {
             </div>
             {isLogin && (
               <div className="text-xs sm:text-sm text-center">
-                <span className="text-muted-foreground">Forgot password? </span>
-                <span className="text-muted-foreground/60">(Coming soon)</span>
+                <Link 
+                  to="/forgot-password"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Forgot password?
+                </Link>
               </div>
             )}
             <div className="text-center">

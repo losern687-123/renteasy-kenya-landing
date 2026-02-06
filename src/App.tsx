@@ -29,6 +29,8 @@ import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
@@ -47,6 +49,8 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/waitlist" element={<Waitlist />} />
             
             {/* Tenant Routes */}
