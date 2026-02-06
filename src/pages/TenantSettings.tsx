@@ -279,39 +279,42 @@ export default function TenantSettings() {
 
   const handleLandlordConnect = async () => {
     if (!user || !landlordCode.trim()) {
-      toast.error("Please enter a landlord code");
+      toast.error("Please enter a landlord ID");
       return;
     }
 
-    // Validate code format
-    if (landlordCode.length !== 8) {
-      toast.error("Landlord code must be 8 characters");
+    // Validate LND-XXXXXX format (10 characters total)
+    const landlordIdRegex = /^LND-\d{6}$/;
+    if (!landlordIdRegex.test(landlordCode.toUpperCase())) {
+      toast.error("Invalid format. Use LND-XXXXXX (e.g., LND-123456)");
       return;
     }
 
     setIsUpdating(true);
 
     try {
-      // Find landlord by code with role verification
+      // Find landlord by landlord_id (not landlord_code)
       const { data: landlordProfile, error: landlordError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          user_roles!inner(role)
-        `)
-        .eq("landlord_code", landlordCode.toUpperCase())
+        .select("id, landlord_id")
+        .eq("landlord_id", landlordCode.toUpperCase())
         .single();
 
       if (landlordError || !landlordProfile) {
-        toast.error("Invalid landlord code");
+        toast.error("Invalid landlord ID");
         setIsUpdating(false);
         return;
       }
 
       // Verify landlord role
-      const userRole = (landlordProfile as any).user_roles?.role;
-      if (userRole !== 'landlord') {
-        toast.error("Invalid landlord code");
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", landlordProfile.id)
+        .single();
+
+      if (roleData?.role !== 'landlord') {
+        toast.error("Invalid landlord ID");
         setIsUpdating(false);
         return;
       }
@@ -349,12 +352,13 @@ export default function TenantSettings() {
         .eq("id", user.id)
         .single();
 
-      // Create tenant connection
+      // Create tenant connection with linked_landlord_id for the LND-XXXXXX format
       const { error } = await supabase
         .from("tenants")
         .insert({
           id: user.id,
           landlord_id: landlordProfile.id,
+          linked_landlord_id: landlordCode.toUpperCase(),
           name: profile?.name || "",
           email: profile?.email || "",
           phone: user.phone || "",
@@ -602,17 +606,18 @@ export default function TenantSettings() {
                       </div>
                     )}
                     <div>
-                      <Label htmlFor="landlord-code">Landlord Code</Label>
+                      <Label htmlFor="landlord-code">Landlord ID</Label>
                       <Input
                         id="landlord-code"
-                        placeholder="Enter the 8-character code"
+                        placeholder="LND-123456"
                         value={landlordCode}
                         onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
-                        maxLength={8}
+                        maxLength={10}
                         disabled={connectionStatus === "verified"}
+                        className="font-mono"
                       />
                       <p className="text-sm text-muted-foreground mt-2">
-                        Ask your landlord for their unique connection code
+                        Ask your landlord for their unique ID (e.g., LND-123456)
                       </p>
                     </div>
 
