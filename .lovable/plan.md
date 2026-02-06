@@ -1,443 +1,472 @@
 
-# Subscription Tiers & Monetization System - Implementation Plan
 
-## Status: ✅ IMPLEMENTED
-
-### What Was Built
-
-**Database (Phase 1 - Complete)**
-- ✅ `subscription_tiers` table with 4 seeded tiers (Free, Pro, Enterprise, Custom)
-- ✅ `landlord_subscriptions` table tracking active subscriptions
-- ✅ `subscription_payments` table for payment history
-- ✅ `subscription_requests` table for upgrade requests
-- ✅ `current_tier` column added to profiles
-- ✅ All RLS policies configured
-- ✅ Database indexes for performance
-
-**Edge Function (Phase 3 - Complete)**
-- ✅ `check-subscription-limits` function for server-side limit validation
-
-**Frontend Components (Phase 4 - Complete)**
-- ✅ `SubscriptionBadge` - Tier badge with icon/color coding
-- ✅ `PricingCard` - Full pricing card for each tier
-- ✅ `SubscriptionOverviewCard` - Dashboard widget with usage bars
-- ✅ `UpgradeModal` - Upgrade request flow modal
-- ✅ `LimitAlert` - Inline alert when limits reached
-
-**Admin Components (Phase 5 - Complete)**
-- ✅ `SubscriptionAnalytics` - MRR, ARR, conversion metrics
-- ✅ `SubscriptionTable` - All subscriptions with filters/search
-- ✅ `SubscriptionCharts` - Pie, line, and bar charts
-- ✅ `AdminSubscriptions` page with full management
-
-**Hook (Phase 6 - Complete)**
-- ✅ `useSubscriptionLimits` - Fetches and caches subscription limits
-- ✅ `useSubscriptionTiers` - Fetches all active tiers
-
-**Integrations (Phase 7 - Complete)**
-- ✅ LandlordDashboard shows subscription overview card
-- ✅ AddPropertyForm checks limits before allowing creation
-- ✅ AddTenantForm checks limits before allowing creation
-- ✅ Admin sidebar includes Subscriptions link
-- ✅ Routes added for `/landlord/subscription` and `/admin/subscriptions`
-
----
+# Analytics Dashboard + Password Reset + Sidebar Navigation - Implementation Plan
 
 ## Overview
-This plan implements a complete subscription tier system for RentEasy Kenya with 4 pricing tiers (Free, Pro, Enterprise, Custom), feature gating based on subscription level, and full admin management capabilities.
+This plan transforms the landlord dashboard with professional sidebar navigation, adds comprehensive tiered analytics, implements secure password reset functionality, and fixes the landlord ID connection issue on the tenant side.
 
 ---
 
-## Phase 1: Database Schema
+## Critical Bug Fix: Landlord ID Connection Issue
 
-### New Tables to Create
+### Problem Identified
+From the screenshots and code analysis:
+- **Landlord Dashboard** displays `landlord_id` format: `LND-123456` (10 characters)
+- **Tenant Settings** expects `landlord_code` format: 8 alphanumeric characters (e.g., `B3F2A1C5`)
+- These are **two different fields** causing tenant-landlord connection to fail
 
-**Table 1: subscription_tiers**
-- Stores the 4 pricing tier definitions
-- Fields: id, name (unique slug), display_name, description, price_monthly, price_annual, max_properties (nullable for unlimited), max_tenants (nullable for unlimited), features (JSONB), is_active, sort_order, created_at, updated_at
-
-**Table 2: landlord_subscriptions**
-- Tracks active subscription for each landlord
-- Fields: id, landlord_id (FK to profiles), tier_id (FK to subscription_tiers), status (active/cancelled/expired/trial), billing_cycle (monthly/annual), start_date, end_date, trial_ends_at, auto_renew, created_at, updated_at
-- Unique constraint on landlord_id (one active subscription per landlord)
-
-**Table 3: subscription_payments**
-- Payment transaction history
-- Fields: id, subscription_id (FK), landlord_id, amount, currency (default KES), payment_method, payment_reference, status (pending/completed/failed/refunded), payment_date, period_start, period_end, metadata (JSONB), created_at
-
-**Table 4: subscription_requests**
-- For upgrade requests (pre-payment integration)
-- Fields: id, landlord_id, requested_tier_id, phone_number, billing_cycle, company_name, status (pending/contacted/completed/rejected), admin_notes, created_at, updated_at
-
-### Schema Modification
-- Add `current_tier` column to profiles table (defaults to 'free')
-
-### Seed Data
-Insert 4 default tiers:
-1. **Free**: KES 0, 5 properties, 10 tenants, basic features
-2. **Pro**: KES 3,999/month (KES 39,999/year), 20 properties, 100 tenants, advanced features
-3. **Enterprise**: KES 12,999/month (KES 129,999/year), 100 properties, 500 tenants, premium features
-4. **Custom**: Contact sales, unlimited everything
+### Solution
+Unify on `landlord_id` (LND-XXXXXX format) for all connections:
+1. Update `TenantSettings.tsx` landlord connection to use `landlord_id` instead of `landlord_code`
+2. Change validation from 8 characters to LND-XXXXXX format
+3. Query `profiles.landlord_id` column instead of `landlord_code`
 
 ---
 
-## Phase 2: Security (RLS Policies)
+## Part 1: Sidebar Navigation Restructure
 
-### subscription_tiers
-- SELECT: Anyone can view active tiers (for pricing display)
+### New Layout Structure
+```text
+Desktop (>=1024px):
++------------------+-----------------------------------+
+| SIDEBAR (260px)  |  CONTENT AREA                    |
+| - Logo           |  - Breadcrumb                    |
+| - User Avatar    |  - Page Title                    |
+| - Tier Badge     |  - Tab Content                   |
+| - Nav Items      |                                  |
+| - Logout         |                                  |
++------------------+-----------------------------------+
 
-### landlord_subscriptions
-- SELECT: Users view own subscription + Admins view all
-- INSERT/UPDATE: Admins only
+Tablet (768-1023px):
++-----------------------------------+
+| HEADER [Hamburger Menu]           |
++-----------------------------------+
+| CONTENT AREA                      |
+| (Sidebar in Sheet)                |
++-----------------------------------+
 
-### subscription_payments
-- SELECT: Users view own payments + Admins view all
-- INSERT: Admins only
-
-### subscription_requests
-- SELECT: Users view own requests + Admins view all
-- INSERT: Authenticated users (landlords) can create
-- UPDATE: Admins only
-
----
-
-## Phase 3: Edge Function
-
-### check-subscription-limits
-**Purpose**: Server-side validation of subscription limits before property/tenant creation
-
-**Input**: landlord_id, limit_type ('properties' | 'tenants')
-
-**Returns**:
-```json
-{
-  "tier_name": "free",
-  "display_name": "Free",
-  "limit": 5,
-  "current_count": 3,
-  "can_add": true,
-  "is_unlimited": false
-}
+Mobile (<768px):
++-----------------------------------+
+| HEADER                            |
++-----------------------------------+
+| CONTENT AREA                      |
++-----------------------------------+
+| BOTTOM NAV BAR                    |
++-----------------------------------+
 ```
 
-**Logic**:
-1. Fetch landlord's active subscription
-2. If none exists, default to free tier
-3. Count current properties/tenants
-4. Return limit info and whether addition is allowed
+### New Sidebar Navigation Tabs
+1. **Overview** - Dashboard home (LayoutDashboard icon)
+2. **Analytics** - NEW Charts & insights (BarChart3 icon)
+3. **Properties** - Property management (Building2 icon)
+4. **Tenants** - Tenant management (Users icon)
+5. **Payments** - Payment tracking (CreditCard icon)
+6. **Reports** - NEW Downloads/exports (FileText icon)
+7. **Notifications** - Notifications view (Bell icon)
+8. **Settings** - Profile & subscription (Settings icon)
+
+### Components to Create
+- `src/components/landlord/LandlordSidebar.tsx` - Professional sidebar with user info
+- `src/components/landlord/LandlordLayout.tsx` - Responsive layout wrapper
+- `src/components/landlord/LandlordBottomNav.tsx` - Mobile bottom navigation
+
+### Files to Modify
+- `src/pages/LandlordDashboard.tsx` - Replace tab-based layout with sidebar layout
 
 ---
 
-## Phase 4: Frontend Components
+## Part 2: Analytics Dashboard (NEW Tab)
 
-### New Components to Create
+### Feature Gating by Subscription Tier
 
-**src/components/subscription/SubscriptionBadge.tsx**
-- Tier badge with icon and color coding
-- Props: tier ('free'|'pro'|'enterprise'|'custom'), size ('sm'|'md'|'lg')
-- Colors: Free=gray, Pro=blue, Enterprise=purple, Custom=amber
-- Icons: Sparkles, Zap, Building, Crown (from lucide-react)
+**Free Tier (5 properties, 10 tenants)**:
+- Current month total revenue (number only)
+- Total properties and tenants count
+- Last 7 days payment list (simple table)
+- Payment success rate (this month only)
+- Locked feature previews with upgrade prompts
 
-**src/components/subscription/PricingCard.tsx**
-- Full pricing card for a single tier
-- Shows: badge, price (with annual savings), limits, features checklist
-- "Most Popular" badge for Pro tier
-- Current tier indicator (highlighted border, disabled button)
-- Upgrade button or "Contact Sales" for custom
+**Pro Tier (20 properties, 100 tenants)**:
+All Free features PLUS:
+- 6-month revenue trend line chart
+- Monthly collections vs expected bar chart
+- Outstanding balance tracker
+- Payment method breakdown pie chart
+- On-time vs late payment trends
+- Property performance comparison
+- Next 3 months revenue projection
+- CSV/Excel export
 
-**src/components/subscription/SubscriptionOverviewCard.tsx**
-- Compact dashboard widget showing current plan
-- Visual progress bars for property/tenant usage
-- Color-coded: green (<70%), yellow (70-90%), red (>90%)
-- Quick action buttons: "Upgrade Plan", "View Details"
+**Enterprise Tier (100 properties, 500 tenants)**:
+All Pro features PLUS:
+- 12+ month historical data
+- Year-over-year comparisons
+- Occupancy analytics
+- Tenant retention & churn analysis
+- Advanced forecasting (12 months)
+- PDF reports with charts
+- Custom date range selection
 
-**src/components/subscription/UpgradeModal.tsx**
-- Modal overlay with all 4 tiers in grid
-- Billing cycle toggle
-- Request form (phone, billing preference)
-- Success confirmation after submission
+### Analytics Page Layout
+```text
++--------------------------------------------------+
+| Analytics Dashboard                               |
+| [Date Range Selector] [Export Button - Pro+]     |
++--------------------------------------------------+
+| [KPI Card] [KPI Card] [KPI Card] [KPI Card]      |
+| Revenue    Collection Outstanding Avg Days       |
++--------------------------------------------------+
+| +-------------------+ +-------------------+       |
+| | Revenue Trend     | | Payment Status    |       |
+| | (Line Chart)      | | (Pie Chart)       |       |
+| +-------------------+ +-------------------+       |
++--------------------------------------------------+
+| +-------------------+ +-------------------+       |
+| | Property Perf     | | Collection Rate   |       |
+| | (Bar Chart)       | | (Gauge)           |       |
+| +-------------------+ +-------------------+       |
++--------------------------------------------------+
+| [Locked Features - Upgrade Prompts]              |
++--------------------------------------------------+
+```
 
-**src/components/subscription/LimitAlert.tsx**
-- Inline alert banner when limits are reached
-- Shows current usage and upgrade CTA
+### Components to Create
+- `src/components/landlord/analytics/AnalyticsDashboard.tsx` - Main analytics container
+- `src/components/landlord/analytics/AnalyticsKPICards.tsx` - Stat cards row
+- `src/components/landlord/analytics/RevenueChart.tsx` - Line chart for revenue trend
+- `src/components/landlord/analytics/PaymentStatusChart.tsx` - Pie chart for payment breakdown
+- `src/components/landlord/analytics/PropertyPerformanceChart.tsx` - Bar chart comparison
+- `src/components/landlord/analytics/CollectionGauge.tsx` - Gauge for collection rate
+- `src/components/landlord/analytics/LockedFeatureCard.tsx` - Upgrade prompt card
+- `src/hooks/useAnalyticsData.ts` - Hook to fetch analytics with tier-based filtering
 
-**src/components/admin/SubscriptionAnalytics.tsx**
-- Stats cards: MRR, ARR, Free vs Paid ratio, Conversion Rate, ARPU
-
-**src/components/admin/SubscriptionTable.tsx**
-- Table with all landlord subscriptions
-- Columns: Name, Email, Tier, Status, Billing, Dates, MRR
-- Filters, search, pagination, export
-
-**src/components/admin/SubscriptionCharts.tsx**
-- Pie chart: Tier distribution
-- Line chart: Revenue trend (12 months)
-- Bar chart: Upgrade/downgrade activity
+### Data Queries
+Calculate from existing tables:
+- Revenue: `SUM(rent_records.amount) WHERE status = 'paid'`
+- Outstanding: `SUM(rent_records.amount) WHERE status IN ('pending', 'overdue')`
+- Collection Rate: `(Paid / Expected) * 100`
+- Late Payments: `COUNT(*) WHERE payment_date > due_date`
 
 ---
 
-## Phase 5: New Pages
+## Part 3: Reports Tab (NEW)
 
-**src/pages/SubscriptionSettings.tsx**
-- Full subscription management page for landlords
-- Billing cycle toggle
-- 4 pricing cards grid
-- Current subscription details
-- Payment history table
+### Report Types by Tier
 
-**src/pages/admin/AdminSubscriptions.tsx**
-- Admin subscription management page
-- Analytics cards at top
-- Charts section
-- Full subscription table with actions
+**All Tiers**:
+- Payment history (CSV)
+- Tenant list (CSV)
+- Property list (CSV)
+
+**Pro Tier**:
+- Date range selection
+- Rent roll report
+- Outstanding balances report
+- Excel format exports
+
+**Enterprise Tier**:
+- All Pro reports
+- Custom report builder
+- PDF reports with charts
+
+### Reports Tab Layout
+```text
++----------------------------------------+
+| Reports & Exports                       |
++----------------------------------------+
+| Quick Reports                           |
+| +-------------+ +-------------+         |
+| | Payment     | | Tenant      |         |
+| | History     | | List        |         |
+| | [Download]  | | [Download]  |         |
+| +-------------+ +-------------+         |
++----------------------------------------+
+| Custom Reports (Pro+)                   |
+| [Date Range] [Report Type] [Generate]   |
++----------------------------------------+
+| Recent Downloads                        |
+| - report_2025_01.csv (2 days ago)       |
++----------------------------------------+
+```
+
+### Components to Create
+- `src/components/landlord/reports/ReportsTab.tsx` - Reports container
+- `src/components/landlord/reports/QuickReportCard.tsx` - Download card
+- `src/components/landlord/reports/CustomReportBuilder.tsx` - Pro+ builder
+- `src/utils/reportGenerators.ts` - CSV/Excel export functions
 
 ---
 
-## Phase 6: Custom Hook
+## Part 4: Password Reset Functionality
 
-**src/hooks/useSubscriptionLimits.ts**
+### Password Reset Flow
+```text
+1. Login Page -> "Forgot Password?" link
+2. ForgotPasswordPage -> Enter email -> Submit
+3. Supabase sends reset email
+4. User clicks link -> ResetPasswordPage
+5. Validate token -> Enter new password
+6. Password updated -> Redirect to login
+```
+
+### Password Requirements (existing in codebase)
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character
+
+### Components to Create
+- `src/pages/ForgotPassword.tsx` - Email entry form
+- `src/pages/ResetPassword.tsx` - New password form with strength indicator
+- `src/components/auth/PasswordStrengthIndicator.tsx` - Visual strength meter
+- `src/components/auth/PasswordRequirements.tsx` - Checklist component
+
+### Files to Modify
+- `src/pages/Auth.tsx` - Add "Forgot Password?" link (replace "Coming soon")
+- `src/App.tsx` - Add routes for `/forgot-password` and `/reset-password`
+
+### Supabase Integration
+Use built-in `supabase.auth.resetPasswordForEmail()` - no custom tokens needed:
 ```typescript
-interface SubscriptionLimits {
-  tierName: string;
-  displayName: string;
-  propertyLimit: number | null;
-  tenantLimit: number | null;
-  propertyCount: number;
-  tenantCount: number;
-  canAddProperty: boolean;
-  canAddTenant: boolean;
-  features: string[];
-  isLoading: boolean;
-}
+await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${window.location.origin}/reset-password`
+})
 ```
-- Uses React Query for caching (5 min stale time)
-- Defaults to free tier if no subscription found
-- Calculates usage percentages for progress bars
 
 ---
 
-## Phase 7: Integration Points
+## Part 5: Enhanced Settings Tab
 
-### Landlord Dashboard Modifications
-**File: src/pages/LandlordDashboard.tsx**
-1. Add SubscriptionOverviewCard prominently in Overview tab (after landlord ID card)
-2. Display usage metrics with progress bars
-3. Add "Upgrade Plan" button that opens UpgradeModal
+### Current Features (preserve)
+- Profile management
+- Theme settings
+- Notification preferences
+- Password change
+- Logout
 
-### Property Creation Limit Check
-**File: src/components/landlord/AddPropertyForm.tsx**
-1. Use useSubscriptionLimits hook
-2. Before form submit, check canAddProperty
-3. If limit reached: show LimitAlert, disable submit button
-4. Show usage indicator: "3/5 properties"
-
-### Tenant Creation Limit Check
-**File: src/components/landlord/AddTenantForm.tsx**
-1. Same pattern as property limits
-2. Check canAddTenant before allowing creation
-3. Show appropriate alerts and upgrade prompts
-
-### Routing
-**File: src/App.tsx**
-- Add route: `/landlord/subscription` -> SubscriptionSettings
-- Add route: `/admin/subscriptions` -> AdminSubscriptions
-
-### Navigation Updates
-**File: src/components/admin/AdminSidebar.tsx**
-- Add "Subscriptions" menu item with CreditCard icon
-- Position after Payments
-
-**File: src/pages/LandlordDashboard.tsx**
-- Add "Plan & Billing" option in mobile menu
-- Show tier badge in menu
+### New Additions
+- Link to subscription management
+- Account security section:
+  - Last login timestamp
+  - Password change reminder
+- Data export option (GDPR compliance)
 
 ---
 
-## Phase 8: Payment Request Flow (Pre-Registration)
+## Part 6: Overview Tab Reorganization
 
-Since payment integration isn't live yet:
-
-1. User clicks "Upgrade" on any paid tier
-2. UpgradeModal opens with request form
-3. Form collects: phone number, preferred billing cycle
-4. Submits to subscription_requests table
-5. Shows success: "Our team will contact you within 24 hours"
-6. Admin can view/manage requests in admin panel
+### Overview Tab Contents
+1. Welcome banner with date
+2. Subscription overview card (existing)
+3. Quick stats row (4 cards)
+4. Recent activity (last 10 payments)
+5. Quick action buttons
+6. Landlord ID display with copy
 
 ---
 
-## Technical Details
+## Database Changes
 
-### Database Migration SQL
+### No New Tables Required
+All analytics data calculated from existing tables:
+- `rent_records` - Payment data
+- `properties` - Property data
+- `tenants` - Tenant data
+- `profiles` - User data
+
+### Optional: Analytics Cache Table (if performance needed)
 ```sql
--- Create subscription tier enum isn't needed, using text with constraints
-
--- Table 1: Subscription Tiers
-CREATE TABLE subscription_tiers (
+CREATE TABLE analytics_cache (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT UNIQUE NOT NULL,
-  display_name TEXT NOT NULL,
-  description TEXT,
-  price_monthly NUMERIC NOT NULL DEFAULT 0,
-  price_annual NUMERIC NOT NULL DEFAULT 0,
-  max_properties INTEGER,
-  max_tenants INTEGER,
-  features JSONB DEFAULT '[]'::jsonb,
-  is_active BOOLEAN DEFAULT true,
-  sort_order INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  landlord_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  metric_type TEXT NOT NULL,
+  period TEXT NOT NULL,
+  data JSONB DEFAULT '{}'::jsonb,
+  calculated_at TIMESTAMPTZ DEFAULT now(),
+  expires_at TIMESTAMPTZ,
+  UNIQUE(landlord_id, metric_type, period)
 );
-
--- Table 2: Landlord Subscriptions
-CREATE TABLE landlord_subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  landlord_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  tier_id UUID REFERENCES subscription_tiers(id) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'active',
-  billing_cycle TEXT DEFAULT 'monthly',
-  start_date TIMESTAMPTZ DEFAULT now(),
-  end_date TIMESTAMPTZ,
-  trial_ends_at TIMESTAMPTZ,
-  auto_renew BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(landlord_id)
-);
-
--- Table 3: Subscription Payments
-CREATE TABLE subscription_payments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  subscription_id UUID REFERENCES landlord_subscriptions(id),
-  landlord_id UUID REFERENCES profiles(id) NOT NULL,
-  amount NUMERIC NOT NULL,
-  currency TEXT DEFAULT 'KES',
-  payment_method TEXT,
-  payment_reference TEXT,
-  status TEXT DEFAULT 'pending',
-  payment_date TIMESTAMPTZ,
-  period_start DATE,
-  period_end DATE,
-  metadata JSONB DEFAULT '{}'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Table 4: Subscription Requests
-CREATE TABLE subscription_requests (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  landlord_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  requested_tier_id UUID REFERENCES subscription_tiers(id) NOT NULL,
-  phone_number TEXT NOT NULL,
-  billing_cycle TEXT DEFAULT 'monthly',
-  company_name TEXT,
-  status TEXT DEFAULT 'pending',
-  admin_notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Add current_tier to profiles
-ALTER TABLE profiles ADD COLUMN current_tier TEXT DEFAULT 'free';
-
--- Enable RLS
-ALTER TABLE subscription_tiers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE landlord_subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscription_payments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscription_requests ENABLE ROW LEVEL SECURITY;
-
--- Seed default tiers
-INSERT INTO subscription_tiers (name, display_name, description, price_monthly, price_annual, max_properties, max_tenants, features, sort_order) VALUES
-('free', 'Free', 'Perfect for getting started', 0, 0, 5, 10, '["Basic property management", "Up to 5 properties", "Up to 10 tenants", "Email support"]', 1),
-('pro', 'Pro', 'For growing landlords', 3999, 39999, 20, 100, '["Everything in Free", "Up to 20 properties", "Up to 100 tenants", "Priority email support", "Payment reminders", "Basic analytics"]', 2),
-('enterprise', 'Enterprise', 'For property managers', 12999, 129999, 100, 500, '["Everything in Pro", "Up to 100 properties", "Up to 500 tenants", "Phone support", "Advanced analytics", "Custom reports", "API access"]', 3),
-('custom', 'Custom', 'Tailored for your needs', 0, 0, NULL, NULL, '["Everything in Enterprise", "Unlimited properties", "Unlimited tenants", "Dedicated account manager", "Custom integrations", "SLA guarantee"]', 4);
 ```
-
-### RLS Policies SQL
-```sql
--- subscription_tiers: Anyone can view active tiers
-CREATE POLICY "Anyone can view active tiers" ON subscription_tiers
-  FOR SELECT USING (is_active = true);
-
--- landlord_subscriptions policies
-CREATE POLICY "Users can view own subscription" ON landlord_subscriptions
-  FOR SELECT USING (auth.uid() = landlord_id);
-
-CREATE POLICY "Admins can view all subscriptions" ON landlord_subscriptions
-  FOR SELECT USING (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can insert subscriptions" ON landlord_subscriptions
-  FOR INSERT WITH CHECK (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can update subscriptions" ON landlord_subscriptions
-  FOR UPDATE USING (has_role(auth.uid(), 'admin'));
-
--- subscription_payments policies
-CREATE POLICY "Users can view own payments" ON subscription_payments
-  FOR SELECT USING (auth.uid() = landlord_id);
-
-CREATE POLICY "Admins can view all payments" ON subscription_payments
-  FOR SELECT USING (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can insert payments" ON subscription_payments
-  FOR INSERT WITH CHECK (has_role(auth.uid(), 'admin'));
-
--- subscription_requests policies
-CREATE POLICY "Users can view own requests" ON subscription_requests
-  FOR SELECT USING (auth.uid() = landlord_id);
-
-CREATE POLICY "Users can create requests" ON subscription_requests
-  FOR INSERT WITH CHECK (auth.uid() = landlord_id);
-
-CREATE POLICY "Admins can view all requests" ON subscription_requests
-  FOR SELECT USING (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can update requests" ON subscription_requests
-  FOR UPDATE USING (has_role(auth.uid(), 'admin'));
-```
+Note: Only implement if analytics queries become slow
 
 ---
-On top of all of this the unique id for landlords that is the generated id example lnd-1234 is not able to fit the scope given on the tenant side so the tenant cannot be immediately attached to their specific landlord look into that as well 
+
 ## File Creation Summary
 
 | File | Purpose |
 |------|---------|
-| src/components/subscription/SubscriptionBadge.tsx | Tier badge component |
-| src/components/subscription/PricingCard.tsx | Single tier pricing card |
-| src/components/subscription/SubscriptionOverviewCard.tsx | Dashboard widget |
-| src/components/subscription/UpgradeModal.tsx | Upgrade request modal |
-| src/components/subscription/LimitAlert.tsx | Limit reached alert |
-| src/components/admin/SubscriptionAnalytics.tsx | Admin stats cards |
-| src/components/admin/SubscriptionTable.tsx | Admin subscriptions table |
-| src/components/admin/SubscriptionCharts.tsx | Admin charts |
-| src/pages/SubscriptionSettings.tsx | Landlord subscription page |
-| src/pages/admin/AdminSubscriptions.tsx | Admin subscriptions page |
-| src/hooks/useSubscriptionLimits.ts | Subscription limits hook |
-| supabase/functions/check-subscription-limits/index.ts | Limit validation function |
+| `src/components/landlord/LandlordSidebar.tsx` | Sidebar navigation |
+| `src/components/landlord/LandlordLayout.tsx` | Responsive layout |
+| `src/components/landlord/LandlordBottomNav.tsx` | Mobile bottom nav |
+| `src/components/landlord/analytics/AnalyticsDashboard.tsx` | Analytics container |
+| `src/components/landlord/analytics/AnalyticsKPICards.tsx` | Stats cards |
+| `src/components/landlord/analytics/RevenueChart.tsx` | Revenue line chart |
+| `src/components/landlord/analytics/PaymentStatusChart.tsx` | Payment pie chart |
+| `src/components/landlord/analytics/PropertyPerformanceChart.tsx` | Property bar chart |
+| `src/components/landlord/analytics/CollectionGauge.tsx` | Collection gauge |
+| `src/components/landlord/analytics/LockedFeatureCard.tsx` | Upgrade prompt |
+| `src/components/landlord/reports/ReportsTab.tsx` | Reports container |
+| `src/components/landlord/reports/QuickReportCard.tsx` | Report download cards |
+| `src/hooks/useAnalyticsData.ts` | Analytics data hook |
+| `src/utils/reportGenerators.ts` | Export utilities |
+| `src/pages/ForgotPassword.tsx` | Password reset request |
+| `src/pages/ResetPassword.tsx` | New password entry |
+| `src/components/auth/PasswordStrengthIndicator.tsx` | Strength meter |
+| `src/components/auth/PasswordRequirements.tsx` | Requirements list |
 
 ## File Modifications
 
 | File | Changes |
 |------|---------|
-| src/pages/LandlordDashboard.tsx | Add subscription overview card |
-| src/components/landlord/AddPropertyForm.tsx | Add limit checking |
-| src/components/landlord/AddTenantForm.tsx | Add limit checking |
-| src/components/admin/AdminSidebar.tsx | Add Subscriptions nav item |
-| src/App.tsx | Add new routes |
-| supabase/config.toml | Add edge function config |
+| `src/pages/LandlordDashboard.tsx` | Restructure with sidebar layout, add new tabs |
+| `src/pages/TenantSettings.tsx` | Fix landlord connection to use `landlord_id` |
+| `src/pages/Auth.tsx` | Add working "Forgot Password?" link |
+| `src/App.tsx` | Add routes for password reset and new landlord tabs |
+
+---
+
+## Implementation Order
+
+### Phase 1: Fix Critical Bug (30 min)
+1. Update `TenantSettings.tsx` landlord connection logic
+2. Change validation to accept LND-XXXXXX format
+3. Query correct column (`landlord_id`)
+4. Test connection flow
+
+### Phase 2: Password Reset (1.5 hours)
+1. Create `ForgotPassword.tsx` page
+2. Create `ResetPassword.tsx` page with strength indicator
+3. Create helper components
+4. Update `Auth.tsx` with link
+5. Add routes
+6. Test entire flow
+
+### Phase 3: Sidebar Navigation (2 hours)
+1. Create `LandlordSidebar.tsx` component
+2. Create `LandlordLayout.tsx` wrapper
+3. Create `LandlordBottomNav.tsx` for mobile
+4. Restructure `LandlordDashboard.tsx`
+5. Test responsive behavior
+
+### Phase 4: Overview Tab (1 hour)
+1. Reorganize overview content
+2. Add recent activity section
+3. Add quick actions
+4. Test layout
+
+### Phase 5: Analytics Infrastructure (1 hour)
+1. Create `useAnalyticsData.ts` hook
+2. Set up data fetching with tier filtering
+3. Create analytics page shell
+
+### Phase 6: Analytics Charts - Free Tier (1.5 hours)
+1. Create KPI cards component
+2. Create basic stats display
+3. Create locked feature cards
+4. Test with free tier
+
+### Phase 7: Analytics Charts - Pro/Enterprise (2 hours)
+1. Create revenue trend chart
+2. Create payment status pie chart
+3. Create property performance bar chart
+4. Create collection gauge
+5. Test tier-based feature gating
+
+### Phase 8: Reports Tab (1.5 hours)
+1. Create reports container
+2. Implement CSV export
+3. Add date range selection (Pro+)
+4. Test downloads
+
+### Phase 9: Settings Enhancement (30 min)
+1. Add subscription link
+2. Add security section
+3. Test all settings
+
+### Phase 10: Testing & Polish (2 hours)
+1. Full landlord flow testing
+2. Password reset testing
+3. Mobile responsive testing
+4. Cross-browser testing
+5. Error handling verification
+
+---
+
+## Technical Details
+
+### Tier Detection
+Use existing `useSubscriptionLimits` hook:
+```typescript
+const { tierName, features } = useSubscriptionLimits();
+
+const canAccessProFeatures = ['pro', 'enterprise', 'custom'].includes(tierName);
+const canAccessEnterpriseFeatures = ['enterprise', 'custom'].includes(tierName);
+```
+
+### Chart Library
+Use existing Recharts (already in dependencies):
+- `LineChart` for revenue trends
+- `PieChart` for payment breakdown
+- `BarChart` for property comparison
+
+### Export Functions
+```typescript
+// CSV Export
+function exportToCSV(data: any[], filename: string) {
+  const csv = convertToCSV(data);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  downloadBlob(blob, `${filename}.csv`);
+}
+```
 
 ---
 
 ## Estimated Implementation Time
-- Database Setup: 20 minutes
-- Security Policies: 15 minutes  
-- Edge Function: 15 minutes
-- Core UI Components: 45 minutes
-- Landlord Pages: 40 minutes
-- Admin Components: 60 minutes
-- Custom Hook: 20 minutes
-- Limit Integration: 45 minutes
-- Routing & Navigation: 20 minutes
-- Testing & Polish: 45 minutes
+- Critical Bug Fix: 30 minutes
+- Password Reset: 1.5 hours
+- Sidebar Navigation: 2 hours
+- Overview Tab: 1 hour
+- Analytics Infrastructure: 1 hour
+- Analytics Charts: 3.5 hours
+- Reports Tab: 1.5 hours
+- Settings Enhancement: 30 minutes
+- Testing & Polish: 2 hours
 
-**Total: ~5 hours**
+**Total: ~13.5 hours** (can be done over 2-3 days)
+
+---
+
+## Success Criteria
+
+### Landlord ID Bug Fix
+- [ ] Tenants can enter LND-XXXXXX format in settings
+- [ ] Connection to landlord works correctly
+- [ ] No confusion between landlord_code and landlord_id
+
+### Sidebar Navigation
+- [ ] Professional sidebar on desktop
+- [ ] Hamburger menu on tablet
+- [ ] Bottom nav on mobile
+- [ ] All tabs accessible
+- [ ] Smooth transitions
+
+### Analytics Dashboard
+- [ ] Free tier sees basic metrics + upgrade prompts
+- [ ] Pro tier sees full charts
+- [ ] Enterprise tier sees advanced analytics
+- [ ] Charts responsive on all screen sizes
+- [ ] Export functionality works
+
+### Password Reset
+- [ ] "Forgot Password?" link works
+- [ ] Email sent successfully
+- [ ] Reset link validates correctly
+- [ ] Password strength indicator works
+- [ ] Successful reset redirects to login
+
+### Reports
+- [ ] Basic exports work for all tiers
+- [ ] Date range selection works (Pro+)
+- [ ] Files download correctly
+
