@@ -25,14 +25,6 @@ import { AnalyticsDashboard } from "@/components/landlord/analytics/AnalyticsDas
 import { ReportsTab } from "@/components/landlord/reports/ReportsTab";
 import { NotificationsView } from "@/components/notifications/NotificationsView";
 import LandlordSettingsTab from "@/components/landlord/LandlordSettingsTab";
-import {
-  BulkOperationsHeader,
-  BulkTenantImportModal,
-  BulkPropertyImportModal,
-  BulkInvoiceModal,
-  BulkPaymentModal,
-  BulkNotificationModal,
-} from "@/components/landlord/bulk";
 
 interface DashboardStats {
   totalProperties: number;
