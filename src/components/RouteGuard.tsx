@@ -58,17 +58,18 @@ export const RouteGuard = ({ children, allowedRoles, requireApprovedLandlord = f
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (appError || !applicationData || applicationData.status !== 'approved') {
+        // No application or not approved = redirect to pending/rejected
+        if (!applicationData || applicationData.status !== 'approved') {
           toast.error("Your landlord application must be approved first");
           
-          if (applicationData?.status === 'pending') {
+          if (!applicationData || applicationData.status === 'pending') {
             navigate("/landlord/pending");
-          } else if (applicationData?.status === 'rejected') {
+          } else if (applicationData.status === 'rejected') {
             navigate("/landlord/rejected");
           } else {
-            navigate("/apply-as-landlord");
+            navigate("/landlord/pending");
           }
           return;
         }

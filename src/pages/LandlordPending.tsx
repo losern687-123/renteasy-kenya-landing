@@ -54,16 +54,26 @@ const LandlordPending = () => {
         return;
       }
 
-      const { data: application } = await supabase
+      const { data: application, error: appError } = await supabase
         .from('landlord_applications')
         .select('status, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
+      // If no application exists, this is a new landlord awaiting manual approval
+      // The admin will see them once they log in
       if (!application) {
-        navigate("/apply-as-landlord");
+        // Set application date to account creation date
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .eq('id', user.id)
+          .single();
+        
+        setApplicationDate(profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : new Date().toLocaleDateString());
+        setIsLoading(false);
         return;
       }
 
