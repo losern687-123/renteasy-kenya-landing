@@ -60,7 +60,7 @@ const AdminLandlords = () => {
         .from('landlord_applications')
         .select(`
           *,
-          profiles (
+          profiles:profiles!fk_landlord_applications_profiles (
             name,
             email
           )

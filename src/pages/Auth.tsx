@@ -155,9 +155,8 @@ export default function Auth() {
               variant: "destructive",
             });
           }
-        } else {
-          await redirectBasedOnRole();
         }
+        // Note: signUp() handles role-based navigation after successful registration.
       }
     } finally {
       setIsSubmitting(false);

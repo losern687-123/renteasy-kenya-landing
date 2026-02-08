@@ -104,6 +104,15 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            {/* Alias for older/deployed links */}
+            <Route 
+              path="/landlord/dashboard" 
+              element={
+                <RouteGuard allowedRoles={['landlord']} requireApprovedLandlord={true}>
+                  <LandlordDashboard />
+                </RouteGuard>
+              } 
+            />
             <Route 
               path="/landlord/subscription" 
               element={
