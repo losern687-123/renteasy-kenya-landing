@@ -96,7 +96,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0">
+              <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
                 <div className="flex flex-col h-full">
                   <div className="p-6 border-b border-border">
                     <h2 className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
