@@ -28,16 +28,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const fetchLandlordStatus = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('landlord_applications')
       .select('status')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching landlord status:', error);
+      setLandlordStatus(null);
+      return;
+    }
     
     if (data) {
       setLandlordStatus(data.status as 'pending' | 'approved' | 'rejected');
     } else {
-      setLandlordStatus(null);
+      // No application row = new landlord awaiting admin review
+      setLandlordStatus('pending');
     }
   };
 
@@ -153,6 +160,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               verification_status: 'pending'
             });
         }
+      }
+
+      // If landlord role, create a pending application row for admin to review
+      if (role === 'landlord') {
+        await supabase
+          .from('landlord_applications')
+          .insert({
+            user_id: data.user.id,
+            national_id: 'PENDING',
+            kra_pin: 'PENDING',
+            status: 'pending'
+          });
       }
 
       toast({
