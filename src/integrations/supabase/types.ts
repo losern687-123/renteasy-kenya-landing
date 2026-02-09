@@ -591,6 +591,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_landlord_id: {
+        Args: { landlord_id_input: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "tenant" | "landlord" | "admin"
