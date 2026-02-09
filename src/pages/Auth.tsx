@@ -39,41 +39,25 @@ export default function Auth() {
     return null;
   }
 
-  const validateLandlordId = async (id: string): Promise<{ valid: boolean; error?: string }> => {
+  const validateLandlordId = async (id: string): Promise<{ valid: boolean; error?: string; landlordUserId?: string }> => {
     try {
-      // Check if landlord ID exists in profiles and if they're approved
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, landlord_id')
-        .eq('landlord_id', id)
-        .maybeSingle();
+      // Use secure database function that bypasses RLS for validation
+      const { data, error } = await supabase.rpc('validate_landlord_id', {
+        landlord_id_input: id
+      });
 
-      if (profileError) {
-        console.error('Error checking landlord ID:', profileError);
+      if (error) {
+        console.error('Error validating landlord ID:', error);
         return { valid: false, error: "Error validating landlord ID. Please try again." };
       }
 
-      if (!profile) {
-        return { valid: false, error: "This landlord ID does not exist." };
+      const result = data as { valid: boolean; error?: string; landlord_user_id?: string };
+
+      if (!result.valid) {
+        return { valid: false, error: result.error };
       }
 
-      // Check if landlord is approved
-      const { data: application, error: appError } = await supabase
-        .from('landlord_applications')
-        .select('status')
-        .eq('user_id', profile.id)
-        .maybeSingle();
-
-      if (appError) {
-        console.error('Error checking landlord application:', appError);
-        return { valid: false, error: "Error validating landlord status. Please try again." };
-      }
-
-      if (!application || application.status !== 'approved') {
-        return { valid: false, error: "This landlord ID is not approved yet." };
-      }
-
-      return { valid: true };
+      return { valid: true, landlordUserId: result.landlord_user_id };
     } catch (error) {
       console.error('Unexpected error validating landlord:', error);
       return { valid: false, error: "An unexpected error occurred." };

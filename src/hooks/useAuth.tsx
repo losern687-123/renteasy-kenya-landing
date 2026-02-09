@@ -149,9 +149,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (landlordProfile) {
           // Create tenant record linked to this landlord
-          await supabase
+          // Set id = user.id to satisfy RLS policy (auth.uid() = id)
+          const { error: tenantError } = await supabase
             .from('tenants')
             .insert({
+              id: data.user.id, // Critical: must match auth.uid() for RLS
               name,
               email,
               phone: '', // Will be updated in settings
@@ -159,6 +161,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               linked_landlord_id: linkedLandlordId,
               verification_status: 'pending'
             });
+          
+          if (tenantError) {
+            console.error('Error creating tenant record:', tenantError);
+          }
         }
       }
 
