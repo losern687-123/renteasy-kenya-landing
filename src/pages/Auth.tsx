@@ -119,9 +119,8 @@ export default function Auth() {
             description: error.message,
             variant: "destructive",
           });
-        } else {
-          await redirectBasedOnRole();
         }
+        // signIn() already handles role-based navigation internally
       } else {
         // Pass landlord ID for tenant registration
         const { error } = await signUp(email, password, name, role, role === 'tenant' ? landlordId : undefined);

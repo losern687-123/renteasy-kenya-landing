@@ -52,7 +52,7 @@ const AdminTenants = () => {
         .from('tenants')
         .select(`
           *,
-          landlord:profiles!tenants_landlord_id_fkey(name),
+          landlord:profiles(name),
           property:properties(name)
         `)
         .order('created_at', { ascending: false });
