@@ -210,13 +210,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const [roleResponse, profileResponse, applicationResponse] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', data.user.id).single(),
         supabase.from('profiles').select('name').eq('id', data.user.id).single(),
-        supabase.from('landlord_applications').select('status').eq('user_id', data.user.id).single()
+        supabase.from('landlord_applications').select('status').eq('user_id', data.user.id).maybeSingle()
       ]);
 
       if (roleResponse.data) {
         const role = roleResponse.data.role as 'tenant' | 'landlord' | 'admin';
         const userName = profileResponse.data?.name || 'User';
-        const applicationStatus = applicationResponse.data?.status as 'pending' | 'approved' | 'rejected' | null;
+        const applicationStatus = (applicationResponse.data?.status as 'pending' | 'approved' | 'rejected') || 'pending';
         
         // Check if this is first login by comparing created_at and last_sign_in_at
         const createdAt = new Date(data.user.created_at).getTime();

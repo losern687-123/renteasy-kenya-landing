@@ -39,16 +39,16 @@ export const useRoleRedirect = () => {
 
       if (role === 'landlord') {
         // Check landlord application status
-        const { data: applicationData, error: appError } = await supabase
+        const { data: applicationData } = await supabase
           .from('landlord_applications')
           .select('status')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (appError || !applicationData) {
-          navigate('/apply-as-landlord');
+        if (!applicationData) {
+          navigate('/landlord/pending');
           return;
         }
 
@@ -60,7 +60,7 @@ export const useRoleRedirect = () => {
         } else if (applicationData.status === 'rejected') {
           navigate('/landlord/rejected');
         } else {
-          navigate('/apply-as-landlord');
+          navigate('/landlord/pending');
         }
       }
     } catch (error) {

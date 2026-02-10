@@ -293,44 +293,26 @@ export default function TenantSettings() {
     setIsUpdating(true);
 
     try {
-      // Find landlord by landlord_id (not landlord_code)
-      const { data: landlordProfile, error: landlordError } = await supabase
-        .from("profiles")
-        .select("id, landlord_id")
-        .eq("landlord_id", landlordCode.toUpperCase())
-        .single();
+      // Use secure RPC function to validate landlord ID (bypasses RLS)
+      const { data: validation, error: validationError } = await supabase.rpc('validate_landlord_id', {
+        landlord_id_input: landlordCode.toUpperCase()
+      });
 
-      if (landlordError || !landlordProfile) {
-        toast.error("Invalid landlord ID");
+      if (validationError) {
+        toast.error("Error validating landlord ID. Please try again.");
         setIsUpdating(false);
         return;
       }
 
-      // Verify landlord role
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", landlordProfile.id)
-        .single();
+      const result = validation as { valid: boolean; error?: string; landlord_user_id?: string };
 
-      if (roleData?.role !== 'landlord') {
-        toast.error("Invalid landlord ID");
+      if (!result.valid) {
+        toast.error(result.error || "Invalid landlord ID");
         setIsUpdating(false);
         return;
       }
 
-      // Check landlord application status
-      const { data: application } = await supabase
-        .from("landlord_applications")
-        .select("status")
-        .eq("user_id", landlordProfile.id)
-        .single();
-
-      if (!application || application.status !== 'approved') {
-        toast.error("Landlord account not yet verified by admin");
-        setIsUpdating(false);
-        return;
-      }
+      const landlordUserId = result.landlord_user_id;
 
       // Check if already connected
       const { data: existingTenant } = await supabase
@@ -357,7 +339,7 @@ export default function TenantSettings() {
         .from("tenants")
         .insert({
           id: user.id,
-          landlord_id: landlordProfile.id,
+          landlord_id: landlordUserId,
           linked_landlord_id: landlordCode.toUpperCase(),
           name: profile?.name || "",
           email: profile?.email || "",
