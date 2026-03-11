@@ -211,7 +211,6 @@ const AdminLandlords = () => {
                         <TableCell className="font-medium">{app.profiles.name}</TableCell>
                         <TableCell>{app.profiles.email}</TableCell>
                         <TableCell>{app.national_id}</TableCell>
-                        <TableCell>{app.kra_pin}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
