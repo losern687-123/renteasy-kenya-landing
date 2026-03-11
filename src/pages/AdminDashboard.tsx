@@ -598,7 +598,6 @@ const AdminDashboard = () => {
                           <TableHead>Landlord</TableHead>
                           <TableHead>Landlord ID</TableHead>
                           <TableHead>National ID</TableHead>
-                          <TableHead>KRA PIN</TableHead>
                           <TableHead>Approved Date</TableHead>
                         </TableRow>
                       </TableHeader>
