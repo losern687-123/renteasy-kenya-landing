@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Bell, Link as LinkIcon, Lock, Copy, CheckCircle, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { Loader2, User, Bell, Link as LinkIcon, Lock, CheckCircle, Palette, Sun, Moon, Monitor } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -123,7 +123,7 @@ export default function TenantSettings() {
   const [paymentAlerts, setPaymentAlerts] = useState(true);
   const [landlordCode, setLandlordCode] = useState("");
   const [connectionStatus, setConnectionStatus] = useState<string>("");
-  const [myLandlordCode, setMyLandlordCode] = useState<string>("");
+  const [connectedLandlordId, setConnectedLandlordId] = useState<string>("");
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -142,7 +142,6 @@ export default function TenantSettings() {
     if (user) {
       loadProfile();
       checkTenantConnection();
-      loadMyLandlordCode();
     }
   }, [user]);
 
@@ -171,45 +170,13 @@ export default function TenantSettings() {
 
     const { data } = await supabase
       .from("tenants")
-      .select("verification_status")
+      .select("verification_status, linked_landlord_id")
       .eq("id", user.id)
       .single();
 
     if (data) {
       setConnectionStatus(data.verification_status || "pending");
-    }
-  };
-
-  const loadMyLandlordCode = async () => {
-    if (!user) return;
-    
-    // Check if user has landlord role
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-    
-    if (roleData?.role !== "landlord") return;
-
-    const { data } = await supabase
-      .from("profiles")
-      .select("landlord_code")
-      .eq("id", user.id)
-      .single();
-
-    if (data?.landlord_code) {
-      setMyLandlordCode(data.landlord_code);
-    } else {
-      // Generate new code for landlord
-      const { data: newCode } = await supabase.rpc("generate_landlord_code");
-      if (newCode) {
-        await supabase
-          .from("profiles")
-          .update({ landlord_code: newCode })
-          .eq("id", user.id);
-        setMyLandlordCode(newCode);
-      }
+      setConnectedLandlordId(data.linked_landlord_id || "");
     }
   };
 
@@ -239,7 +206,6 @@ export default function TenantSettings() {
     setIsUpdating(true);
 
     try {
-      // Step 1: Re-authenticate with current password to verify identity
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser?.email) {
         toast.error("Unable to verify user session");
@@ -258,7 +224,6 @@ export default function TenantSettings() {
         return;
       }
 
-      // Step 2: Update to new password
       const { error } = await supabase.auth.updateUser({
         password: data.newPassword,
       });
@@ -283,7 +248,6 @@ export default function TenantSettings() {
       return;
     }
 
-    // Validate LND-XXXXXX format (10 characters total)
     const landlordIdRegex = /^LND-\d{6}$/;
     if (!landlordIdRegex.test(landlordCode.toUpperCase())) {
       toast.error("Invalid format. Use LND-XXXXXX (e.g., LND-123456)");
@@ -293,7 +257,6 @@ export default function TenantSettings() {
     setIsUpdating(true);
 
     try {
-      // Use secure RPC function to validate landlord ID (bypasses RLS)
       const { data: validation, error: validationError } = await supabase.rpc('validate_landlord_id', {
         landlord_id_input: landlordCode.toUpperCase()
       });
@@ -334,7 +297,6 @@ export default function TenantSettings() {
         .eq("id", user.id)
         .single();
 
-      // Create tenant connection with linked_landlord_id for the LND-XXXXXX format
       const { error } = await supabase
         .from("tenants")
         .insert({
@@ -351,6 +313,7 @@ export default function TenantSettings() {
 
       toast.success("Connection request sent to landlord");
       setConnectionStatus("pending");
+      setConnectedLandlordId(landlordCode.toUpperCase());
       setLandlordCode("");
     } catch (error: any) {
       console.error("Connection error:", error);
@@ -379,13 +342,6 @@ export default function TenantSettings() {
       toast.error("Failed to update preferences");
     } else {
       toast.success("Notification preferences updated");
-    }
-  };
-
-  const copyLandlordCode = () => {
-    if (myLandlordCode) {
-      navigator.clipboard.writeText(myLandlordCode);
-      toast.success("Landlord code copied to clipboard");
     }
   };
 
@@ -546,47 +502,32 @@ export default function TenantSettings() {
               <CardHeader>
                 <CardTitle>Landlord Connection</CardTitle>
                 <CardDescription>
-                  {myLandlordCode
-                    ? "Share your code with tenants to connect them to your account"
-                    : "Connect your account to your landlord for automated rent tracking"}
+                  Connect your account to your landlord for automated rent tracking
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {myLandlordCode && (
-                  <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <Label>Your Landlord Code</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        value={myLandlordCode}
-                        readOnly
-                        className="font-mono text-lg"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={copyLandlordCode}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                {connectionStatus && (
+                  <div className={`p-3 rounded-lg flex items-center gap-2 ${
+                    connectionStatus === "verified" ? "bg-green-500/10 border border-green-500/30" : "bg-muted"
+                  }`}>
+                    {connectionStatus === "verified" && (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">
+                        Connection Status: <span className="capitalize">{connectionStatus}</span>
+                      </p>
+                      {connectedLandlordId && (
+                        <p className="text-xs text-muted-foreground">
+                          Connected to: <span className="font-mono">{connectedLandlordId}</span>
+                        </p>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Share this code with your tenants to connect them
-                    </p>
                   </div>
                 )}
 
-                {!myLandlordCode && (
+                {!connectionStatus || connectionStatus === "" ? (
                   <>
-                    {connectionStatus && (
-                      <div className="p-3 rounded-lg bg-muted flex items-center gap-2">
-                        {connectionStatus === "verified" && (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        )}
-                        <p className="text-sm font-medium">
-                          Connection Status: <span className="capitalize">{connectionStatus}</span>
-                        </p>
-                      </div>
-                    )}
                     <div>
                       <Label htmlFor="landlord-code">Landlord ID</Label>
                       <Input
@@ -595,7 +536,6 @@ export default function TenantSettings() {
                         value={landlordCode}
                         onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
                         maxLength={10}
-                        disabled={connectionStatus === "verified"}
                         className="font-mono"
                       />
                       <p className="text-sm text-muted-foreground mt-2">
@@ -605,12 +545,16 @@ export default function TenantSettings() {
 
                     <Button 
                       onClick={handleLandlordConnect} 
-                      disabled={isUpdating || !landlordCode || connectionStatus === "verified"}
+                      disabled={isUpdating || !landlordCode}
                     >
                       {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {connectionStatus === "verified" ? "Connected" : "Connect to Landlord"}
+                      Connect to Landlord
                     </Button>
                   </>
+                ) : connectionStatus !== "verified" && (
+                  <p className="text-sm text-muted-foreground">
+                    Your connection request is {connectionStatus}. Your landlord will verify your account.
+                  </p>
                 )}
               </CardContent>
             </Card>

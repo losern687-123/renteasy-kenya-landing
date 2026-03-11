@@ -59,7 +59,6 @@ interface LandlordApplication {
   id: string;
   user_id: string;
   national_id: string;
-  kra_pin: string;
   document_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
@@ -98,6 +97,23 @@ const AdminDashboard = () => {
     if (isAuthorized) {
       fetchApplications();
       fetchMetrics();
+
+      // Realtime subscription for instant updates
+      const channel = supabase
+        .channel('admin-dashboard-applications')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'landlord_applications' },
+          () => {
+            fetchApplications();
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAuthorized]);
 
@@ -464,7 +480,6 @@ const AdminDashboard = () => {
                         <TableRow className="bg-muted/30">
                           <TableHead>Applicant</TableHead>
                           <TableHead>National ID</TableHead>
-                          <TableHead>KRA PIN</TableHead>
                           <TableHead>Applied</TableHead>
                           <TableHead>Document</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -480,7 +495,6 @@ const AdminDashboard = () => {
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
-                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {format(new Date(app.created_at), 'MMM dd, yyyy')}
                             </TableCell>
@@ -574,7 +588,6 @@ const AdminDashboard = () => {
                           <TableHead>Landlord</TableHead>
                           <TableHead>Landlord ID</TableHead>
                           <TableHead>National ID</TableHead>
-                          <TableHead>KRA PIN</TableHead>
                           <TableHead>Approved Date</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -593,7 +606,6 @@ const AdminDashboard = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
-                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {format(new Date(app.created_at), 'MMM dd, yyyy')}
                             </TableCell>
@@ -618,7 +630,6 @@ const AdminDashboard = () => {
                         <TableRow className="bg-muted/30">
                           <TableHead>Applicant</TableHead>
                           <TableHead>National ID</TableHead>
-                          <TableHead>KRA PIN</TableHead>
                           <TableHead>Rejected Date</TableHead>
                           <TableHead>Reason</TableHead>
                         </TableRow>
@@ -633,7 +644,6 @@ const AdminDashboard = () => {
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
-                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {format(new Date(app.created_at), 'MMM dd, yyyy')}
                             </TableCell>

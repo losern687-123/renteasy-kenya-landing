@@ -28,7 +28,6 @@ interface LandlordApplication {
   id: string;
   user_id: string;
   national_id: string;
-  kra_pin: string;
   document_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
@@ -51,6 +50,22 @@ const AdminLandlords = () => {
   useEffect(() => {
     if (isAuthorized) {
       fetchApplications();
+
+      // Realtime subscription for instant updates
+      const channel = supabase
+        .channel('admin-landlord-applications')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'landlord_applications' },
+          () => {
+            fetchApplications();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAuthorized]);
 
@@ -185,7 +200,6 @@ const AdminLandlords = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>National ID</TableHead>
-                      <TableHead>KRA PIN</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Applied</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -197,7 +211,6 @@ const AdminLandlords = () => {
                         <TableCell className="font-medium">{app.profiles.name}</TableCell>
                         <TableCell>{app.profiles.email}</TableCell>
                         <TableCell>{app.national_id}</TableCell>
-                        <TableCell>{app.kra_pin}</TableCell>
                         <TableCell>
                           <Badge
                             variant={

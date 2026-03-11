@@ -33,7 +33,7 @@ export const useRoleRedirect = () => {
       }
 
       if (role === 'tenant') {
-        navigate('/tenant/dashboard');
+        navigate('/tenant-dashboard');
         return;
       }
 

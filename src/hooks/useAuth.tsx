@@ -10,7 +10,7 @@ interface AuthContextType {
   userRole: 'tenant' | 'landlord' | 'admin' | null;
   landlordStatus: 'pending' | 'approved' | 'rejected' | null;
   isApprovedLandlord: boolean;
-  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord', linkedLandlordId?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (data) {
       setLandlordStatus(data.status as 'pending' | 'approved' | 'rejected');
     } else {
-      // No application row = new landlord awaiting admin review
       setLandlordStatus('pending');
     }
   };
@@ -55,13 +54,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch user role and landlord status when authenticated
         if (session?.user) {
           setTimeout(async () => {
             const { data } = await supabase
@@ -72,8 +69,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             
             if (data) {
               setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
-              
-              // Fetch landlord status if user is a landlord
               if (data.role === 'landlord') {
                 await fetchLandlordStatus(session.user.id);
               }
@@ -88,7 +83,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -103,8 +97,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (data) {
             setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
-            
-            // Fetch landlord status if user is a landlord
             if (data.role === 'landlord') {
               await fetchLandlordStatus(session.user.id);
             }
@@ -121,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
-  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord', linkedLandlordId?: string) => {
+  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -132,50 +124,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: {
           name,
           role,
-          linked_landlord_id: linkedLandlordId || null
         }
       }
     });
 
     if (!error && data.user) {
-      // If tenant with linked landlord ID, create the tenant record
-      if (role === 'tenant' && linkedLandlordId) {
-        // Get the landlord's user ID from their landlord_id
-        const { data: landlordProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('landlord_id', linkedLandlordId)
-          .single();
-
-        if (landlordProfile) {
-          // Create tenant record linked to this landlord
-          // Set id = user.id to satisfy RLS policy (auth.uid() = id)
-          const { error: tenantError } = await supabase
-            .from('tenants')
-            .insert({
-              id: data.user.id, // Critical: must match auth.uid() for RLS
-              name,
-              email,
-              phone: '', // Will be updated in settings
-              landlord_id: landlordProfile.id,
-              linked_landlord_id: linkedLandlordId,
-              verification_status: 'pending'
-            });
-          
-          if (tenantError) {
-            console.error('Error creating tenant record:', tenantError);
-          }
-        }
-      }
-
       // If landlord role, create a pending application row for admin to review
       if (role === 'landlord') {
         await supabase
           .from('landlord_applications')
           .insert({
             user_id: data.user.id,
-            national_id: 'PENDING',
-            kra_pin: 'PENDING',
+            national_id: nationalId || 'PENDING',
+            kra_pin: '',
             status: 'pending'
           });
       }
@@ -185,12 +146,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Welcome to RentEasy Kenya",
       });
       
-      // Redirect based on role - landlords go to pending page
       setTimeout(() => {
         if (role === 'tenant') {
           navigate('/tenant-dashboard');
         } else {
-          // New landlords are pending by default
           navigate('/landlord/pending');
         }
       }, 500);
@@ -206,7 +165,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (!error && data.user) {
-      // Fetch role, profile, and landlord application status
       const [roleResponse, profileResponse, applicationResponse] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', data.user.id).single(),
         supabase.from('profiles').select('name').eq('id', data.user.id).single(),
@@ -218,10 +176,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userName = profileResponse.data?.name || 'User';
         const applicationStatus = (applicationResponse.data?.status as 'pending' | 'approved' | 'rejected') || 'pending';
         
-        // Check if this is first login by comparing created_at and last_sign_in_at
         const createdAt = new Date(data.user.created_at).getTime();
         const lastSignIn = new Date(data.user.last_sign_in_at || data.user.created_at).getTime();
-        const isFirstLogin = (lastSignIn - createdAt) < 60000; // Within 1 minute of account creation
+        const isFirstLogin = (lastSignIn - createdAt) < 60000;
         
         toast({
           title: isFirstLogin ? `Welcome ${userName}!` : "Welcome back!",
@@ -234,7 +191,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } else if (role === 'tenant') {
             navigate('/tenant-dashboard');
           } else if (role === 'landlord') {
-            // Redirect based on landlord application status
             if (applicationStatus === 'approved') {
               navigate('/landlord-dashboard');
             } else if (applicationStatus === 'rejected') {
