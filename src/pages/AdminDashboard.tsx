@@ -69,16 +69,6 @@ interface LandlordApplication {
     landlord_id: string | null;
   };
 }
-  document_url: string | null;
-  status: 'pending' | 'approved' | 'rejected';
-  rejection_reason: string | null;
-  created_at: string;
-  profiles: {
-    name: string;
-    email: string;
-    landlord_id: string | null;
-  };
-}
 
 interface DashboardMetrics {
   totalTenants: number;
