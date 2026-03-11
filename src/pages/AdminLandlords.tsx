@@ -200,7 +200,6 @@ const AdminLandlords = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>National ID</TableHead>
-                      <TableHead>KRA PIN</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Applied</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
