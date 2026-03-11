@@ -616,7 +616,6 @@ const AdminDashboard = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="font-mono text-sm">{app.national_id}</TableCell>
-                            <TableCell className="font-mono text-sm">{app.kra_pin}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {format(new Date(app.created_at), 'MMM dd, yyyy')}
                             </TableCell>
