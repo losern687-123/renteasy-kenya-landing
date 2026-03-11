@@ -107,6 +107,23 @@ const AdminDashboard = () => {
     if (isAuthorized) {
       fetchApplications();
       fetchMetrics();
+
+      // Realtime subscription for instant updates
+      const channel = supabase
+        .channel('admin-dashboard-applications')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'landlord_applications' },
+          () => {
+            fetchApplications();
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAuthorized]);
 
