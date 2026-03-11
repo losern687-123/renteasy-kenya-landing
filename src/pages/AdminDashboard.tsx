@@ -640,7 +640,6 @@ const AdminDashboard = () => {
                         <TableRow className="bg-muted/30">
                           <TableHead>Applicant</TableHead>
                           <TableHead>National ID</TableHead>
-                          <TableHead>KRA PIN</TableHead>
                           <TableHead>Rejected Date</TableHead>
                           <TableHead>Reason</TableHead>
                         </TableRow>
