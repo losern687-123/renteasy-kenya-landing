@@ -50,6 +50,22 @@ const AdminLandlords = () => {
   useEffect(() => {
     if (isAuthorized) {
       fetchApplications();
+
+      // Realtime subscription for instant updates
+      const channel = supabase
+        .channel('admin-landlord-applications')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'landlord_applications' },
+          () => {
+            fetchApplications();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAuthorized]);
 
