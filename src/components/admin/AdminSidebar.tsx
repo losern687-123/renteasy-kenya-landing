@@ -1,15 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  Users, 
-  DollarSign, 
-  Activity, 
-  Settings,
-  Building2,
-  LogOut,
-  ChevronRight,
-  CreditCard
+  LayoutDashboard, Users, DollarSign, Activity, Settings,
+  Building2, LogOut, CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,13 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const navigation = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, description: "Overview & analytics" },
-  { name: "Landlords", href: "/admin/landlords", icon: Building2, description: "Manage applications" },
-  { name: "Tenants", href: "/admin/tenants", icon: Users, description: "View all tenants" },
-  { name: "Payments", href: "/admin/payments", icon: DollarSign, description: "Transaction history" },
-  { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard, description: "Manage plans" },
-  { name: "Activity Logs", href: "/admin/activity", icon: Activity, description: "System events" },
-  { name: "Settings", href: "/admin/settings", icon: Settings, description: "Configuration" },
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Landlords", href: "/admin/landlords", icon: Building2 },
+  { name: "Tenants", href: "/admin/tenants", icon: Users },
+  { name: "Payments", href: "/admin/payments", icon: DollarSign },
+  { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
+  { name: "Activity Logs", href: "/admin/activity", icon: Activity },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 interface AdminSidebarProps {
@@ -40,88 +33,51 @@ export function AdminSidebar({ onNavigate }: AdminSidebarProps) {
     navigate("/");
   };
 
-  const handleNavClick = () => {
-    onNavigate?.();
-  };
-
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 lg:w-64 bg-[hsl(155_25%_10%)] border-r border-[hsl(155_15%_18%)]">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col">
         {/* Logo */}
-        <div className="flex h-20 items-center border-b border-[hsl(155_15%_18%)] px-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">RE</span>
+        <div className="flex h-[72px] items-center border-b border-sidebar-border px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">RE</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">RentEasy</h1>
-              <p className="text-xs text-[hsl(155_20%_60%)]">Admin Portal</p>
+              <h1 className="text-base font-bold text-sidebar-foreground">RentEasy</h1>
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">Admin</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto">
-          <p className="px-3 mb-3 text-xs font-semibold text-[hsl(155_20%_45%)] uppercase tracking-wider">
-            Main Menu
-          </p>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                onClick={handleNavClick}
+                onClick={onNavigate}
                 className={cn(
-                  "group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "text-[hsl(155_15%_70%)] hover:bg-[hsl(155_20%_15%)] hover:text-white"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
               >
-                <div className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  isActive 
-                    ? "bg-white/20" 
-                    : "bg-[hsl(155_20%_15%)] group-hover:bg-[hsl(155_20%_20%)]"
-                )}>
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-transform duration-200 group-hover:scale-110",
-                    isActive ? "text-white" : "text-[hsl(155_40%_50%)]"
-                  )} />
-                </div>
-                <div className="flex-1">
-                  <span className="block">{item.name}</span>
-                  <span className={cn(
-                    "block text-xs",
-                    isActive ? "text-white/70" : "text-[hsl(155_15%_50%)]"
-                  )}>
-                    {item.description}
-                  </span>
-                </div>
-                {isActive && (
-                  <ChevronRight className="h-4 w-4 text-white/70" />
-                )}
+                <item.icon className="h-[18px] w-[18px]" />
+                <span>{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-[hsl(155_15%_18%)] p-4 space-y-3">
-          <div className="flex items-center gap-3 rounded-xl bg-[hsl(155_20%_12%)] px-3 py-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-hero text-white text-sm font-bold shadow-md">
-              A
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">Admin User</p>
-              <p className="text-xs text-[hsl(155_15%_50%)] truncate">System Administrator</p>
-            </div>
-          </div>
+        <div className="border-t border-sidebar-border p-3">
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start gap-2 text-[hsl(155_15%_60%)] hover:text-white hover:bg-[hsl(155_20%_15%)]"
+            className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent text-sm"
           >
             <LogOut className="h-4 w-4" />
             Sign Out
