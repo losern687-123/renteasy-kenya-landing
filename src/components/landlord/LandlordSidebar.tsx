@@ -1,16 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  BarChart3,
-  Building2,
-  Users, 
-  CreditCard,
-  FileText,
-  Bell,
-  Settings,
-  LogOut,
-  ChevronRight
+  LayoutDashboard, BarChart3, Building2, Users, 
+  CreditCard, FileText, Bell, Settings, LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,22 +19,18 @@ interface LandlordSidebarProps {
 }
 
 const navigation = [
-  { name: "Overview", value: "overview", icon: LayoutDashboard, description: "Dashboard home" },
-  { name: "Analytics", value: "analytics", icon: BarChart3, description: "Charts & insights" },
-  { name: "Properties", value: "properties", icon: Building2, description: "Manage properties" },
-  { name: "Tenants", value: "tenants", icon: Users, description: "Tenant management" },
-  { name: "Payments", value: "payments", icon: CreditCard, description: "Track payments" },
-  { name: "Reports", value: "reports", icon: FileText, description: "Download & export" },
-  { name: "Notifications", value: "notifications", icon: Bell, description: "View alerts" },
-  { name: "Settings", value: "settings", icon: Settings, description: "Profile & preferences" },
+  { name: "Overview", value: "overview", icon: LayoutDashboard },
+  { name: "Analytics", value: "analytics", icon: BarChart3 },
+  { name: "Properties", value: "properties", icon: Building2 },
+  { name: "Tenants", value: "tenants", icon: Users },
+  { name: "Payments", value: "payments", icon: CreditCard },
+  { name: "Reports", value: "reports", icon: FileText },
+  { name: "Notifications", value: "notifications", icon: Bell },
+  { name: "Settings", value: "settings", icon: Settings },
 ];
 
 export function LandlordSidebar({ 
-  activeTab, 
-  onTabChange, 
-  userName = "Landlord",
-  tierName = "free",
-  onNavigate 
+  activeTab, onTabChange, userName = "Landlord", tierName = "free", onNavigate 
 }: LandlordSidebarProps) {
   const navigate = useNavigate();
 
@@ -57,48 +45,39 @@ export function LandlordSidebar({
     onNavigate?.();
   };
 
-  // Get user initials
-  const initials = userName
-    .split(" ")
-    .map(n => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "LN";
+  const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "LN";
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 lg:w-64 bg-card border-r border-border">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col">
         {/* Logo */}
-        <div className="flex h-20 items-center border-b border-border px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">RE</span>
+        <div className="flex h-[72px] items-center border-b border-sidebar-border px-6">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">RE</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-hero bg-clip-text text-transparent">RentEasy</h1>
-              <p className="text-xs text-muted-foreground">Landlord Portal</p>
+              <h1 className="text-base font-bold text-sidebar-foreground">RentEasy</h1>
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">Landlord</p>
             </div>
           </Link>
         </div>
 
         {/* User Info */}
-        <div className="px-4 py-4 border-b border-border">
+        <div className="px-4 py-3 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-hero text-white text-sm font-bold shadow-md">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
               {initials}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">{userName}</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
               <SubscriptionBadge tier={tierName} size="sm" />
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-          <p className="px-3 mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Main Menu
-          </p>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
           {navigation.map((item) => {
             const isActive = activeTab === item.value;
             return (
@@ -106,46 +85,25 @@ export function LandlordSidebar({
                 key={item.name}
                 onClick={() => handleNavClick(item.value)}
                 className={cn(
-                  "w-full group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200",
+                  "w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
               >
-                <div className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  isActive 
-                    ? "bg-white/20" 
-                    : "bg-muted group-hover:bg-background"
-                )}>
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-transform duration-200 group-hover:scale-110",
-                    isActive ? "text-white" : "text-primary"
-                  )} />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="block">{item.name}</span>
-                  <span className={cn(
-                    "block text-xs",
-                    isActive ? "text-white/70" : "text-muted-foreground"
-                  )}>
-                    {item.description}
-                  </span>
-                </div>
-                {isActive && (
-                  <ChevronRight className="h-4 w-4 text-white/70" />
-                )}
+                <item.icon className="h-[18px] w-[18px]" />
+                <span>{item.name}</span>
               </button>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-border p-4">
+        <div className="border-t border-sidebar-border p-3">
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 text-sm"
           >
             <LogOut className="h-4 w-4" />
             Sign Out

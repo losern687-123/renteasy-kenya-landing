@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Building2, UserCircle, Loader2 } from "lucide-react";
+import { Building2, UserCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
@@ -42,8 +42,6 @@ export default function Auth() {
       passwordSchema.parse(password);
       if (!isLogin) {
         nameSchema.parse(name);
-        
-        // For landlords, validate national ID is provided
         if (role === 'landlord' && !nationalId.trim()) {
           toast({
             title: "Validation Error",
@@ -68,37 +66,23 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     const isValid = validateInputs();
     if (!isValid) return;
-    
     setIsSubmitting(true);
 
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          toast({
-            title: "Login failed",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast({ title: "Login failed", description: error.message, variant: "destructive" });
         }
       } else {
         const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined);
         if (error) {
           if (error.message.includes("already registered")) {
-            toast({
-              title: "Account exists",
-              description: "This email is already registered. Please log in instead.",
-              variant: "destructive",
-            });
+            toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
           } else {
-            toast({
-              title: "Registration failed",
-              description: error.message,
-              variant: "destructive",
-            });
+            toast({ title: "Registration failed", description: error.message, variant: "destructive" });
           }
         }
       }
@@ -108,32 +92,30 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-            RentEasy Kenya
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 py-8">
+      <div className="w-full max-w-[400px]">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2.5 mb-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">RE</span>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isLogin ? "Welcome back" : "Create your account"}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            {isLogin ? "Welcome back to RentEasy Kenya" : "Join RentEasy Kenya today"}
+          <p className="text-sm text-muted-foreground mt-1">
+            {isLogin ? "Sign in to your RentEasy Kenya account" : "Join RentEasy Kenya today"}
           </p>
         </div>
 
-        <Card className="border-primary/20 shadow-xl">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl">{isLogin ? "Login" : "Create Account"}</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {isLogin 
-                ? "Enter your credentials to access your dashboard" 
-                : "Choose your role and create your account"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <Card className="border border-border shadow-sm">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name" className="text-sm font-medium text-foreground">Full Name</Label>
                     <Input
                       id="name"
                       type="text"
@@ -142,11 +124,12 @@ export default function Auth() {
                       onChange={(e) => setName(e.target.value)}
                       required
                       maxLength={100}
+                      className="h-12"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>I am a:</Label>
+                    <Label className="text-sm font-medium text-foreground">I am a:</Label>
                     <Tabs value={role} onValueChange={(v) => setRole(v as 'tenant' | 'landlord')} className="w-full">
                       <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="tenant" className="gap-2">
@@ -163,7 +146,7 @@ export default function Auth() {
 
                   {role === 'landlord' && (
                     <div className="space-y-2">
-                      <Label htmlFor="nationalId">National ID Number</Label>
+                      <Label htmlFor="nationalId" className="text-sm font-medium text-foreground">National ID Number</Label>
                       <Input
                         id="nationalId"
                         type="text"
@@ -171,6 +154,7 @@ export default function Auth() {
                         value={nationalId}
                         onChange={(e) => setNationalId(e.target.value)}
                         required
+                        className="h-12"
                       />
                       <p className="text-xs text-muted-foreground">
                         Required for verification. Your application will be reviewed by admin.
@@ -181,7 +165,7 @@ export default function Auth() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -190,11 +174,12 @@ export default function Auth() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   maxLength={255}
+                  className="h-12"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -203,36 +188,34 @@ export default function Auth() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
+                  className="h-12"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Please wait..." : (isLogin ? "Login" : "Create Account")}
+              <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
+                {isSubmitting ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-            <div className="text-xs sm:text-sm text-center text-muted-foreground">
+          <CardFooter className="flex flex-col space-y-3 p-6 pt-0">
+            <div className="text-sm text-center text-muted-foreground">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-primary hover:underline font-medium"
               >
-                {isLogin ? "Sign up" : "Login"}
+                {isLogin ? "Sign up" : "Sign in"}
               </button>
             </div>
             {isLogin && (
-              <div className="text-xs sm:text-sm text-center">
-                <Link 
-                  to="/forgot-password"
-                  className="text-primary hover:underline font-medium"
-                >
+              <div className="text-sm text-center">
+                <Link to="/forgot-password" className="text-primary hover:underline font-medium">
                   Forgot password?
                 </Link>
               </div>
             )}
             <div className="text-center">
-              <Link to="/" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 ← Back to home
               </Link>
             </div>

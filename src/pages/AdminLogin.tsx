@@ -16,32 +16,17 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!email || !password) {
       toast.error("Please enter both email and password");
       return;
     }
-
     setIsLoading(true);
 
     try {
-      // Use standard Supabase authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { toast.error("Invalid credentials"); return; }
+      if (!data.user) { toast.error("Authentication failed"); return; }
 
-      if (error) {
-        toast.error("Invalid credentials");
-        return;
-      }
-
-      if (!data.user) {
-        toast.error("Authentication failed");
-        return;
-      }
-
-      // Verify admin role server-side
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -49,7 +34,6 @@ const AdminLogin = () => {
         .single();
 
       if (roleError || !roleData || roleData.role !== 'admin') {
-        // Sign out if not an admin
         await supabase.auth.signOut();
         toast.error("Access denied. Admin privileges required.");
         return;
@@ -66,49 +50,54 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[400px]">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
             <Shield className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Admin Portal</CardTitle>
-          <CardDescription>
-            Enter your administrator credentials to access the admin dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Admin Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@renteasy.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Authenticating..." : "Sign In as Admin"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <h1 className="text-2xl font-bold text-foreground">Admin Portal</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter your administrator credentials
+          </p>
+        </div>
+
+        <Card className="border border-border shadow-sm">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">Admin Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@renteasy.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="h-12"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="h-12"
+                />
+              </div>
+              <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+                {isLoading ? "Authenticating..." : "Sign In as Admin"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
