@@ -28,25 +28,22 @@ export function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-border bg-background">
       <div className="flex h-16 items-center gap-4 px-6">
-        {/* Title */}
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
 
-        {/* Search */}
-        <div className="hidden md:flex items-center gap-2 w-80">
+        <div className="hidden md:flex items-center gap-2 w-72">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search anything..."
-            className="border-0 bg-muted/50 focus-visible:ring-0"
+            placeholder="Search..."
+            className="border-0 bg-muted focus-visible:ring-0 h-9"
           />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
@@ -61,7 +58,7 @@ export function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
