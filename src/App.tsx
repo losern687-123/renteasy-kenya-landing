@@ -34,6 +34,8 @@ import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
+import SeekerDashboard from "./pages/SeekerDashboard";
+import MarketplacePage from "./pages/marketplace/MarketplacePage";
 
 const queryClient = new QueryClient();
 
