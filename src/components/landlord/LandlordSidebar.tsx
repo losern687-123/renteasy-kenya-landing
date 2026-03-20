@@ -22,6 +22,7 @@ const navigation = [
   { name: "Overview", value: "overview", icon: LayoutDashboard },
   { name: "Analytics", value: "analytics", icon: BarChart3 },
   { name: "Properties", value: "properties", icon: Building2 },
+  { name: "Marketplace", value: "marketplace", icon: Store },
   { name: "Tenants", value: "tenants", icon: Users },
   { name: "Payments", value: "payments", icon: CreditCard },
   { name: "Reports", value: "reports", icon: FileText },
