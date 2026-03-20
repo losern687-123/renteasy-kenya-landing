@@ -97,11 +97,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .eq('user_id', session.user.id)
             .single();
           
-          if (data) {
-            setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
-            if (data.role === 'landlord') {
-              await fetchLandlordStatus(session.user.id);
-            }
+           if (data) {
+             setUserRole(data.role as UserRole);
+             if (data.role === 'landlord') {
+               await fetchLandlordStatus(session.user.id);
+             }
           }
           setLoading(false);
         }, 0);
