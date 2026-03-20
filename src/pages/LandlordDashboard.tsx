@@ -431,6 +431,32 @@ export default function LandlordDashboard() {
       case "reports":
         return <ReportsTab onUpgrade={() => setUpgradeModalOpen(true)} />;
 
+      case "marketplace":
+        return (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold">Marketplace Listings</h2>
+              <p className="text-muted-foreground">Manage your property listings on the marketplace</p>
+            </div>
+            <Card>
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                  <Store className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">List Your Properties</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Create marketplace listings for your vacant properties to find tenants faster.
+                  </p>
+                </div>
+                <Button onClick={() => setActiveTab("properties")} className="gap-2">
+                  <Plus className="w-4 h-4" /> Create Listing
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       case "notifications":
         return <NotificationsView />;
 
