@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
+type UserRole = 'tenant' | 'landlord' | 'admin' | 'property_seeker';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userRole: 'tenant' | 'landlord' | 'admin' | null;
+  userRole: UserRole | null;
   landlordStatus: 'pending' | 'approved' | 'rejected' | null;
   isApprovedLandlord: boolean;
-  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
