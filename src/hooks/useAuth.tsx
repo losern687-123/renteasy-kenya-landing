@@ -151,6 +151,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setTimeout(() => {
         if (role === 'tenant') {
           navigate('/tenant-dashboard');
+        } else if (role === 'property_seeker') {
+          navigate('/seeker/dashboard');
         } else {
           navigate('/landlord/pending');
         }
