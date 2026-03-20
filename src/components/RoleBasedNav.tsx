@@ -7,7 +7,7 @@ interface NavLink {
   name: string;
   path: string;
   icon?: React.ReactNode;
-  roles?: ('tenant' | 'landlord' | 'admin')[];
+  roles?: ('tenant' | 'landlord' | 'admin' | 'property_seeker')[];
   requiresApproval?: boolean;
   showForPending?: boolean;
   showForRejected?: boolean;

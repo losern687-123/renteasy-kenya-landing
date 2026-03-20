@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  allowedRoles: ('admin' | 'landlord' | 'tenant')[];
+  allowedRoles: ('admin' | 'landlord' | 'tenant' | 'property_seeker')[];
   requireApprovedLandlord?: boolean;
 }
 

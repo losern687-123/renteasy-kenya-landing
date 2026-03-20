@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Building2, UserCircle } from "lucide-react";
+import { Building2, UserCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
