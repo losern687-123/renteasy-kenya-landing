@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<'tenant' | 'landlord' | 'admin' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [landlordStatus, setLandlordStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
