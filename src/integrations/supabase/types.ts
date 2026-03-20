@@ -44,6 +44,97 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          last_message_at: string | null
+          listing_id: string | null
+          seeker_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          last_message_at?: string | null
+          listing_id?: string | null
+          seeker_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          last_message_at?: string | null
+          listing_id?: string | null
+          seeker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_conversations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_conversations_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landlord_applications: {
         Row: {
           created_at: string
@@ -267,33 +358,198 @@ export type Database = {
       }
       properties: {
         Row: {
+          available_for_listing: boolean | null
           created_at: string
           id: string
           landlord_id: string
           location: string
           name: string
+          occupancy_status: string | null
           rent_amount: number
+          updated_at: string
+        }
+        Insert: {
+          available_for_listing?: boolean | null
+          created_at?: string
+          id?: string
+          landlord_id: string
+          location: string
+          name: string
+          occupancy_status?: string | null
+          rent_amount: number
+          updated_at?: string
+        }
+        Update: {
+          available_for_listing?: boolean | null
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          location?: string
+          name?: string
+          occupancy_status?: string | null
+          rent_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      property_inquiries: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          listing_id: string
+          message: string | null
+          seeker_id: string
+          status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
           landlord_id: string
-          location: string
-          name: string
-          rent_amount: number
+          listing_id: string
+          message?: string | null
+          seeker_id: string
+          status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
           landlord_id?: string
-          location?: string
-          name?: string
-          rent_amount?: number
+          listing_id?: string
+          message?: string | null
+          seeker_id?: string
+          status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "property_inquiries_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_inquiries_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_inquiries_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_listings: {
+        Row: {
+          amenities: Json | null
+          bathrooms: number | null
+          bedrooms: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          landlord_id: string
+          move_in_date: string | null
+          property_id: string
+          property_type: string
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          landlord_id: string
+          move_in_date?: string | null
+          property_id: string
+          property_type?: string
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          amenities?: Json | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          landlord_id?: string
+          move_in_date?: string | null
+          property_id?: string
+          property_type?: string
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_listings_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_listings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          listing_id: string
+          sort_order: number | null
+          storage_path: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          listing_id: string
+          sort_order?: number | null
+          storage_path: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          listing_id?: string
+          sort_order?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_photos_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rent_records: {
         Row: {
@@ -339,6 +595,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      saved_properties: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          seeker_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          seeker_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          seeker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_properties_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_properties_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seeker_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          id: string
+          seeker_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          id?: string
+          seeker_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          id?: string
+          seeker_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seeker_documents_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_payments: {
         Row: {
@@ -604,7 +928,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "tenant" | "landlord" | "admin"
+      app_role: "tenant" | "landlord" | "admin" | "property_seeker"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -732,7 +1056,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["tenant", "landlord", "admin"],
+      app_role: ["tenant", "landlord", "admin", "property_seeker"],
     },
   },
 } as const
