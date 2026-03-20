@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
-  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => {
+  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
