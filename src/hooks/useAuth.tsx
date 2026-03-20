@@ -194,6 +194,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             navigate('/admin/dashboard');
           } else if (role === 'tenant') {
             navigate('/tenant-dashboard');
+          } else if (role === 'property_seeker') {
+            navigate('/seeker/dashboard');
           } else if (role === 'landlord') {
             if (applicationStatus === 'approved') {
               navigate('/landlord-dashboard');
