@@ -188,6 +188,14 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            <Route 
+              path="/admin/seekers" 
+              element={
+                <RouteGuard allowedRoles={['admin']}>
+                  <AdminSeekers />
+                </RouteGuard>
+              } 
+            />
             
             {/* Public Routes */}
             <Route path="/marketplace" element={<MarketplacePage />} />
