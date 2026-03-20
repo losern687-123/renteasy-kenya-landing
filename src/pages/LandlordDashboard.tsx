@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Home, DollarSign, Receipt, Copy, CheckCircle, IdCard, Plus } from "lucide-react";
+import { Users, Home, DollarSign, Receipt, Copy, CheckCircle, IdCard, Plus, Store } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import AddPropertyForm from "@/components/landlord/AddPropertyForm";
 import AddTenantForm from "@/components/landlord/AddTenantForm";
