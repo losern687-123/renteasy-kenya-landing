@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, BarChart3, Building2, Users, 
-  CreditCard, FileText, Bell, Settings, LogOut
+  CreditCard, FileText, Bell, Settings, LogOut, Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
