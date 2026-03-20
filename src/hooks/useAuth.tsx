@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       if (roleResponse.data) {
-        const role = roleResponse.data.role as 'tenant' | 'landlord' | 'admin';
+        const role = roleResponse.data.role as UserRole;
         const userName = profileResponse.data?.name || 'User';
         const applicationStatus = (applicationResponse.data?.status as 'pending' | 'approved' | 'rejected') || 'pending';
         
