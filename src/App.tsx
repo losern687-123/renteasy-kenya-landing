@@ -189,7 +189,18 @@ const App = () => (
             />
             
             {/* Public Routes */}
+            <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/notifications" element={<Notifications />} />
+            
+            {/* Seeker Routes */}
+            <Route 
+              path="/seeker/dashboard" 
+              element={
+                <RouteGuard allowedRoles={['property_seeker']}>
+                  <SeekerDashboard />
+                </RouteGuard>
+              } 
+            />
             
             {/* Error Pages */}
             <Route path="/403" element={<AccessDenied />} />
