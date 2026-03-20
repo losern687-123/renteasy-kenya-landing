@@ -27,7 +27,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
+  const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
