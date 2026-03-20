@@ -29,6 +29,7 @@ import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminSeekers from "./pages/admin/AdminSeekers";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
