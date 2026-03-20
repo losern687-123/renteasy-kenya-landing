@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Building2, UserCircle } from "lucide-react";
+import { Building2, UserCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
@@ -27,7 +27,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
+  const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -130,15 +130,19 @@ export default function Auth() {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-foreground">I am a:</Label>
-                    <Tabs value={role} onValueChange={(v) => setRole(v as 'tenant' | 'landlord')} className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="tenant" className="gap-2">
+                    <Tabs value={role} onValueChange={(v) => setRole(v as 'tenant' | 'landlord' | 'property_seeker')} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="tenant" className="gap-1.5 text-xs sm:text-sm">
                           <UserCircle className="w-4 h-4" />
                           Tenant
                         </TabsTrigger>
-                        <TabsTrigger value="landlord" className="gap-2">
+                        <TabsTrigger value="landlord" className="gap-1.5 text-xs sm:text-sm">
                           <Building2 className="w-4 h-4" />
                           Landlord
+                        </TabsTrigger>
+                        <TabsTrigger value="property_seeker" className="gap-1.5 text-xs sm:text-sm">
+                          <Search className="w-4 h-4" />
+                          Seeker
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>

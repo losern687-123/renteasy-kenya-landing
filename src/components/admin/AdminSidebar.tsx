@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, DollarSign, Activity, Settings,
-  Building2, LogOut, CreditCard
+  Building2, LogOut, CreditCard, Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Landlords", href: "/admin/landlords", icon: Building2 },
   { name: "Tenants", href: "/admin/tenants", icon: Users },
+  { name: "Seekers", href: "/admin/seekers", icon: Search },
   { name: "Payments", href: "/admin/payments", icon: DollarSign },
   { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
   { name: "Activity Logs", href: "/admin/activity", icon: Activity },

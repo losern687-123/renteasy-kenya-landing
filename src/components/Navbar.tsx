@@ -36,7 +36,7 @@ export const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   const getNavLinks = () => {
-    const links = [{ name: "Home", path: "/" }];
+    const links = [{ name: "Home", path: "/" }, { name: "Marketplace", path: "/marketplace" }];
     if (user) {
       if (userRole === 'tenant') {
         links.push({ name: "Dashboard", path: "/tenant-dashboard" });
@@ -51,6 +51,8 @@ export const Navbar = () => {
         }
       } else if (userRole === 'admin') {
         links.push({ name: "Admin Dashboard", path: "/admin/dashboard" });
+      } else if (userRole === 'property_seeker') {
+        links.push({ name: "Dashboard", path: "/seeker/dashboard" });
       }
     }
     links.push({ name: "Waitlist", path: "/waitlist" });

@@ -1,38 +1,33 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
-  LayoutDashboard, BarChart3, Building2, Users, 
-  CreditCard, FileText, Bell, Settings, LogOut, Store
+  LayoutDashboard, Search, Heart, FileText, 
+  Upload, MessageSquare, Settings, LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SubscriptionBadge } from "@/components/subscription/SubscriptionBadge";
 
-interface LandlordSidebarProps {
+interface SeekerSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userName?: string;
-  tierName?: 'free' | 'pro' | 'enterprise' | 'custom';
   onNavigate?: () => void;
 }
 
 const navigation = [
-  { name: "Overview", value: "overview", icon: LayoutDashboard },
-  { name: "Analytics", value: "analytics", icon: BarChart3 },
-  { name: "Properties", value: "properties", icon: Building2 },
-  { name: "Marketplace", value: "marketplace", icon: Store },
-  { name: "Tenants", value: "tenants", icon: Users },
-  { name: "Payments", value: "payments", icon: CreditCard },
-  { name: "Reports", value: "reports", icon: FileText },
-  { name: "Notifications", value: "notifications", icon: Bell },
+  { name: "Browse", value: "browse", icon: Search },
+  { name: "Saved", value: "saved", icon: Heart },
+  { name: "Applications", value: "applications", icon: FileText },
+  { name: "Messages", value: "messages", icon: MessageSquare },
+  { name: "Documents", value: "documents", icon: Upload },
   { name: "Settings", value: "settings", icon: Settings },
 ];
 
-export function LandlordSidebar({ 
-  activeTab, onTabChange, userName = "Landlord", tierName = "free", onNavigate 
-}: LandlordSidebarProps) {
+export function SeekerSidebar({ 
+  activeTab, onTabChange, userName = "Seeker", onNavigate 
+}: SeekerSidebarProps) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -46,7 +41,7 @@ export function LandlordSidebar({
     onNavigate?.();
   };
 
-  const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "LN";
+  const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "PS";
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
@@ -59,7 +54,7 @@ export function LandlordSidebar({
             </div>
             <div>
               <h1 className="text-base font-bold text-sidebar-foreground">RentEasy</h1>
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">Landlord</p>
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">Property Seeker</p>
             </div>
           </Link>
         </div>
@@ -72,7 +67,7 @@ export function LandlordSidebar({
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
-              <SubscriptionBadge tier={tierName} size="sm" />
+              <p className="text-xs text-sidebar-foreground/50">Property Seeker</p>
             </div>
           </div>
         </div>

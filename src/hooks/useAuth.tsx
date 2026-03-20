@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
+type UserRole = 'tenant' | 'landlord' | 'admin' | 'property_seeker';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userRole: 'tenant' | 'landlord' | 'admin' | null;
+  userRole: UserRole | null;
   landlordStatus: 'pending' | 'approved' | 'rejected' | null;
   isApprovedLandlord: boolean;
-  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -22,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<'tenant' | 'landlord' | 'admin' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [landlordStatus, setLandlordStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .single();
             
             if (data) {
-              setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
+              setUserRole(data.role as UserRole);
               if (data.role === 'landlord') {
                 await fetchLandlordStatus(session.user.id);
               }
@@ -95,11 +97,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .eq('user_id', session.user.id)
             .single();
           
-          if (data) {
-            setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
-            if (data.role === 'landlord') {
-              await fetchLandlordStatus(session.user.id);
-            }
+           if (data) {
+             setUserRole(data.role as UserRole);
+             if (data.role === 'landlord') {
+               await fetchLandlordStatus(session.user.id);
+             }
           }
           setLoading(false);
         }, 0);
@@ -113,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
-  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord', nationalId?: string) => {
+  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -149,6 +151,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setTimeout(() => {
         if (role === 'tenant') {
           navigate('/tenant-dashboard');
+        } else if (role === 'property_seeker') {
+          navigate('/seeker/dashboard');
         } else {
           navigate('/landlord/pending');
         }
@@ -172,7 +176,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       if (roleResponse.data) {
-        const role = roleResponse.data.role as 'tenant' | 'landlord' | 'admin';
+        const role = roleResponse.data.role as UserRole;
         const userName = profileResponse.data?.name || 'User';
         const applicationStatus = (applicationResponse.data?.status as 'pending' | 'approved' | 'rejected') || 'pending';
         
@@ -190,6 +194,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             navigate('/admin/dashboard');
           } else if (role === 'tenant') {
             navigate('/tenant-dashboard');
+          } else if (role === 'property_seeker') {
+            navigate('/seeker/dashboard');
           } else if (role === 'landlord') {
             if (applicationStatus === 'approved') {
               navigate('/landlord-dashboard');

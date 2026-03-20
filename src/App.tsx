@@ -29,11 +29,14 @@ import Waitlist from "./pages/Waitlist";
 import Notifications from "./pages/Notifications";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminSeekers from "./pages/admin/AdminSeekers";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
+import SeekerDashboard from "./pages/SeekerDashboard";
+import MarketplacePage from "./pages/marketplace/MarketplacePage";
 
 const queryClient = new QueryClient();
 
@@ -185,9 +188,28 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            <Route 
+              path="/admin/seekers" 
+              element={
+                <RouteGuard allowedRoles={['admin']}>
+                  <AdminSeekers />
+                </RouteGuard>
+              } 
+            />
             
             {/* Public Routes */}
+            <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/notifications" element={<Notifications />} />
+            
+            {/* Seeker Routes */}
+            <Route 
+              path="/seeker/dashboard" 
+              element={
+                <RouteGuard allowedRoles={['property_seeker']}>
+                  <SeekerDashboard />
+                </RouteGuard>
+              } 
+            />
             
             {/* Error Pages */}
             <Route path="/403" element={<AccessDenied />} />

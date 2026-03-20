@@ -37,6 +37,11 @@ export const useRoleRedirect = () => {
         return;
       }
 
+      if (role === 'property_seeker') {
+        navigate('/seeker/dashboard');
+        return;
+      }
+
       if (role === 'landlord') {
         // Check landlord application status
         const { data: applicationData } = await supabase
