@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .single();
             
             if (data) {
-              setUserRole(data.role as 'tenant' | 'landlord' | 'admin');
+              setUserRole(data.role as UserRole);
               if (data.role === 'landlord') {
                 await fetchLandlordStatus(session.user.id);
               }
