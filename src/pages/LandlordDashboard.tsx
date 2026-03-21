@@ -354,6 +354,9 @@ export default function LandlordDashboard() {
                   <Button size="sm" variant="outline" onClick={() => setActiveTab("payments")} className="gap-2">
                     <DollarSign className="w-4 h-4" /> Record Payment
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setActiveTab("marketplace")} className="gap-2">
+                    <Store className="w-4 h-4" /> List Property
+                  </Button>
                 </CardContent>
               </Card>
             </FadeIn>
