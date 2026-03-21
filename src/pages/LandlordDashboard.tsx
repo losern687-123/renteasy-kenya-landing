@@ -51,6 +51,12 @@ export default function LandlordDashboard() {
   const [copiedId, setCopiedId] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [listPropertyId, setListPropertyId] = useState<string | undefined>();
+
+  const handleListProperty = (propertyId: string) => {
+    setListPropertyId(propertyId);
+    setActiveTab("marketplace");
+  };
 
   // Subscription data
   const subscriptionLimits = useSubscriptionLimits();
