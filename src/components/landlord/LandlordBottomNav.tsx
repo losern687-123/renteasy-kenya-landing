@@ -34,6 +34,7 @@ const mainNavItems = [
 ];
 
 const moreNavItems = [
+  { name: "Marketplace", value: "marketplace", icon: Store },
   { name: "Reports", value: "reports", icon: FileText },
   { name: "Notifications", value: "notifications", icon: Bell },
   { name: "Settings", value: "settings", icon: Settings },
