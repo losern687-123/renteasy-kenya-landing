@@ -376,7 +376,7 @@ export default function LandlordDashboard() {
           <div className="space-y-6">
             <div className="grid lg:grid-cols-2 gap-6">
               <AddPropertyForm onSuccess={handleRefresh} />
-              <PropertiesTable refresh={refreshKey > 0} />
+              <PropertiesTable refresh={refreshKey > 0} onListProperty={handleListProperty} />
             </div>
           </div>
         );
