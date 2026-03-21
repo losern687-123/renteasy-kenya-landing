@@ -361,7 +361,7 @@ export default function LandlordDashboard() {
             {/* Recent Tables */}
             <FadeIn delay={0.4}>
               <div className="grid lg:grid-cols-2 gap-6">
-                <PropertiesTable refresh={refreshKey > 0} />
+                <PropertiesTable refresh={refreshKey > 0} onListProperty={handleListProperty} />
                 <TenantsTable refresh={refreshKey > 0} />
               </div>
             </FadeIn>
