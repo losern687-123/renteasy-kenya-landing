@@ -13,6 +13,8 @@ import PropertiesTable from "@/components/landlord/PropertiesTable";
 import TenantsTable from "@/components/landlord/TenantsTable";
 import RecordPaymentForm from "@/components/landlord/RecordPaymentForm";
 import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
+import CreateListingForm from "@/components/landlord/CreateListingForm";
+import ListingsTable from "@/components/landlord/ListingsTable";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
