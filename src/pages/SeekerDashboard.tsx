@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 
 export default function SeekerDashboard() {
   const { user, userRole, loading } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("browse");
   const [userName, setUserName] = useState("");
 
