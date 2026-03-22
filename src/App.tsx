@@ -37,6 +37,8 @@ import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
 import SeekerDashboard from "./pages/SeekerDashboard";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
+import ListingDetailPage from "./pages/marketplace/ListingDetailPage";
+import ChatPage from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -199,7 +201,26 @@ const App = () => (
             
             {/* Public Routes */}
             <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/marketplace/:id" element={<ListingDetailPage />} />
             <Route path="/notifications" element={<Notifications />} />
+            
+            {/* Chat Routes */}
+            <Route 
+              path="/chat" 
+              element={
+                <RouteGuard allowedRoles={['property_seeker', 'landlord', 'tenant']}>
+                  <ChatPage />
+                </RouteGuard>
+              } 
+            />
+            <Route 
+              path="/chat/:conversationId" 
+              element={
+                <RouteGuard allowedRoles={['property_seeker', 'landlord', 'tenant']}>
+                  <ChatPage />
+                </RouteGuard>
+              } 
+            />
             
             {/* Seeker Routes */}
             <Route 

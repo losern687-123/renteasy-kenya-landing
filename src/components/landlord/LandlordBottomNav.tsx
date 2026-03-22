@@ -5,7 +5,8 @@ import {
   Users, 
   CreditCard,
   Menu,
-  Store
+  Store,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const mainNavItems = [
 
 const moreNavItems = [
   { name: "Marketplace", value: "marketplace", icon: Store },
+  { name: "Messages", value: "messages", icon: MessageSquare },
   { name: "Reports", value: "reports", icon: FileText },
   { name: "Notifications", value: "notifications", icon: Bell },
   { name: "Settings", value: "settings", icon: Settings },

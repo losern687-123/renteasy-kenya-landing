@@ -27,6 +27,8 @@ import { AnalyticsDashboard } from "@/components/landlord/analytics/AnalyticsDas
 import { ReportsTab } from "@/components/landlord/reports/ReportsTab";
 import { NotificationsView } from "@/components/notifications/NotificationsView";
 import LandlordSettingsTab from "@/components/landlord/LandlordSettingsTab";
+import { ConversationList } from "@/components/chat/ConversationList";
+import { ChatWindow } from "@/components/chat/ChatWindow";
 
 interface DashboardStats {
   totalProperties: number;
@@ -52,6 +54,7 @@ export default function LandlordDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [listPropertyId, setListPropertyId] = useState<string | undefined>();
+  const [selectedConvo, setSelectedConvo] = useState<any>(null);
 
   const handleListProperty = (propertyId: string) => {
     setListPropertyId(propertyId);
@@ -456,6 +459,39 @@ export default function LandlordDashboard() {
               />
               <ListingsTable refresh={refreshKey > 0} />
             </div>
+          </div>
+        );
+
+      case "messages":
+        return (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold">Messages</h2>
+              <p className="text-muted-foreground">Chat with property seekers and tenants</p>
+            </div>
+            <Card className="overflow-hidden" style={{ height: "calc(100vh - 280px)" }}>
+              <div className="flex h-full">
+                <div className="w-full md:w-80 md:border-r border-border overflow-y-auto">
+                  <ConversationList
+                    selectedId={selectedConvo?.id}
+                    onSelect={(c) => setSelectedConvo(c)}
+                  />
+                </div>
+                <div className="hidden md:flex flex-1">
+                  {selectedConvo ? (
+                    <ChatWindow
+                      conversationId={selectedConvo.id}
+                      otherUserName={selectedConvo.otherName}
+                      listingTitle={selectedConvo.listingTitle}
+                    />
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+                      Select a conversation
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
           </div>
         );
 

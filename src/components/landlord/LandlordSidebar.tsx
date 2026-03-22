@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, BarChart3, Building2, Users, 
-  CreditCard, FileText, Bell, Settings, LogOut, Store
+  CreditCard, FileText, Bell, Settings, LogOut, Store, MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ const navigation = [
   { name: "Marketplace", value: "marketplace", icon: Store },
   { name: "Tenants", value: "tenants", icon: Users },
   { name: "Payments", value: "payments", icon: CreditCard },
+  { name: "Messages", value: "messages", icon: MessageSquare },
   { name: "Reports", value: "reports", icon: FileText },
   { name: "Notifications", value: "notifications", icon: Bell },
   { name: "Settings", value: "settings", icon: Settings },
