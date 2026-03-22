@@ -37,6 +37,8 @@ import ServerError from "./pages/ServerError";
 import NotFound from "./pages/NotFound";
 import SeekerDashboard from "./pages/SeekerDashboard";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
+import ListingDetailPage from "./pages/marketplace/ListingDetailPage";
+import ChatPage from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
