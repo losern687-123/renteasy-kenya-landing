@@ -54,6 +54,7 @@ export default function LandlordDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [listPropertyId, setListPropertyId] = useState<string | undefined>();
+  const [selectedConvo, setSelectedConvo] = useState<any>(null);
 
   const handleListProperty = (propertyId: string) => {
     setListPropertyId(propertyId);
