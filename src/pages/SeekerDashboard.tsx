@@ -146,12 +146,10 @@ export default function SeekerDashboard() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">Messages</h2>
-            <Card>
-              <CardContent className="p-8 text-center text-muted-foreground">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground/40" />
-                <p className="font-medium">No messages yet</p>
-                <p className="text-sm mt-1">Contact landlords through property listings</p>
-              </CardContent>
+            <Card className="overflow-hidden">
+              <ConversationList
+                onSelect={(convo) => navigate(`/chat/${convo.id}`)}
+              />
             </Card>
           </div>
         );
