@@ -1,14 +1,13 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SeekerLayout } from "@/components/seeker/SeekerLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Heart, FileText, MessageSquare, Upload, ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { ConversationList } from "@/components/chat/ConversationList";
-import { Link } from "react-router-dom";
 
 export default function SeekerDashboard() {
   const { user, userRole, loading } = useAuth();
