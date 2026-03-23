@@ -51,12 +51,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { landlord_id, limit_type }: LimitCheckRequest = await req.json();
+    const { limit_type }: { limit_type?: string } = await req.json();
+    
+    // Use authenticated user's ID — never trust client-supplied landlord_id
+    const landlord_id = user.id;
 
     // Validate input
-    if (!landlord_id || !limit_type) {
+    if (!limit_type) {
       return new Response(
-        JSON.stringify({ error: "landlord_id and limit_type are required" }),
+        JSON.stringify({ error: "limit_type is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
