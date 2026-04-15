@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { RentSummaryCard } from "@/components/dashboard/RentSummaryCard";
+import { LandlordLinkCard } from "@/components/dashboard/LandlordLinkCard";
 import { RentReminderBanner } from "@/components/dashboard/RentReminderBanner";
 import { AddPaymentForm } from "@/components/dashboard/AddPaymentForm";
 import { PaymentHistoryTable } from "@/components/dashboard/PaymentHistoryTable";
@@ -131,6 +132,14 @@ export default function TenantDashboard() {
               <StaggerItem>
                 <RentSummaryCard key={refreshKey} />
               </StaggerItem>
+              <StaggerItem>
+                <LandlordLinkCard key={`landlord-${refreshKey}`} />
+              </StaggerItem>
+            </div>
+          </StaggerContainer>
+
+          <StaggerContainer staggerDelay={0.1}>
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-1">
               <StaggerItem>
                 <AddPaymentForm onSuccess={handleSuccess} />
               </StaggerItem>
