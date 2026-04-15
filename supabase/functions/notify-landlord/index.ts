@@ -108,12 +108,12 @@ serve(async (req) => {
                 <h1>🎉 Congratulations!</h1>
               </div>
               <div class="content">
-                <h2>Welcome to RentEasy Kenya, ${userName || 'Landlord'}!</h2>
+                <h2>Welcome to RentEasy Kenya, ${safeName}!</h2>
                 <p>We're excited to inform you that your landlord application has been <strong>approved</strong>!</p>
                 
                 <div class="landlord-id">
                   <p style="margin: 0; font-size: 14px; color: #666;">Your Unique Landlord ID:</p>
-                  <p style="margin: 8px 0 0 0; font-size: 28px; font-weight: bold; color: #667eea;">${landlordId || 'N/A'}</p>
+                  <p style="margin: 8px 0 0 0; font-size: 28px; font-weight: bold; color: #667eea;">${safeLandlordId}</p>
                 </div>
                 
                 <p><strong>Important:</strong> Share this Landlord ID with your tenants so they can link their accounts to you during registration.</p>
@@ -161,13 +161,13 @@ serve(async (req) => {
                 <h1>Application Update</h1>
               </div>
               <div class="content">
-                <h2>Hello ${userName || 'Applicant'},</h2>
+                <h2>Hello ${safeName},</h2>
                 <p>Thank you for your interest in becoming a landlord on RentEasy Kenya.</p>
                 <p>After careful review, we regret to inform you that we are unable to approve your application at this time.</p>
-                ${rejectionReason ? `
+                ${safeReason ? `
                   <div class="reason">
                     <strong>Reason:</strong><br/>
-                    ${rejectionReason}
+                    ${safeReason}
                   </div>
                 ` : ''}
                 <p>If you believe this decision was made in error or if you have additional information that may help your application, please don't hesitate to reach out to our support team.</p>
