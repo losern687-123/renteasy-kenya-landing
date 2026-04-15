@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // If tenant with a landlord code, validate and link
       if (role === 'tenant' && landlordCode) {
         const { data: validationResult } = await supabase.rpc('validate_landlord_id', {
-          p_landlord_id: landlordCode
+          landlord_id_input: landlordCode
         });
 
         if (validationResult) {
@@ -160,9 +160,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (landlordProfile) {
             await supabase
               .from('tenants')
-              .upsert({
+              .insert({
                 id: data.user.id,
                 landlord_id: landlordProfile.id,
+                name: name,
+                email: email,
+                phone: '',
               });
           }
         }
