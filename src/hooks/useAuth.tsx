@@ -12,7 +12,7 @@ interface AuthContextType {
   userRole: UserRole | null;
   landlordStatus: 'pending' | 'approved' | 'rejected' | null;
   isApprovedLandlord: boolean;
-  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string, landlordCode?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isApprovedLandlord = userRole === 'landlord' && landlordStatus === 'approved';
 
-  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string) => {
+  const signUp = async (email: string, password: string, name: string, role: 'tenant' | 'landlord' | 'property_seeker', nationalId?: string, landlordCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -141,6 +141,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             kra_pin: '',
             status: 'pending'
           });
+      }
+
+      // If tenant with a landlord code, validate and link
+      if (role === 'tenant' && landlordCode) {
+        const { data: validationResult } = await supabase.rpc('validate_landlord_id', {
+          landlord_id_input: landlordCode
+        });
+
+        if (validationResult) {
+          // Get landlord's user ID from the landlord_id
+          const { data: landlordProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('landlord_id', landlordCode)
+            .maybeSingle();
+
+          if (landlordProfile) {
+            await supabase
+              .from('tenants')
+              .insert({
+                id: data.user.id,
+                landlord_id: landlordProfile.id,
+                name: name,
+                email: email,
+                phone: '',
+              });
+          }
+        }
       }
 
       toast({
