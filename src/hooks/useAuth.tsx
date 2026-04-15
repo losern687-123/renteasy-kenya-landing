@@ -143,6 +143,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
       }
 
+      // If tenant with a landlord code, validate and link
+      if (role === 'tenant' && landlordCode) {
+        const { data: validationResult } = await supabase.rpc('validate_landlord_id', {
+          p_landlord_id: landlordCode
+        });
+
+        if (validationResult) {
+          // Get landlord's user ID from the landlord_id
+          const { data: landlordProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('landlord_id', landlordCode)
+            .maybeSingle();
+
+          if (landlordProfile) {
+            await supabase
+              .from('tenants')
+              .upsert({
+                id: data.user.id,
+                landlord_id: landlordProfile.id,
+              });
+          }
+        }
+      }
+
       toast({
         title: "Account created!",
         description: "Welcome to RentEasy Kenya",
