@@ -52,6 +52,14 @@ export default function Auth() {
           });
           return false;
         }
+        if (role === 'tenant' && landlordCode.trim() && !/^LND-\d{6}$/.test(landlordCode.trim())) {
+          toast({
+            title: "Validation Error",
+            description: "Landlord ID must be in format LND-XXXXXX (e.g. LND-123456)",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
       return true;
     } catch (error) {
