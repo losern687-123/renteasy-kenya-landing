@@ -79,6 +79,10 @@ serve(async (req) => {
       throw new Error('User email is required');
     }
 
+    const safeName = escapeHtml(userName || 'Landlord');
+    const safeLandlordId = escapeHtml(landlordId || 'N/A');
+    const safeReason = escapeHtml(rejectionReason || '');
+
     let emailHtml: string;
     let subject: string;
 
