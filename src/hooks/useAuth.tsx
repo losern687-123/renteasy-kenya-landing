@@ -158,7 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .maybeSingle();
 
           if (landlordProfile) {
-            await supabase
+            const { error: tenantError } = await supabase
               .from('tenants')
               .insert({
                 id: data.user.id,
@@ -167,6 +167,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 email: email,
                 phone: '',
               });
+
+            // Notify landlord of new tenant link
+            if (!tenantError) {
+              await supabase.rpc('notify_landlord_of_tenant_link', {
+                _landlord_user_id: landlordProfile.id,
+                _tenant_name: name,
+              });
+            }
           }
         }
       }
