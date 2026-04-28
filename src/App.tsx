@@ -176,6 +176,14 @@ const App = () => (
               } 
             />
             <Route 
+              path="/admin/audit-logs" 
+              element={
+                <RouteGuard allowedRoles={['admin']}>
+                  <AdminAuditLogs />
+                </RouteGuard>
+              } 
+            />
+            <Route 
               path="/admin/settings" 
               element={
                 <RouteGuard allowedRoles={['admin']}>
