@@ -922,6 +922,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_landlord_of_tenant_link: {
+        Args: { _landlord_user_id: string; _tenant_name: string }
+        Returns: undefined
+      }
       validate_landlord_id: {
         Args: { landlord_id_input: string }
         Returns: Json
