@@ -22,6 +22,7 @@ import AdminLandlords from "./pages/AdminLandlords";
 import AdminTenants from "./pages/AdminTenants";
 import AdminPayments from "./pages/AdminPayments";
 import AdminActivityLogs from "./pages/AdminActivityLogs";
+import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminSettings from "./pages/AdminSettings";
 import ApplyAsLandlord from "./pages/ApplyAsLandlord";
 import PendingVerification from "./pages/PendingVerification";
