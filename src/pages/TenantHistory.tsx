@@ -261,7 +261,7 @@ export default function TenantHistory() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-lg font-bold">{formatCurrency(record.amount)}</p>
-                          <p className="text-xs text-muted-foreground">{record.payment_method || "M-Pesa"}</p>
+                          <p className="text-xs text-muted-foreground">{record.payment_method || "—"}</p>
                         </div>
                         <Button
                           size="sm"
@@ -296,7 +296,7 @@ export default function TenantHistory() {
                           <TableCell className="text-sm">{formatDate(record.payment_date || record.due_date)}</TableCell>
                           <TableCell className="text-sm">{record.property_name}</TableCell>
                           <TableCell className="font-medium text-sm">{formatCurrency(record.amount)}</TableCell>
-                          <TableCell className="text-sm">{record.payment_method || "M-Pesa"}</TableCell>
+                          <TableCell className="text-sm">{record.payment_method || "—"}</TableCell>
                           <TableCell>{getStatusBadge(record.status)}</TableCell>
                           <TableCell>
                             <Button
