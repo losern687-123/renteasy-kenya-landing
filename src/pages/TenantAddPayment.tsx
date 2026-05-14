@@ -10,19 +10,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
-import { MpesaPaymentModal } from "@/components/dashboard/MpesaPaymentModal";
 
 export default function TenantAddPayment() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [showMpesaModal, setShowMpesaModal] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
   const [formData, setFormData] = useState({
     property_name: "",
     amount: "",
-    payment_method: "M-Pesa",
+    payment_method: "Cash",
     receipt_file: null as File | null,
   });
 
@@ -36,18 +34,13 @@ export default function TenantAddPayment() {
       .from('payment-receipts')
       .upload(fileName, file);
 
-    if (uploadError) {
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
-    // Use signed URL for private bucket instead of public URL
     const { data: signedData, error: signError } = await supabase.storage
       .from('payment-receipts')
-      .createSignedUrl(fileName, 86400); // 24 hours expiry
+      .createSignedUrl(fileName, 86400);
 
-    if (signError) {
-      throw signError;
-    }
+    if (signError) throw signError;
 
     return signedData.signedUrl;
   };
@@ -58,11 +51,6 @@ export default function TenantAddPayment() {
 
     if (!formData.property_name || !formData.amount) {
       toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (formData.payment_method === "M-Pesa") {
-      setShowMpesaModal(true);
       return;
     }
 
@@ -101,11 +89,6 @@ export default function TenantAddPayment() {
       setLoading(false);
       setUploadingReceipt(false);
     }
-  };
-
-  const handleMpesaSuccess = () => {
-    setShowMpesaModal(false);
-    navigate("/tenant/history");
   };
 
   return (
@@ -152,44 +135,41 @@ export default function TenantAddPayment() {
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="M-Pesa">M-Pesa</SelectItem>
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {formData.payment_method !== "M-Pesa" && (
-              <div className="space-y-2">
-                <Label htmlFor="receipt">Upload Receipt (Optional)</Label>
-                <div className="flex items-center gap-4">
-                  <Input
-                    id="receipt"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && file.size > 5 * 1024 * 1024) {
-                        toast.error("File size must be less than 5MB");
-                        e.target.value = "";
-                        return;
-                      }
-                      setFormData({ ...formData, receipt_file: file || null });
-                    }}
-                    className="flex-1"
-                  />
-                  {formData.receipt_file && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Upload className="h-4 w-4" />
-                      {formData.receipt_file.name}
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Supported formats: JPEG, PNG, PDF (Max 5MB)
-                </p>
+            <div className="space-y-2">
+              <Label htmlFor="receipt">Upload Receipt (Optional)</Label>
+              <div className="flex items-center gap-4">
+                <Input
+                  id="receipt"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && file.size > 5 * 1024 * 1024) {
+                      toast.error("File size must be less than 5MB");
+                      e.target.value = "";
+                      return;
+                    }
+                    setFormData({ ...formData, receipt_file: file || null });
+                  }}
+                  className="flex-1"
+                />
+                {formData.receipt_file && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Upload className="h-4 w-4" />
+                    {formData.receipt_file.name}
+                  </div>
+                )}
               </div>
-            )}
+              <p className="text-xs text-muted-foreground">
+                Supported formats: JPEG, PNG, PDF (Max 5MB)
+              </p>
+            </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
               <Button
@@ -218,12 +198,6 @@ export default function TenantAddPayment() {
           </form>
         </CardContent>
       </Card>
-
-      <MpesaPaymentModal
-        open={showMpesaModal}
-        onOpenChange={setShowMpesaModal}
-        onSuccess={handleMpesaSuccess}
-      />
     </DashboardLayout>
   );
 }

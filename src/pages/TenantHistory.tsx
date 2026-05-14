@@ -119,7 +119,7 @@ export default function TenantHistory() {
     doc.text(`Receipt ID: ${record.id.slice(0, 8).toUpperCase()}`, 20, 40);
     doc.text(`Property: ${record.property_name}`, 20, 50);
     doc.text(`Amount: KES ${Number(record.amount).toLocaleString()}`, 20, 60);
-    doc.text(`Payment Method: ${record.payment_method || "M-Pesa"}`, 20, 70);
+    doc.text(`Payment Method: ${record.payment_method || "—"}`, 20, 70);
     doc.text(`Payment Date: ${record.payment_date || "Pending"}`, 20, 80);
     doc.text(`Status: ${record.status}`, 20, 90);
 
@@ -261,7 +261,7 @@ export default function TenantHistory() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-lg font-bold">{formatCurrency(record.amount)}</p>
-                          <p className="text-xs text-muted-foreground">{record.payment_method || "M-Pesa"}</p>
+                          <p className="text-xs text-muted-foreground">{record.payment_method || "—"}</p>
                         </div>
                         <Button
                           size="sm"
@@ -296,7 +296,7 @@ export default function TenantHistory() {
                           <TableCell className="text-sm">{formatDate(record.payment_date || record.due_date)}</TableCell>
                           <TableCell className="text-sm">{record.property_name}</TableCell>
                           <TableCell className="font-medium text-sm">{formatCurrency(record.amount)}</TableCell>
-                          <TableCell className="text-sm">{record.payment_method || "M-Pesa"}</TableCell>
+                          <TableCell className="text-sm">{record.payment_method || "—"}</TableCell>
                           <TableCell>{getStatusBadge(record.status)}</TableCell>
                           <TableCell>
                             <Button

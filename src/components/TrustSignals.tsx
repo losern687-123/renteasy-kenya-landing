@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const partners = ["M-PESA", "EQUITY", "KCB", "NCBA"];
+const partners = ["EQUITY", "KCB", "NCBA", "COOP"];
 
 const TrustSignals = () => {
   return (

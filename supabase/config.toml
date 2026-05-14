@@ -6,12 +6,6 @@ verify_jwt = false
 [functions.send-rent-reminder]
 verify_jwt = true
 
-[functions.mpesa-stk-push]
-verify_jwt = true
-
-[functions.mpesa-callback]
-verify_jwt = false
-
 [functions.admin-auth]
 verify_jwt = false
 
