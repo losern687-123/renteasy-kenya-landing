@@ -8,7 +8,7 @@ import { RentReminderBanner } from "@/components/dashboard/RentReminderBanner";
 import { AddPaymentForm } from "@/components/dashboard/AddPaymentForm";
 import { PaymentHistoryTable } from "@/components/dashboard/PaymentHistoryTable";
 import { EditPaymentDialog } from "@/components/dashboard/EditPaymentDialog";
-import { MpesaPaymentModal } from "@/components/dashboard/MpesaPaymentModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { checkAndCreateRentNotifications } from "@/utils/notificationHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function TenantDashboard() {
   const { user, userRole, loading } = useAuth();
   const [editingRecord, setEditingRecord] = useState<RentRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isMpesaModalOpen, setIsMpesaModalOpen] = useState(false);
+  
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -106,19 +106,23 @@ export default function TenantDashboard() {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tenant Dashboard</h1>
                 <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your rent payments and view history</p>
               </div>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  onClick={() => setIsMpesaModalOpen(true)}
-                  className="bg-gradient-hero hover:opacity-90 transition-all shadow-lg w-full sm:w-auto h-12 sm:h-11 text-base"
-                  size="lg"
-                >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Pay via M-Pesa
-                </Button>
-              </motion.div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span tabIndex={0} className="inline-block w-full sm:w-auto">
+                      <Button
+                        disabled
+                        size="lg"
+                        className="w-full sm:w-auto h-12 sm:h-11 text-base opacity-60 cursor-not-allowed"
+                      >
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Pay Now
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Payment processing coming soon</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </FadeIn>
 
