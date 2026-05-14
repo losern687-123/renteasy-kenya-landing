@@ -163,12 +163,6 @@ export default function TenantDashboard() {
             onOpenChange={setIsEditDialogOpen}
             onSuccess={handleSuccess}
           />
-
-          <MpesaPaymentModal
-            open={isMpesaModalOpen}
-            onOpenChange={setIsMpesaModalOpen}
-            onSuccess={handleSuccess}
-          />
         </div>
       </PullToRefresh>
     </DashboardLayout>

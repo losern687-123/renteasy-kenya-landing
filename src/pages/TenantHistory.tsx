@@ -119,7 +119,7 @@ export default function TenantHistory() {
     doc.text(`Receipt ID: ${record.id.slice(0, 8).toUpperCase()}`, 20, 40);
     doc.text(`Property: ${record.property_name}`, 20, 50);
     doc.text(`Amount: KES ${Number(record.amount).toLocaleString()}`, 20, 60);
-    doc.text(`Payment Method: ${record.payment_method || "M-Pesa"}`, 20, 70);
+    doc.text(`Payment Method: ${record.payment_method || "—"}`, 20, 70);
     doc.text(`Payment Date: ${record.payment_date || "Pending"}`, 20, 80);
     doc.text(`Status: ${record.status}`, 20, 90);
 
