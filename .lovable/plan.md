@@ -1,56 +1,119 @@
 ## Goal
-Strip all M-Pesa/Daraja integration from the platform while keeping payment history, manual payment recording, and every other workflow fully intact.
 
-## 1. Edge functions to delete
-- `supabase/functions/mpesa-stk-push/` (also undeploy)
-- `supabase/functions/mpesa-callback/` (also undeploy)
-- Remove their entries from `supabase/config.toml`
+Add Paystack payment processing for rent, subscription upgrades, and landlord verification fees — without touching any existing edge function, table, RLS policy, or SECURITY DEFINER function.
 
-## 2. Database migration
-Drop the M-Pesa-only `mpesa_payments` table (it stores `checkout_request_id`, `merchant_request_id`, `mpesa_receipt_number`, `result_desc` — all exclusively M-Pesa). Cascade-drop its RLS policies.
+## 1. Database migration
 
-Keep `rent_records` intact:
-- Keep the `payment_method` column (it's a generic enum-style text holding "Cash" / "Bank Transfer" / "M-Pesa") so historical records stay readable.
-- Keep `receipt_url` (generic, will be reused for Paystack).
+**New table: `paystack_transactions**`
 
-Do NOT touch any other table, RLS policy, or SECURITY DEFINER function.
+- `id` uuid PK
+- `reference` text unique (Paystack reference)
+- `user_id` uuid (the authenticated caller)
+- `payment_type` text — check constraint: `rent` | `subscription` | `verification`
+- `amount` integer (KES, whole units — kobo conversion happens in the function)
+- `currency` text default `KES`
+- `status` text — check constraint: `pending` | `success` | `failed`, default `pending`
+- `metadata` jsonb
+- `paystack_response` jsonb
+- `created_at`, `updated_at` timestamptz
 
-## 3. UI changes
+Note: will NOT use `REFERENCES auth.users(id)` per project rules (no FKs to auth.users). `user_id` stays as a plain uuid populated from `request.auth.user.id`.
 
-**Delete**
-- `src/components/dashboard/MpesaPaymentModal.tsx`
+**RLS on `paystack_transactions`:**
 
-**Modify**
-- `src/pages/TenantDashboard.tsx` — remove `MpesaPaymentModal` import/state and replace the "Pay via M-Pesa" button with a disabled "Pay Now" button that has a tooltip "Payment processing coming soon".
-- `src/pages/TenantAddPayment.tsx` — remove the `MpesaPaymentModal` import/state, remove the M-Pesa branch in `handleSubmit`, remove the `M-Pesa` `<SelectItem>`, default `payment_method` to `Cash`, and always show the receipt-upload field. Manual recording remains fully functional.
-- `src/components/dashboard/AddPaymentForm.tsx` — audit and strip any M-Pesa default/option (keep manual flow).
-- `src/pages/TenantHistory.tsx` — change the `|| "M-Pesa"` fallbacks to `|| "—"` so old records still render but no M-Pesa branding leaks in.
-- `src/components/TrustSignals.tsx` — remove "M-PESA" from the partner list.
+- SELECT: `user_id = auth.uid() OR has_role(auth.uid(), 'admin')`
+- INSERT: `with check (true)` — only edge functions (service role) will write; anon/auth clients are blocked because they cannot satisfy a sensible insert path (we'll narrow to `auth.uid() = user_id` to be safe, but service role bypasses RLS regardless)
+- UPDATE: restricted to admins only at RLS level; the webhook uses the service role key and bypasses RLS
 
-**Replacement button spec**
-```tsx
-<TooltipProvider>
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span tabIndex={0}>
-        <Button disabled size="lg" className="w-full sm:w-auto">
-          <CreditCard className="mr-2 h-5 w-5" /> Pay Now
-        </Button>
-      </span>
-    </TooltipTrigger>
-    <TooltipContent>Payment processing coming soon</TooltipContent>
-  </Tooltip>
-</TooltipProvider>
+**New column on `profiles`:**
+
+- `verification_fee_paid` boolean default false
+
+**Untouched:** every existing table, every RLS policy on existing tables, every SECURITY DEFINER function, every trigger.
+
+## 2. Edge function: `paystack-initiate`
+
+Path: `supabase/functions/paystack-initiate/index.ts`
+
+Flow:
+
+1. CORS preflight handling.
+2. Extract bearer token from `Authorization` header, call `supabase.auth.getUser(token)` using the anon key client to resolve the caller. Reject with 401 if missing/invalid. **The user id always comes from this lookup — never from the request body.**
+3. Validate body with Zod:
+  - `payment_type` ∈ `rent | subscription | verification`
+  - `amount` positive integer
+  - `email` valid email
+  - `metadata` object with the required keys per type:
+    - rent → `tenant_id`, `landlord_id`, `rent_record_id`
+    - subscription → `landlord_id`, `tier`
+    - verification → `landlord_id`
+4. Generate `reference = crypto.randomUUID()`.
+5. Insert a `pending` row into `paystack_transactions` (service role) with `user_id` from JWT, the validated payload, and an empty `paystack_response`.
+6. POST to `https://api.paystack.co/transaction/initialize` with:
+  - `Authorization: Bearer PAYSTACK_SECRET_KEY`
+  - body: `{ email, amount: amount * 100, currency: "KES", reference, metadata: { ...metadata, payment_type, user_id } }`
+7. If Paystack returns non-success → update the row to `failed`, store the response, return 502.
+8. On success → store the Paystack response on the row and return `{ authorization_url, access_code, reference }`.
+
+`verify_jwt = false` in `config.toml` (auth is validated in-code per project convention).
+
+## 3. Edge function: `paystack-webhook`
+
+Path: `supabase/functions/paystack-webhook/index.ts`
+
+Flow:
+
+1. **Always** return `200 OK` after processing — even for unhandled events or non-fatal errors — so Paystack does not retry.
+2. Read raw body as text (needed for signature validation).
+3. Verify `x-paystack-signature` using HMAC-SHA512 of the raw body with `PAYSTACK_SECRET_KEY`. Reject with 401 if mismatch (this is the only non-200 response).
+4. Parse JSON. If `event !== "charge.success"` → return 200 immediately.
+5. Look up `paystack_transactions` by `data.reference`. If missing → log + return 200.
+6. Update that row: `status = "success"`, `paystack_response = data`.
+7. Branch on `payment_type` from the stored metadata:
+  - **rent**: update `rent_records` where `id = metadata.rent_record_id`:
+    - `status = "Paid"` (matches existing enum-style values used in the app)
+    - `payment_method = "Paystack"`
+    - `payment_date = today`
+    - `receipt_url = data.reference` (stored as the Paystack reference for traceability — generic field already in the table)
+  - **subscription**: upsert/update `landlord_subscriptions` for `landlord_id` — set `tier_id` to the tier matching `metadata.tier` (looked up in `subscription_tiers` by `name`), `status = "active"`, refresh `start_date`/`end_date`. Also insert a `subscription_payments` row tying the payment to the subscription.
+  - **verification**: update `profiles.verification_fee_paid = true` where `id = metadata.landlord_id`.
+8. Insert an `activity_logs` entry: `action = "paystack_payment_received"`, `entity_type = payment_type`, `entity_id` = the relevant record id, `details` = `{ reference, amount, payment_type, metadata }`. `user_id` = the transaction's `user_id`.
+9. All DB operations use the service role client.
+
+`verify_jwt = false` in `config.toml` (webhook is signed by Paystack, not by a Supabase JWT).
+
+## 4. `supabase/config.toml`
+
+Add:
+
+```
+[functions.paystack-initiate]
+verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false
 ```
 
-## 4. Storage
-Keep the `payment-receipts` bucket and its policies as-is (will be reused for Paystack). No changes needed.
+## 5. Secrets
 
-## 5. Untouched (per your rules)
-Auth, RBAC, RLS policies on remaining tables, SECURITY DEFINER functions (`has_role`, `notify_landlord_of_tenant_link`, `validate_landlord_id`, etc.), landlord verification, tenant linking, admin console, subscriptions, notifications, activity logs, audit logs, chat, marketplace, properties, and the `payment-receipts` bucket.
+`PAYSTACK_SECRET_KEY` and `PAYSTACK_PUBLIC_KEY` — confirm with you before deploy. They are not in the current secrets listing, so I will request them via the secrets tool before writing the functions.
 
-## Final summary I will deliver after implementation
-1. Files/functions deleted (the 2 edge functions, `MpesaPaymentModal.tsx`, `mpesa_payments` table)
-2. Files modified (TenantDashboard, TenantAddPayment, AddPaymentForm if needed, TenantHistory, TrustSignals, config.toml)
-3. Confirmation manual payment recording (Cash / Bank Transfer with optional receipt upload) still works end-to-end through `rent_records`
-4. Manual checks to perform: verify landlord "Record Payment" form still works, verify payment history shows old M-Pesa records with method label preserved, confirm no broken imports, and revoke Daraja API credentials on Safaricom side (the `MPESA_*` secrets in the backend can be deleted from Cloud settings once you confirm).
+## 6. Deploy
+
+Deploy both functions immediately after creation using the deploy tool so they're live.
+
+## 7. Final deliverables I'll give you after implementation
+
+1. Confirmation both functions deployed.
+2. Webhook URL to register in Paystack dashboard:
+  `https://zwewwdqjvauissxzojgi.supabase.co/functions/v1/paystack-webhook`
+3. Confirmation `paystack_transactions` exists with RLS enabled + `profiles.verification_fee_paid` column added.
+4. Manual checks:
+  - Register the webhook URL above in your Paystack dashboard and enable the `charge.success` event.
+  - Confirm `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` are the **live** keys (or test keys if you're still in sandbox).
+  - The rent flow currently has a disabled "Pay Now" button — wiring the frontend to call `paystack-initiate` and redirect to `authorization_url` is **not** in this scope (you said do not touch UI beyond what was already changed). Tell me when you want that wired up.
+  - `subscription_tiers.name` is used to resolve `metadata.tier` → tier id. Make sure callers pass the tier `name` (`free`, etc.), not the display name.
+
+## Question before I start
+
+The plan adds a new column to `profiles` (`verification_fee_paid`) and writes to `landlord_subscriptions` + `subscription_payments` from the webhook. Both are existing tables but the writes are additive (no schema/RLS changes on them). Confirm that "do not alter existing tables beyond `verification_fee_paid`" means schema-only — webhook **data writes** to `rent_records`, `landlord_subscriptions`, `subscription_payments`, `activity_logs`, and `profiles` are expected, right?I have to secret keys and public api keys for test mode for paystack provide me a place where to input them as well
