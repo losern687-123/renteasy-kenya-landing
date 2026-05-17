@@ -269,6 +269,48 @@ export type Database = {
         }
         Relationships: []
       }
+      paystack_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_type: string
+          paystack_response: Json | null
+          reference: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_type: string
+          paystack_response?: Json | null
+          reference: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_type?: string
+          paystack_response?: Json | null
+          reference?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -282,6 +324,7 @@ export type Database = {
           rent_reminders_enabled: boolean | null
           theme_preference: string | null
           updated_at: string
+          verification_fee_paid: boolean
         }
         Insert: {
           created_at?: string
@@ -295,6 +338,7 @@ export type Database = {
           rent_reminders_enabled?: boolean | null
           theme_preference?: string | null
           updated_at?: string
+          verification_fee_paid?: boolean
         }
         Update: {
           created_at?: string
@@ -308,6 +352,7 @@ export type Database = {
           rent_reminders_enabled?: boolean | null
           theme_preference?: string | null
           updated_at?: string
+          verification_fee_paid?: boolean
         }
         Relationships: []
       }
