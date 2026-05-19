@@ -1,66 +1,106 @@
 ## Goal
 
-Update `supabase/functions/paystack-initiate/index.ts` only — add configurable currency, idempotency guard, and clean error handling. No other files, tables, or functions touched.
+Wire the tenant Paystack payment flow via the existing `paystack-initiate` edge function. Only touch `src/pages/TenantDashboard.tsx` and `src/pages/TenantAddPayment.tsx`. No backend, RLS, edge function, or other-page changes.
 
-## 1. New secret
+## 1. `src/pages/TenantDashboard.tsx`
 
-Add `PAYSTACK_CURRENCY` via the secrets tool (value `KES`). Read in function as:
+### Activate Pay Now
+
+- Remove the `disabled` Tooltip wrapper around the Pay Now button.
+- On mount (after `user` resolves), fetch the current unpaid/overdue rent context for the dialog:
+  - From `rent_records`: latest record where `tenant_id = user.id` and `status != 'Paid'`, ordered by `due_date desc`, limit 1 → gives `id`, `property_name`, `amount`, `due_date`.
+  - From `tenants`: `landlord_id` where `id = user.id` (mirrors `LandlordLinkCard`).
+  - From `profiles`: `email` of current user (already fetched in notification effect — reuse).
+- If no unpaid record exists, the button shows but clicking it shows a Sonner info toast "No outstanding rent to pay" and does not open the dialog.
+
+### Confirmation dialog (shadcn `Dialog`)
+
+Opened from Pay Now. Shows:
+
+- Property name
+- Amount due (formatted KES)
+- Month being paid for (derived from `due_date` → `MMMM yyyy`)
+- Editable email input pre-filled with user email
+- "Cancel" + "Proceed to Payment" buttons
+
+### Proceed to Payment
+
+- Local `submitting` state disables the button and shows a `Loader2` spinner.
+- Calls:
 
 ```ts
-const currency = Deno.env.get("PAYSTACK_CURRENCY") ?? "KES";
+supabase.functions.invoke('paystack-initiate', {
+  body: {
+    payment_type: 'rent',
+    amount: Math.round(rentRecord.amount),
+    email,
+    metadata: {
+      tenant_id: user.id,
+      landlord_id: tenantLink.landlord_id,
+      rent_record_id: rentRecord.id,
+    },
+  },
+});
 ```
 
-Use it in both the inserted `paystack_transactions` row and the Paystack initialize body, replacing the hardcoded `"KES"`.
+- Success → `window.location.href = data.authorization_url`.
+- Error → Sonner `toast.error(data?.error ?? error.message ?? 'Failed to start payment')`, re-enable button. Dialog stays open.
+- Missing `landlord_id` → toast: "Link to a landlord before paying rent." Disable Proceed button when prerequisites missing.
 
-## 2. Amount conversion
+### Paystack callback handling
 
-Keep `amount * 100`. Add a comment:
+On mount, check `window.location.search` for `reference` or `trxref`. If present:
 
-```ts
-// Smallest-unit conversion: KES/NGN/GHS all use *100 (cents/kobo/pesewas).
-// If switching to a currency with different minor units, update this.
-```
+- Render an overlay/Card "Verifying your payment…" with a spinner for 3000 ms (`setTimeout`).
+- After the timeout: bump `refreshKey` (refreshes `RentSummaryCard`, `PaymentHistoryTable`, `RentReminderBanner`, `LandlordLinkCard`), call Sonner `toast.success("Payment received! Your records have been updated.")`, and `window.history.replaceState({}, '', window.location.pathname)` to drop the params so refresh won't re-trigger.
+- Implemented with a one-shot `useRef` guard so React StrictMode double-mount doesn't run it twice.
 
-## 3. Idempotency guard
+### Toast import
 
-Before inserting the pending row, query for an existing recent pending transaction:
+Add `import { toast as sonnerToast } from "sonner"` (the existing `toast` from `@/hooks/use-toast` stays for the refresh notice). Use sonner for the new flow per the spec.
 
-- Same `user_id`
-- Same `payment_type`
-- Same `metadata` (compared via `.eq("metadata", { ...metadata, payment_type })` — jsonb equality)
-- `status = "pending"`
-- `created_at > now() - 10 minutes` (computed in JS: `new Date(Date.now() - 10*60*1000).toISOString()`)
+## 2. `src/pages/TenantAddPayment.tsx`
 
-If found and the stored `paystack_response.data.authorization_url` exists, return:
+### Add Paystack option
 
-```json
-{ "authorization_url": "...", "access_code": "...", "reference": "<existing>", "reused": true }
-```
+- Add `<SelectItem value="Paystack">Paystack (Online)</SelectItem>` to the existing Select.
+- When `payment_method === 'Paystack'`:
+  - Hide the receipt upload block entirely.
+  - Show inline note: "You will be redirected to Paystack to complete your payment securely."
+  - Submit button label becomes "Pay via Paystack".
+- Cash / Bank Transfer paths unchanged — same fields, same receipt upload, same insert into `rent_records`.
 
-If a pending row exists but has no `authorization_url` yet (initialize never completed), treat as not found and proceed normally so the user isn't stuck.
+### Paystack submit branch
 
-## 4. Clean error handling
+In `handleSubmit`, if method is Paystack:
 
-On Paystack non-200 or `status === false`:
+- Skip the receipt upload + `rent_records` insert entirely.
+- Look up `tenants.landlord_id` for `user.id`. If null → `toast.error('Link to a landlord before paying via Paystack.')` and stop.
+- Create a `pending` `rent_records` row first so we have a `rent_record_id` for metadata:
+  - `tenant_id = user.id`, `property_name`, `amount`, `payment_method = 'Paystack'`, `due_date = today`, `status = 'Pending'`. (`receipt_url` null.) The existing webhook flips it to `Paid` on success.
+- Invoke `paystack-initiate` with `payment_type: 'rent'`, `amount: Math.round(parseFloat(amount))`, `email: user.email`, `metadata: { tenant_id, landlord_id, rent_record_id }`.
+- Success → redirect to `authorization_url`.
+- Error → toast the error and leave the form. (The pending rent_record remains; tenants can retry by re-submitting — webhook still references the latest record via metadata id, so a stale pending row is acceptable and matches current "manual record" semantics.)
 
-- `console.error("Paystack initialize failed:", { reference, status: psResp.status, body: psData })`
-- Update row to `status = "failed"`, `paystack_response = psData`
-- Return 502 with `{ "error": "Payment could not be initiated. Please try again." }` — no raw details leaked.
+## 3. Untouched
 
-Also on the pre-existing insert-error path, sanitize: log full error, return generic 500 message.
-
-## 5. Unchanged
-
-- JWT auth via `supabase.auth.getUser(token)` stays — function remains protected.
-- `paystack_transactions` schema, RLS, all other tables, all other functions, `paystack-webhook` — untouched.
-- `verify_jwt = false` in `config.toml` stays (in-code JWT validation pattern).
+- All other pages, components, hooks.
+- All edge functions including `paystack-initiate` / `paystack-webhook`.
+- Every table, RLS policy, SECURITY DEFINER function.
+- Cash / Bank Transfer flow (form, receipt upload, DB insert) — same code path.
+- Payment history rendering — historical `payment_method` strings keep displaying as-is.
 
 ## Deliverables after implementation
 
-1. `PAYSTACK_CURRENCY` secret added and read at runtime.
-2. Idempotency guard returns existing `authorization_url` for duplicate clicks within 10 minutes.
-3. Client receives only `"Payment could not be initiated. Please try again."` on Paystack failures; full details in edge logs.
-4. Warnings:
-   - jsonb equality on `metadata` requires the client to send identical key order/values. Since the function itself builds `{ ...metadata, payment_type }` consistently, this is fine for same-session retries but won't dedupe if the client changes any metadata field between clicks.
-   - If you set `PAYSTACK_CURRENCY` to a currency Paystack doesn't accept for your account, every initialize will fail cleanly with the new generic message — check edge logs to see the underlying Paystack reason.
-   - Amount conversion still assumes 2-decimal currencies (KES/NGN/GHS/USD/ZAR). Currencies like JPY or KWD would need a different multiplier.
+1. Pay Now is live on `TenantDashboard` — opens confirmation dialog, calls `paystack-initiate`, redirects to Paystack.
+2. `TenantAddPayment` shows Paystack as a third method with hidden receipt + redirect-style submit; Cash/Bank Transfer untouched.
+3. Cash and Bank Transfer flows confirmed unchanged (same handler branch).
+4. `?reference=` / `?trxref=` callback handled on mount with verifying overlay → success toast → URL cleanup.
+
+## Warnings
+
+- `paystack-initiate` validates `amount` as a positive integer. We round `parseFloat(amount)` to int — fractional KES is dropped. Flag if your rent amounts ever have decimals.
+- Paystack callback `reference` is acknowledged but not re-verified client-side; trust comes from the server webhook. If a tenant lands on the dashboard with `?reference=` before the webhook finishes (rare, but possible if webhook is slow or fails), the success toast may show while `status` is still `Pending`. The 3-second delay mitigates but does not eliminate this. Real verification stays server-side.
+- If the tenant isn't linked to a landlord, both flows block with a toast — make sure the LandlordLinkCard CTA is reachable so this isn't a dead end.
+- Creating a `pending` `rent_records` row up-front in `TenantAddPayment` (Paystack branch) means abandoned payments leave stale Pending rows. Acceptable per current product behavior (manual entry already creates Pending rows), but mention this for cleanup later.
+- The new flow assumes `user.email` exists on the auth user. If a tenant signed up without an email (shouldn't happen with current auth setup), the dialog's email field will be empty and they'll need to type one in.
