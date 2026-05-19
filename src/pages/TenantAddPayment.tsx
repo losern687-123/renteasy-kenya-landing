@@ -54,9 +54,62 @@ export default function TenantAddPayment() {
       return;
     }
 
+    const isPaystack = formData.payment_method === "Paystack";
     setLoading(true);
 
     try {
+      if (isPaystack) {
+        const { data: tenantRow } = await supabase
+          .from("tenants")
+          .select("landlord_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!tenantRow?.landlord_id) {
+          toast.error("Link to a landlord before paying via Paystack.");
+          setLoading(false);
+          return;
+        }
+
+        const amountNum = Math.round(parseFloat(formData.amount));
+        const today = new Date().toISOString().split("T")[0];
+
+        const { data: inserted, error: insertErr } = await supabase
+          .from("rent_records")
+          .insert({
+            tenant_id: user.id,
+            property_name: formData.property_name,
+            amount: amountNum,
+            payment_method: "Paystack",
+            due_date: today,
+            status: "Pending",
+          })
+          .select("id")
+          .single();
+
+        if (insertErr) throw insertErr;
+
+        const { data, error } = await supabase.functions.invoke("paystack-initiate", {
+          body: {
+            payment_type: "rent",
+            amount: amountNum,
+            email: user.email,
+            metadata: {
+              tenant_id: user.id,
+              landlord_id: tenantRow.landlord_id,
+              rent_record_id: inserted.id,
+            },
+          },
+        });
+
+        if (error) throw error;
+        if (!data?.authorization_url) {
+          throw new Error(data?.error || "No authorization URL returned");
+        }
+        window.location.href = data.authorization_url;
+        return;
+      }
+
       let receipt_url = null;
 
       if (formData.receipt_file) {
@@ -84,12 +137,14 @@ export default function TenantAddPayment() {
       navigate("/tenant/history");
     } catch (error: any) {
       console.error("Error recording payment:", error);
-      toast.error(error.message || "Failed to record payment");
+      toast.error(error?.context?.error || error.message || "Failed to record payment");
     } finally {
       setLoading(false);
       setUploadingReceipt(false);
     }
   };
+
+  const isPaystack = formData.payment_method === "Paystack";
 
   return (
     <DashboardLayout>
@@ -137,39 +192,46 @@ export default function TenantAddPayment() {
                 <SelectContent>
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="Paystack">Paystack (Online)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="receipt">Upload Receipt (Optional)</Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  id="receipt"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file && file.size > 5 * 1024 * 1024) {
-                      toast.error("File size must be less than 5MB");
-                      e.target.value = "";
-                      return;
-                    }
-                    setFormData({ ...formData, receipt_file: file || null });
-                  }}
-                  className="flex-1"
-                />
-                {formData.receipt_file && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Upload className="h-4 w-4" />
-                    {formData.receipt_file.name}
-                  </div>
-                )}
+            {isPaystack ? (
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                You will be redirected to Paystack to complete your payment securely.
               </div>
-              <p className="text-xs text-muted-foreground">
-                Supported formats: JPEG, PNG, PDF (Max 5MB)
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="receipt">Upload Receipt (Optional)</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        toast.error("File size must be less than 5MB");
+                        e.target.value = "";
+                        return;
+                      }
+                      setFormData({ ...formData, receipt_file: file || null });
+                    }}
+                    className="flex-1"
+                  />
+                  {formData.receipt_file && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Upload className="h-4 w-4" />
+                      {formData.receipt_file.name}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Supported formats: JPEG, PNG, PDF (Max 5MB)
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
               <Button
@@ -188,8 +250,10 @@ export default function TenantAddPayment() {
                 {loading || uploadingReceipt ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {uploadingReceipt ? "Uploading..." : "Recording..."}
+                    {isPaystack ? "Redirecting…" : uploadingReceipt ? "Uploading..." : "Recording..."}
                   </>
+                ) : isPaystack ? (
+                  "Pay via Paystack"
                 ) : (
                   "Record Payment"
                 )}
