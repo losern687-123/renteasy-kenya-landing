@@ -25,7 +25,7 @@ function validate(body: any): { ok: true; data: InitiateBody } | { ok: false; er
   if (!["rent", "subscription", "verification"].includes(payment_type))
     return { ok: false, error: "payment_type must be rent | subscription | verification" };
   if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount))
-    return { ok: false, error: "amount must be a positive integer (KES)" };
+    return { ok: false, error: "amount must be a positive integer" };
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return { ok: false, error: "valid email is required" };
   if (!metadata || typeof metadata !== "object")
@@ -57,8 +57,10 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const paystackKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+    // Configurable currency — change via PAYSTACK_CURRENCY secret without redeploying.
+    const currency = Deno.env.get("PAYSTACK_CURRENCY") ?? "KES";
 
-    if (!paystackKey) return json({ error: "Paystack not configured" }, 500);
+    if (!paystackKey) return json({ error: "Payment provider not configured" }, 500);
 
     const authClient = createClient(supabaseUrl, anonKey);
     const token = authHeader.replace("Bearer ", "");
@@ -72,8 +74,43 @@ Deno.serve(async (req) => {
     if (!v.ok) return json({ error: v.error }, 400);
     const { payment_type, amount, email, metadata } = v.data;
 
-    const reference = crypto.randomUUID();
     const admin = createClient(supabaseUrl, serviceKey);
+    const normalizedMetadata = { ...metadata, payment_type };
+
+    // Idempotency: reuse a recent pending transaction (within 10 minutes) for the
+    // same user + payment_type + metadata, if one was already initialized with Paystack.
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { data: existingRows, error: existingErr } = await admin
+      .from("paystack_transactions")
+      .select("reference, paystack_response, metadata, created_at")
+      .eq("user_id", userId)
+      .eq("payment_type", payment_type)
+      .eq("status", "pending")
+      .gte("created_at", tenMinAgo)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (existingErr) {
+      console.error("Idempotency lookup error:", existingErr);
+    } else if (existingRows && existingRows.length > 0) {
+      const normalizedKey = JSON.stringify(normalizedMetadata);
+      const match = existingRows.find(
+        (r: any) =>
+          JSON.stringify(r.metadata ?? {}) === normalizedKey &&
+          r.paystack_response?.data?.authorization_url,
+      );
+      if (match) {
+        const d = (match as any).paystack_response.data;
+        return json({
+          authorization_url: d.authorization_url,
+          access_code: d.access_code,
+          reference: (match as any).reference,
+          reused: true,
+        });
+      }
+    }
+
+    const reference = crypto.randomUUID();
 
     // Pending row
     const { error: insertErr } = await admin.from("paystack_transactions").insert({
@@ -81,14 +118,18 @@ Deno.serve(async (req) => {
       user_id: userId,
       payment_type,
       amount,
-      currency: "KES",
+      currency,
       status: "pending",
-      metadata: { ...metadata, payment_type },
+      metadata: normalizedMetadata,
     });
     if (insertErr) {
       console.error("Insert error:", insertErr);
-      return json({ error: "Failed to record transaction" }, 500);
+      return json({ error: "Payment could not be initiated. Please try again." }, 500);
     }
+
+    // Smallest-unit conversion: KES/NGN/GHS all use *100 (cents/kobo/pesewas).
+    // If switching to a currency with different minor units (e.g. JPY, KWD), update this.
+    const paystackAmount = amount * 100;
 
     // Paystack initialize
     const psResp = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -99,21 +140,25 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         email,
-        amount: amount * 100, // kobo
-        currency: "KES",
+        amount: paystackAmount,
+        currency,
         reference,
-        metadata: { ...metadata, payment_type, user_id: userId },
+        metadata: { ...normalizedMetadata, user_id: userId },
       }),
     });
     const psData = await psResp.json().catch(() => ({}));
 
     if (!psResp.ok || !psData?.status) {
+      console.error("Paystack initialize failed:", {
+        reference,
+        httpStatus: psResp.status,
+        body: psData,
+      });
       await admin
         .from("paystack_transactions")
         .update({ status: "failed", paystack_response: psData })
         .eq("reference", reference);
-      console.error("Paystack init failed:", psData);
-      return json({ error: "Paystack initialization failed", details: psData }, 502);
+      return json({ error: "Payment could not be initiated. Please try again." }, 502);
     }
 
     await admin
@@ -128,6 +173,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("paystack-initiate error:", err);
-    return json({ error: err instanceof Error ? err.message : "Internal error" }, 500);
+    return json({ error: "Payment could not be initiated. Please try again." }, 500);
   }
 });
