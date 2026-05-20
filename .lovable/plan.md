@@ -1,106 +1,80 @@
-## Goal
+## Issues found
 
-Wire the tenant Paystack payment flow via the existing `paystack-initiate` edge function. Only touch `src/pages/TenantDashboard.tsx` and `src/pages/TenantAddPayment.tsx`. No backend, RLS, edge function, or other-page changes.
+### 1. Two "Dashboard" entries in the profile dropdown (landing page)
 
-## 1. `src/pages/TenantDashboard.tsx`
+`src/components/ProfileDropdown.tsx` renders both:
 
-### Activate Pay Now
+- A generic **Dashboard** item (line 192) whose `dashboardPath` for an approved landlord is `/landlord-dashboard`.
+- A **Landlord Dashboard** item (line 208) that also points to `/landlord-dashboard`.
 
-- Remove the `disabled` Tooltip wrapper around the Pay Now button.
-- On mount (after `user` resolves), fetch the current unpaid/overdue rent context for the dialog:
-  - From `rent_records`: latest record where `tenant_id = user.id` and `status != 'Paid'`, ordered by `due_date desc`, limit 1 → gives `id`, `property_name`, `amount`, `due_date`.
-  - From `tenants`: `landlord_id` where `id = user.id` (mirrors `LandlordLinkCard`).
-  - From `profiles`: `email` of current user (already fetched in notification effect — reuse).
-- If no unpaid record exists, the button shows but clicking it shows a Sonner info toast "No outstanding rent to pay" and does not open the dialog.
+Same destination, shown twice. Same duplication exists in the mobile branch (lines 111 + 127).there should only be one landlord dashboard and it should only be available to verified landlords
 
-### Confirmation dialog (shadcn `Dialog`)
+### 2. "Pay Now" only supports Paystack — Cash & Bank Transfer are excluded
 
-Opened from Pay Now. Shows:
+`src/pages/TenantDashboard.tsx` "Pay Now" jumps straight into the Paystack confirmation dialog. The `TenantAddPayment` page already supports Cash / Bank Transfer / Paystack, but the dashboard CTA bypasses that choice entirely.
 
-- Property name
-- Amount due (formatted KES)
-- Month being paid for (derived from `due_date` → `MMMM yyyy`)
-- Editable email input pre-filled with user email
-- "Cancel" + "Proceed to Payment" buttons
+### 3. Landlord ID link stuck on "Pending" — landlord never gets a notification
 
-### Proceed to Payment
+`src/pages/TenantSettings.tsx` `handleLandlordConnect` (lines 245–324) inserts into `tenants` with `verification_status: "pending"` and stops there. It never calls the existing `notify_landlord_of_tenant_link` RPC, so the landlord's Notifications bell shows nothing and approval can't happen.
 
-- Local `submitting` state disables the button and shows a `Loader2` spinner.
-- Calls:
+The `LandlordLinkCard` on the dashboard is also misleading: it labels any row with a `landlord_id` as **Connected**, ignoring `verification_status`. That's why dashboard says "Connected" while Settings says "Pending".
+
+---
+
+## Fix plan (UI + one RPC call, no schema changes)
+
+### A. `src/components/ProfileDropdown.tsx`
+
+- Remove the second **Landlord Dashboard** menu item (desktop lines 208–215 and mobile lines 127–134). The generic **Dashboard** entry already routes approved landlords to `/landlord-dashboard` via `getDashboardPath()`.
+- Keep the Pending / Rejected status items as-is.
+
+### B. "Pay Now" — let tenant pick a payment method
+
+In `src/pages/TenantDashboard.tsx` confirm dialog:
+
+- Add a **Payment Method** `Select` with options: `Cash`, `Bank Transfer`, `Paystack (Online)` (default `Paystack` to preserve current behavior).
+- Branching on submit:
+  - **Paystack** → existing flow unchanged (invoke `paystack-initiate`, redirect).
+  - **Cash / Bank Transfer** → update the existing unpaid `rent_records` row: `payment_method = <choice>`, `status = "Pending"`, `payment_date = today`. Show success toast ("Payment recorded. Awaiting landlord confirmation."), close dialog, bump `refreshKey`. No receipt upload in the dialog (keep that on the dedicated Add Payment page where the file input lives).
+- Hide the email field unless Paystack is selected.
+- Button label adapts: "Proceed to Payment" (Paystack) vs "Record Payment" (Cash/Bank).
+
+No change to `TenantAddPayment.tsx`, edge functions, RLS, or schema.
+
+### C. Notify landlord when a tenant links
+
+In `src/pages/TenantSettings.tsx` `handleLandlordConnect`, after the successful `tenants` insert (line 312), call:
 
 ```ts
-supabase.functions.invoke('paystack-initiate', {
-  body: {
-    payment_type: 'rent',
-    amount: Math.round(rentRecord.amount),
-    email,
-    metadata: {
-      tenant_id: user.id,
-      landlord_id: tenantLink.landlord_id,
-      rent_record_id: rentRecord.id,
-    },
-  },
+await supabase.rpc("notify_landlord_of_tenant_link", {
+  _landlord_user_id: landlordUserId,
+  _tenant_name: profile?.name || user.email || "A tenant",
 });
 ```
 
-- Success → `window.location.href = data.authorization_url`.
-- Error → Sonner `toast.error(data?.error ?? error.message ?? 'Failed to start payment')`, re-enable button. Dialog stays open.
-- Missing `landlord_id` → toast: "Link to a landlord before paying rent." Disable Proceed button when prerequisites missing.
+The RPC already exists, is `SECURITY DEFINER`, validates the caller is actually linked, writes a row into `notifications` for the landlord, and logs to `activity_logs`. Wrap in try/catch — RPC failure should NOT roll back the link (toast a soft warning instead).
 
-### Paystack callback handling
+### D. `LandlordLinkCard` status accuracy (small follow-on)
 
-On mount, check `window.location.search` for `reference` or `trxref`. If present:
+In `src/components/dashboard/LandlordLinkCard.tsx`, also select `verification_status` from `tenants` and show:
 
-- Render an overlay/Card "Verifying your payment…" with a spinner for 3000 ms (`setTimeout`).
-- After the timeout: bump `refreshKey` (refreshes `RentSummaryCard`, `PaymentHistoryTable`, `RentReminderBanner`, `LandlordLinkCard`), call Sonner `toast.success("Payment received! Your records have been updated.")`, and `window.history.replaceState({}, '', window.location.pathname)` to drop the params so refresh won't re-trigger.
-- Implemented with a one-shot `useRef` guard so React StrictMode double-mount doesn't run it twice.
+- `pending` → amber "Pending Approval" badge instead of green "Connected".
+- `approved` (or anything else truthy that currently shows connected) → existing "Connected" UI.
 
-### Toast import
+This brings the dashboard card in line with the Settings tab.
 
-Add `import { toast as sonnerToast } from "sonner"` (the existing `toast` from `@/hooks/use-toast` stays for the refresh notice). Use sonner for the new flow per the spec.
+---
 
-## 2. `src/pages/TenantAddPayment.tsx`
+## Untouched
 
-### Add Paystack option
-
-- Add `<SelectItem value="Paystack">Paystack (Online)</SelectItem>` to the existing Select.
-- When `payment_method === 'Paystack'`:
-  - Hide the receipt upload block entirely.
-  - Show inline note: "You will be redirected to Paystack to complete your payment securely."
-  - Submit button label becomes "Pay via Paystack".
-- Cash / Bank Transfer paths unchanged — same fields, same receipt upload, same insert into `rent_records`.
-
-### Paystack submit branch
-
-In `handleSubmit`, if method is Paystack:
-
-- Skip the receipt upload + `rent_records` insert entirely.
-- Look up `tenants.landlord_id` for `user.id`. If null → `toast.error('Link to a landlord before paying via Paystack.')` and stop.
-- Create a `pending` `rent_records` row first so we have a `rent_record_id` for metadata:
-  - `tenant_id = user.id`, `property_name`, `amount`, `payment_method = 'Paystack'`, `due_date = today`, `status = 'Pending'`. (`receipt_url` null.) The existing webhook flips it to `Paid` on success.
-- Invoke `paystack-initiate` with `payment_type: 'rent'`, `amount: Math.round(parseFloat(amount))`, `email: user.email`, `metadata: { tenant_id, landlord_id, rent_record_id }`.
-- Success → redirect to `authorization_url`.
-- Error → toast the error and leave the form. (The pending rent_record remains; tenants can retry by re-submitting — webhook still references the latest record via metadata id, so a stale pending row is acceptable and matches current "manual record" semantics.)
-
-## 3. Untouched
-
-- All other pages, components, hooks.
-- All edge functions including `paystack-initiate` / `paystack-webhook`.
-- Every table, RLS policy, SECURITY DEFINER function.
-- Cash / Bank Transfer flow (form, receipt upload, DB insert) — same code path.
-- Payment history rendering — historical `payment_method` strings keep displaying as-is.
-
-## Deliverables after implementation
-
-1. Pay Now is live on `TenantDashboard` — opens confirmation dialog, calls `paystack-initiate`, redirects to Paystack.
-2. `TenantAddPayment` shows Paystack as a third method with hidden receipt + redirect-style submit; Cash/Bank Transfer untouched.
-3. Cash and Bank Transfer flows confirmed unchanged (same handler branch).
-4. `?reference=` / `?trxref=` callback handled on mount with verifying overlay → success toast → URL cleanup.
+- `paystack-initiate` / `paystack-webhook` edge functions
+- `paystack_transactions`, `rent_records`, `tenants`, `profiles` schemas
+- All RLS policies and SECURITY DEFINER functions
+- Landlord dashboard, admin flows, marketplace, chat, notifications infra
+- Existing Paystack callback handling on dashboard mount
 
 ## Warnings
 
-- `paystack-initiate` validates `amount` as a positive integer. We round `parseFloat(amount)` to int — fractional KES is dropped. Flag if your rent amounts ever have decimals.
-- Paystack callback `reference` is acknowledged but not re-verified client-side; trust comes from the server webhook. If a tenant lands on the dashboard with `?reference=` before the webhook finishes (rare, but possible if webhook is slow or fails), the success toast may show while `status` is still `Pending`. The 3-second delay mitigates but does not eliminate this. Real verification stays server-side.
-- If the tenant isn't linked to a landlord, both flows block with a toast — make sure the LandlordLinkCard CTA is reachable so this isn't a dead end.
-- Creating a `pending` `rent_records` row up-front in `TenantAddPayment` (Paystack branch) means abandoned payments leave stale Pending rows. Acceptable per current product behavior (manual entry already creates Pending rows), but mention this for cleanup later.
-- The new flow assumes `user.email` exists on the auth user. If a tenant signed up without an email (shouldn't happen with current auth setup), the dialog's email field will be empty and they'll need to type one in.
+- The notification fix only applies to **new** link attempts. Loise's existing "LND-123456" pending link in the screenshot won't retroactively notify the landlord — she'd need to disconnect and reconnect, or the landlord approves from the Tenants table directly.this should not happen it should notify the landlord no exceptions for any account including the loise account 
+- The Cash/Bank Transfer branch in Pay Now requires an existing unpaid `rent_records` row (same precondition as today's Paystack flow). If none exists, the dialog stays disabled with the current "No outstanding rent to pay" toast.
+- `LandlordLinkCard` change reads one extra column; no policy change needed since tenants already select their own `tenants` row.
