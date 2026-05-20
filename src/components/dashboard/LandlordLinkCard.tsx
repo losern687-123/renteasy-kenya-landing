@@ -78,20 +78,41 @@ export const LandlordLinkCard = () => {
       </CardHeader>
       <CardContent>
         {isLinked && landlordInfo ? (
-          <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-primary/20 bg-primary/5 transition-all">
-            <div className="rounded-xl p-3 bg-primary/10">
-              <UserCheck className="h-8 w-8 text-primary" />
+          <div className={cn(
+            "flex items-center gap-4 p-4 rounded-xl border-2 transition-all",
+            isPending
+              ? "border-amber-500/30 bg-amber-500/5"
+              : "border-primary/20 bg-primary/5"
+          )}>
+            <div className={cn(
+              "rounded-xl p-3",
+              isPending ? "bg-amber-500/10" : "bg-primary/10"
+            )}>
+              <UserCheck className={cn("h-8 w-8", isPending ? "text-amber-600" : "text-primary")} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/10">
-                  Connected
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-xs",
+                    isPending
+                      ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
+                      : "border-primary/30 text-primary bg-primary/10"
+                  )}
+                >
+                  {isPending ? "Pending Approval" : "Connected"}
                 </Badge>
               </div>
               <p className="text-lg font-semibold truncate">{landlordInfo.name}</p>
               <p className="text-sm text-muted-foreground font-mono tracking-wider">
                 {landlordInfo.landlordId}
               </p>
+              {isPending && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Your landlord has been notified and will verify your account.
+                </p>
+              )}
             </div>
           </div>
         ) : (
