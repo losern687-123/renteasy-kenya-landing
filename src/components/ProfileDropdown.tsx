@@ -123,15 +123,6 @@ export const ProfileDropdown = ({ mobile = false }: ProfileDropdownProps) => {
             </Button>
           </Link>
         )}
-        {/* Show Landlord Dashboard only for approved landlords */}
-        {userRole === 'landlord' && isApprovedLandlord && (
-          <Link to="/landlord-dashboard">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Building2 className="h-4 w-4" />
-              Landlord Dashboard
-            </Button>
-          </Link>
-        )}
         {/* Show pending status for pending landlords */}
         {userRole === 'landlord' && landlordStatus === 'pending' && (
           <Link to="/landlord/pending">
@@ -201,15 +192,6 @@ export const ProfileDropdown = ({ mobile = false }: ProfileDropdownProps) => {
             <Link to="/apply-landlord" className="cursor-pointer">
               <Building2 className="mr-2 h-4 w-4" />
               Apply as Landlord
-            </Link>
-          </DropdownMenuItem>
-        )}
-        {/* Show Landlord Dashboard only for approved landlords */}
-        {userRole === 'landlord' && isApprovedLandlord && (
-          <DropdownMenuItem asChild>
-            <Link to="/landlord-dashboard" className="cursor-pointer">
-              <Building2 className="mr-2 h-4 w-4" />
-              Landlord Dashboard
             </Link>
           </DropdownMenuItem>
         )}

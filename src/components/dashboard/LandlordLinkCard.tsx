@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 interface LandlordInfo {
   name: string;
   landlordId: string;
+  status: string;
 }
 
 export const LandlordLinkCard = () => {
@@ -25,10 +26,9 @@ export const LandlordLinkCard = () => {
     const fetchLandlordLink = async () => {
       if (!user) return;
 
-      // Check if tenant is linked to a landlord
       const { data: tenantData, error: tenantError } = await supabase
         .from("tenants")
-        .select("landlord_id")
+        .select("landlord_id, verification_status")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -39,7 +39,6 @@ export const LandlordLinkCard = () => {
       }
 
       if (tenantData?.landlord_id) {
-        // Fetch the landlord's profile info
         const { data: landlordProfile } = await supabase
           .from("profiles")
           .select("name, landlord_id")
@@ -50,6 +49,7 @@ export const LandlordLinkCard = () => {
           setLandlordInfo({
             name: landlordProfile.name || "Your Landlord",
             landlordId: landlordProfile.landlord_id || "",
+            status: tenantData.verification_status || "pending",
           });
           setIsLinked(true);
         }
@@ -60,6 +60,8 @@ export const LandlordLinkCard = () => {
 
     fetchLandlordLink();
   }, [user]);
+
+  const isPending = isLinked && landlordInfo?.status !== "approved";
 
   if (loading) {
     return <CardSkeleton />;
