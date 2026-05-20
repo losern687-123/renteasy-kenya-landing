@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { checkAndCreateRentNotifications } from "@/utils/notificationHelpers";
@@ -56,6 +57,7 @@ export default function TenantDashboard() {
   const [landlordId, setLandlordId] = useState<string | null>(null);
   const [payDialogOpen, setPayDialogOpen] = useState(false);
   const [payEmail, setPayEmail] = useState("");
+  const [payMethod, setPayMethod] = useState<"Paystack" | "Cash" | "Bank Transfer">("Paystack");
   const [submittingPay, setSubmittingPay] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const verifyHandledRef = useRef(false);
@@ -164,6 +166,33 @@ export default function TenantDashboard() {
 
   const handleProceedToPayment = async () => {
     if (!user || !unpaidRecord || !landlordId) return;
+
+    if (payMethod !== "Paystack") {
+      // Cash / Bank Transfer — record against the existing unpaid rent row.
+      setSubmittingPay(true);
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const { error } = await supabase
+          .from("rent_records")
+          .update({
+            payment_method: payMethod,
+            payment_date: today,
+            status: "Pending",
+          })
+          .eq("id", unpaidRecord.id);
+        if (error) throw error;
+        sonnerToast.success("Payment recorded. Awaiting landlord confirmation.");
+        setPayDialogOpen(false);
+        setRefreshKey((p) => p + 1);
+      } catch (err: any) {
+        console.error("Manual payment record failed:", err);
+        sonnerToast.error(err?.message || "Failed to record payment. Please try again.");
+      } finally {
+        setSubmittingPay(false);
+      }
+      return;
+    }
+
     if (!payEmail) {
       sonnerToast.error("Email is required.");
       return;
@@ -295,7 +324,9 @@ export default function TenantDashboard() {
               <DialogHeader>
                 <DialogTitle>Confirm Rent Payment</DialogTitle>
                 <DialogDescription>
-                  Review the details below before continuing to Paystack.
+                  {payMethod === "Paystack"
+                    ? "Review the details below before continuing to Paystack."
+                    : "Record your payment. Your landlord will confirm receipt."}
                 </DialogDescription>
               </DialogHeader>
               {unpaidRecord && (
@@ -317,15 +348,38 @@ export default function TenantDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pay-email">Email</Label>
-                    <Input
-                      id="pay-email"
-                      type="email"
-                      value={payEmail}
-                      onChange={(e) => setPayEmail(e.target.value)}
+                    <Label htmlFor="pay-method">Payment Method</Label>
+                    <Select
+                      value={payMethod}
+                      onValueChange={(v) => setPayMethod(v as typeof payMethod)}
                       disabled={submittingPay}
-                    />
+                    >
+                      <SelectTrigger id="pay-method">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Paystack">Paystack (Online)</SelectItem>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  {payMethod === "Paystack" ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-email">Email</Label>
+                      <Input
+                        id="pay-email"
+                        type="email"
+                        value={payEmail}
+                        onChange={(e) => setPayEmail(e.target.value)}
+                        disabled={submittingPay}
+                      />
+                    </div>
+                  ) : (
+                    <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                      This will mark the rent as paid (Pending) using {payMethod}. Your landlord will confirm the payment.
+                    </div>
+                  )}
                 </div>
               )}
               <DialogFooter>
@@ -340,10 +394,12 @@ export default function TenantDashboard() {
                   {submittingPay ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting…
+                      {payMethod === "Paystack" ? "Redirecting…" : "Saving…"}
                     </>
-                  ) : (
+                  ) : payMethod === "Paystack" ? (
                     "Proceed to Payment"
+                  ) : (
+                    "Record Payment"
                   )}
                 </Button>
               </DialogFooter>

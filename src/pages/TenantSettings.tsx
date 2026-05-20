@@ -311,6 +311,16 @@ export default function TenantSettings() {
 
       if (error) throw error;
 
+      // Notify landlord of the new tenant link (don't block on failure)
+      try {
+        await supabase.rpc("notify_landlord_of_tenant_link", {
+          _landlord_user_id: landlordUserId,
+          _tenant_name: profile?.name || user.email || "A tenant",
+        });
+      } catch (notifyErr) {
+        console.error("Failed to notify landlord:", notifyErr);
+      }
+
       toast.success("Connection request sent to landlord");
       setConnectionStatus("pending");
       setConnectedLandlordId(landlordCode.toUpperCase());
