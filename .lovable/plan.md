@@ -1,80 +1,115 @@
-## Issues found
+## Current state
 
-### 1. Two "Dashboard" entries in the profile dropdown (landing page)
-
-`src/components/ProfileDropdown.tsx` renders both:
-
-- A generic **Dashboard** item (line 192) whose `dashboardPath` for an approved landlord is `/landlord-dashboard`.
-- A **Landlord Dashboard** item (line 208) that also points to `/landlord-dashboard`.
-
-Same destination, shown twice. Same duplication exists in the mobile branch (lines 111 + 127).there should only be one landlord dashboard and it should only be available to verified landlords
-
-### 2. "Pay Now" only supports Paystack — Cash & Bank Transfer are excluded
-
-`src/pages/TenantDashboard.tsx` "Pay Now" jumps straight into the Paystack confirmation dialog. The `TenantAddPayment` page already supports Cash / Bank Transfer / Paystack, but the dashboard CTA bypasses that choice entirely.
-
-### 3. Landlord ID link stuck on "Pending" — landlord never gets a notification
-
-`src/pages/TenantSettings.tsx` `handleLandlordConnect` (lines 245–324) inserts into `tenants` with `verification_status: "pending"` and stops there. It never calls the existing `notify_landlord_of_tenant_link` RPC, so the landlord's Notifications bell shows nothing and approval can't happen.
-
-The `LandlordLinkCard` on the dashboard is also misleading: it labels any row with a `landlord_id` as **Connected**, ignoring `verification_status`. That's why dashboard says "Connected" while Settings says "Pending".
+- **Upgrade modal** (`src/components/subscription/UpgradeModal.tsx`) currently collects phone + company and inserts a row into `subscription_requests` for manual fulfillment — no Paystack call.
+- **Subscription tiers in DB**: `free` (KES 0), `pro` (KES 3,999), `enterprise` (KES 12,999), `custom`. Pricing does not match what you specified. update the prices
+- `**paystack-initiate**` edge function already accepts `payment_type: "subscription"` with `metadata: { landlord_id, tier }`. No edge-function changes needed.
+- **Tier name "pro"** is referenced across ~12 files (`SubscriptionBadge`, `PricingCard`, `LockedFeatureCard`, hooks, sidebars, analytics gating). Renaming it would touch all of them and risk breaking gating logic — so we'll keep the internal name `pro` and just change its **display name + price**.
+- `**LockedFeatureCard**` already calls `onUpgrade` prop. Each consumer (analytics, reports) wires that to open the upgrade modal — but I should audit that all locked surfaces actually pass an `onUpgrade` that opens the modal.
+- **No subscription badge** currently appears in the landlord sidebar/header (only inside `SubscriptionOverviewCard` on the overview tab).
 
 ---
 
-## Fix plan (UI + one RPC call, no schema changes)
+## Implementation plan
 
-### A. `src/components/ProfileDropdown.tsx`
+### Part 0 — Database tier alignment (one migration)
 
-- Remove the second **Landlord Dashboard** menu item (desktop lines 208–215 and mobile lines 127–134). The generic **Dashboard** entry already routes approved landlords to `/landlord-dashboard` via `getDashboardPath()`.
-- Keep the Pending / Rejected status items as-is.
+Update `subscription_tiers` to match your pricing without breaking the `pro` tier-name references:
 
-### B. "Pay Now" — let tenant pick a payment method
+```sql
+-- Update existing tiers
+UPDATE subscription_tiers SET price_monthly = 0,    price_annual = 0,      display_name = 'Free',         sort_order = 1 WHERE name = 'free';
+UPDATE subscription_tiers SET price_monthly = 999,  price_annual = 9990,   display_name = 'Professional', sort_order = 3 WHERE name = 'pro';
+UPDATE subscription_tiers SET price_monthly = 2499, price_annual = 24990,  display_name = 'Enterprise',   sort_order = 4 WHERE name = 'enterprise';
 
-In `src/pages/TenantDashboard.tsx` confirm dialog:
+-- New Starter tier (kept distinct internal name)
+INSERT INTO subscription_tiers (name, display_name, description, price_monthly, price_annual, max_properties, max_tenants, features, sort_order, is_active)
+VALUES ('starter', 'Starter', 'For small landlords getting started', 499, 4990, 10, 25,
+        '["Up to 10 properties","Up to 25 tenants","Email reminders","Basic analytics"]'::jsonb, 2, true)
+ON CONFLICT DO NOTHING;
 
-- Add a **Payment Method** `Select` with options: `Cash`, `Bank Transfer`, `Paystack (Online)` (default `Paystack` to preserve current behavior).
-- Branching on submit:
-  - **Paystack** → existing flow unchanged (invoke `paystack-initiate`, redirect).
-  - **Cash / Bank Transfer** → update the existing unpaid `rent_records` row: `payment_method = <choice>`, `status = "Pending"`, `payment_date = today`. Show success toast ("Payment recorded. Awaiting landlord confirmation."), close dialog, bump `refreshKey`. No receipt upload in the dialog (keep that on the dedicated Add Payment page where the file input lives).
-- Hide the email field unless Paystack is selected.
-- Button label adapts: "Proceed to Payment" (Paystack) vs "Record Payment" (Cash/Bank).
-
-No change to `TenantAddPayment.tsx`, edge functions, RLS, or schema.
-
-### C. Notify landlord when a tenant links
-
-In `src/pages/TenantSettings.tsx` `handleLandlordConnect`, after the successful `tenants` insert (line 312), call:
-
-```ts
-await supabase.rpc("notify_landlord_of_tenant_link", {
-  _landlord_user_id: landlordUserId,
-  _tenant_name: profile?.name || user.email || "A tenant",
-});
+-- Hide 'custom' from the 4-tier upgrade grid
+UPDATE subscription_tiers SET is_active = false WHERE name = 'custom';
 ```
 
-The RPC already exists, is `SECURITY DEFINER`, validates the caller is actually linked, writes a row into `notifications` for the landlord, and logs to `activity_logs`. Wrap in try/catch — RPC failure should NOT roll back the link (toast a soft warning instead).
+Annual prices = monthly × 10 (≈17% saving). Property/tenant limits for Starter are reasonable defaults; tell me if you want different numbers.
 
-### D. `LandlordLinkCard` status accuracy (small follow-on)
+### Part 1 — Wire UpgradeModal to Paystack (`src/components/subscription/UpgradeModal.tsx`)
 
-In `src/components/dashboard/LandlordLinkCard.tsx`, also select `verification_status` from `tenants` and show:
+Rewrite the modal so the "Upgrade" button on each `PricingCard` calls Paystack directly instead of opening the request form:
 
-- `pending` → amber "Pending Approval" badge instead of green "Connected".
-- `approved` (or anything else truthy that currently shows connected) → existing "Connected" UI.
+- Drop the `subscription_requests` insert flow, the phone/company form, the `requestSchema`, and the success screen.
+- New `handleUpgradeClick(tier)`:
+  - Guard: `tier.name === "free"` or `tier.name === currentTier` → no-op.
+  - Set per-button loading state (`loadingTier: string | null`) and disable *all* upgrade buttons while one is in flight.
+  - Call `supabase.functions.invoke("paystack-initiate", { body: { payment_type: "subscription", amount: Math.round(price), email: user.email, metadata: { landlord_id: user.id, tier: tier.name } } })`.
+    - `price` = `priceMonthly` when `billingCycle==="monthly"`, else `priceAnnual`.
+  - Success → `window.location.href = data.authorization_url`.
+  - Error → `toast.error(...)`, clear loading.
+- Add "Recommended" badge logic: highlight the next tier above the current one (e.g. current=free → recommended=starter; current=starter → recommended=pro). Pass new prop `isRecommended` into `PricingCard`.
 
-This brings the dashboard card in line with the Settings tab.
+### Part 1b — `PricingCard` updates
+
+- Accept new `isRecommended?: boolean` and `isLoading?: boolean` props.
+- Render "Recommended" badge (forest-green) when `isRecommended`.
+- Button label: `Upgrade to {displayName}` (per spec), and shows `<Loader2 spinning />` when `isLoading`.
+- Keep existing "Current Plan" badge + disabled-button behavior.
+
+### Part 2 — Paystack callback handling on Landlord dashboard (`src/pages/LandlordDashboard.tsx`)
+
+Add a mount-time effect that mirrors the tenant dashboard pattern:
+
+```ts
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.get("reference") && !params.get("trxref")) return;
+  const handled = useRef(false); // module-level ref so it runs once
+  // toast "Verifying your payment, please wait..."
+  // setTimeout 3000ms:
+  //   queryClient.invalidateQueries({ queryKey: ["subscription-limits"] })
+  //   queryClient.invalidateQueries({ queryKey: ["subscription-tiers"] })
+  //   toast.success("Subscription upgraded! Your new features are now active.")
+  //   setUpgradeModalOpen(false)
+  //   window.history.replaceState({}, "", window.location.pathname)
+}, []);
+```
+
+Uses `useQueryClient()` from `@tanstack/react-query`. No webhook verification on the client; the existing `paystack-webhook` is the source of truth for the DB.
+
+### Part 3 — Subscription tier badge in landlord header/sidebar
+
+Audit `LandlordLayout`/`LandlordSidebar`. Add a small `SubscriptionBadge` in the sidebar footer (or header right side on desktop) using `useSubscriptionLimits().tierName`:
+
+- Map `tierName` → badge variant. Extend `SubscriptionBadge` to accept `"starter"` (with Forest Green styling for all paid tiers per your spec, muted for free).
+- Next to the badge, if `tierName === "free"`, render a small `<button>Upgrade</button>` link that calls a new `onUpgradeClick` prop. `LandlordLayout` wires it to `setUpgradeModalOpen(true)` shared with the dashboard.
+- For paid tiers, badge only (Forest Green bg-primary/10 text-primary border-primary/30).
+
+This means `LandlordLayout` needs to own (or receive) the upgrade-modal open state so the badge button and dashboard tabs share one modal instance. Simplest: lift `upgradeModalOpen` into `LandlordLayout` via context **or** keep dashboard ownership and pass `onUpgradeClick` down through layout props. I'll go with the latter (minimal surface change): `LandlordLayout` accepts `onUpgradeClick?: () => void`.
+
+### Part 4 — Locked feature cards open the upgrade modal
+
+- Audit every `<LockedFeatureCard onUpgrade={...} />` site (`AnalyticsDashboard`, `ReportsTab`). Confirm each one calls `setUpgradeModalOpen(true)` or an equivalent prop bubbled up from `LandlordDashboard`. Fix any that don't.
+- Add a small "Upgrade to unlock" label with the `Lock` icon above the button if it's not already visually present (it currently shows `Lock` icon + tier badge, but the explicit "Upgrade to unlock" copy is missing — add it as a muted-foreground caption).
+- **No gating changes** — `tierRequired` checks and `useSubscriptionLimits` are untouched.
 
 ---
 
-## Untouched
+## Untouched (explicitly)
 
-- `paystack-initiate` / `paystack-webhook` edge functions
-- `paystack_transactions`, `rent_records`, `tenants`, `profiles` schemas
-- All RLS policies and SECURITY DEFINER functions
-- Landlord dashboard, admin flows, marketplace, chat, notifications infra
-- Existing Paystack callback handling on dashboard mount
+- `paystack-initiate`, `paystack-webhook`, all other edge functions
+- `paystack_transactions`, `rent_records`, `tenants`, `profiles`, `notifications`, all RLS, all SECURITY DEFINER functions
+- Tenant Pay Now / Cash / Bank Transfer / payment history / Landlord Link card / settings
+- Landlord properties, tenants, payments, analytics, reports, bulk CSV, marketplace, chat, notifications
+- Admin pages and admin auth
+- Seeker pages
+- Auth flows, RBAC, RouteGuard
+- Theme / Realtime / Resend / WhatsApp handoff
+
+The `subscription_requests` table is left in place (only the modal's *use* of it is removed) — if you later want a hybrid "request quote" path for Custom/Enterprise, the table stays available.
 
 ## Warnings
 
-- The notification fix only applies to **new** link attempts. Loise's existing "LND-123456" pending link in the screenshot won't retroactively notify the landlord — she'd need to disconnect and reconnect, or the landlord approves from the Tenants table directly.this should not happen it should notify the landlord no exceptions for any account including the loise account 
-- The Cash/Bank Transfer branch in Pay Now requires an existing unpaid `rent_records` row (same precondition as today's Paystack flow). If none exists, the dialog stays disabled with the current "No outstanding rent to pay" toast.
-- `LandlordLinkCard` change reads one extra column; no policy change needed since tenants already select their own `tenants` row.
+1. **DB price change is destructive to existing data semantics.** Any landlord currently subscribed to "pro" at 3,999 will, on next renewal/UI render, see 999. No existing `landlord_subscriptions` rows are modified, but next checkout uses the new price. If you have any paying customer on the old pricing, tell me and I'll grandfather them.
+2. **Internal tier name stays `pro**`, display becomes `Professional`. This avoids touching 12 files but means edge functions and gating logic still receive `tier: "pro"` in metadata — the webhook must map `pro → Professional` when updating subscriptions if it uses display names anywhere (quick check needed during impl).
+3. **Annual savings** default to ~17% (monthly × 10). Change if you want a different discount.
+4. Webhook is the source of truth — the dashboard's "Subscription upgraded!" toast fires after a 3s delay regardless of whether the webhook has actually completed. If the webhook is slow the user may see the toast before tier limits flip. The TanStack invalidation will re-fetch and correct itself.
+5. Custom tier is set to `is_active = false`. If you want it visible somewhere (e.g. a separate "Need more? Contact sales" CTA), tell me and I'll keep it active and filter it out only in the 4-tier grid instead.

@@ -11,13 +11,14 @@ interface LandlordLayoutProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userName?: string;
-  tierName?: 'free' | 'pro' | 'enterprise' | 'custom';
+  tierName?: 'free' | 'starter' | 'pro' | 'enterprise' | 'custom';
   title?: string;
   subtitle?: string;
+  onUpgradeClick?: () => void;
 }
 
-export function LandlordLayout({ 
-  children, activeTab, onTabChange, userName, tierName = "free", title, subtitle
+export function LandlordLayout({
+  children, activeTab, onTabChange, userName, tierName = "free", title, subtitle, onUpgradeClick
 }: LandlordLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -38,13 +39,13 @@ export function LandlordLayout({
     <div className="relative min-h-screen bg-muted">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <LandlordSidebar activeTab={activeTab} onTabChange={onTabChange} userName={userName} tierName={tierName} />
+        <LandlordSidebar activeTab={activeTab} onTabChange={onTabChange} userName={userName} tierName={tierName} onUpgradeClick={onUpgradeClick} />
       </div>
 
       {/* Tablet Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="p-0 w-64">
-          <LandlordSidebar activeTab={activeTab} onTabChange={onTabChange} userName={userName} tierName={tierName} onNavigate={() => setMobileOpen(false)} />
+          <LandlordSidebar activeTab={activeTab} onTabChange={onTabChange} userName={userName} tierName={tierName} onUpgradeClick={onUpgradeClick} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 

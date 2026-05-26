@@ -58,10 +58,18 @@ export function LockedFeatureCard({
       </CardHeader>
       
       <CardContent className="relative z-20">
-        <p className="text-sm text-muted-foreground mb-4">{description}</p>
-        <Button 
-          onClick={onUpgrade} 
-          variant="outline" 
+        <p className="text-sm text-muted-foreground mb-3">{description}</p>
+        <button
+          type="button"
+          onClick={onUpgrade}
+          className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-3"
+        >
+          <Lock className="w-3 h-3" />
+          Upgrade to unlock
+        </button>
+        <Button
+          onClick={onUpgrade}
+          variant="outline"
           className="w-full gap-2"
         >
           <Sparkles className="w-4 h-4" />
