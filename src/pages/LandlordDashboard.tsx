@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +66,36 @@ export default function LandlordDashboard() {
   // Subscription data
   const subscriptionLimits = useSubscriptionLimits();
   const { data: tiers } = useSubscriptionTiers();
+  const queryClient = useQueryClient();
+  const paystackCallbackHandled = useRef(false);
+
+  // Handle Paystack callback (?reference=...&trxref=...)
+  useEffect(() => {
+    if (paystackCallbackHandled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("reference") || params.get("trxref");
+    if (!ref) return;
+    paystackCallbackHandled.current = true;
+
+    sonnerToast.loading("Verifying your payment, please wait...", { id: "paystack-verify" });
+
+    const timer = window.setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ["subscription-limits"] });
+      queryClient.invalidateQueries({ queryKey: ["subscription-tiers"] });
+      sonnerToast.success("Subscription upgraded! Your new features are now active.", {
+        id: "paystack-verify",
+      });
+      setUpgradeModalOpen(false);
+      // Clean URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete("reference");
+      url.searchParams.delete("trxref");
+      window.history.replaceState({}, "", url.pathname + (url.search ? `?${url.searchParams}` : ""));
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [queryClient]);
+
 
   useEffect(() => {
     if (user) {
@@ -513,6 +545,7 @@ export default function LandlordDashboard() {
         onTabChange={setActiveTab}
         userName={userName}
         tierName={subscriptionLimits.tierName as any}
+        onUpgradeClick={() => setUpgradeModalOpen(true)}
       >
         <AnimatePresence mode="wait">
           <motion.div
