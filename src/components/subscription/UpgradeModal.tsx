@@ -1,17 +1,10 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { PricingCard } from "./PricingCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle, Loader2 } from "lucide-react";
 
 interface SubscriptionTier {
   id: string;
@@ -32,201 +25,125 @@ interface UpgradeModalProps {
   currentTier: string;
 }
 
-const requestSchema = z.object({
-  phone_number: z.string().min(10, "Please enter a valid phone number"),
-  company_name: z.string().optional(),
-});
-
-type RequestFormData = z.infer<typeof requestSchema>;
+// Ordered tier progression for "Recommended" badge logic
+const TIER_ORDER = ["free", "starter", "pro", "enterprise"];
 
 export function UpgradeModal({ open, onOpenChange, tiers, currentTier }: UpgradeModalProps) {
   const { user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-  const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<RequestFormData>({
-    resolver: zodResolver(requestSchema),
-  });
+  // Show only the 4-tier upgrade grid (hide custom)
+  const visibleTiers = useMemo(
+    () =>
+      [...tiers]
+        .filter((t) => t.name !== "custom")
+        .sort((a, b) => TIER_ORDER.indexOf(a.name) - TIER_ORDER.indexOf(b.name)),
+    [tiers]
+  );
 
-  const handleUpgradeClick = (tier: SubscriptionTier) => {
-    if (tier.name === "free") return;
-    setSelectedTier(tier);
-    setShowRequestForm(true);
+  const recommendedTierName = useMemo(() => {
+    const idx = TIER_ORDER.indexOf(currentTier);
+    if (idx < 0) return "starter";
+    return TIER_ORDER[idx + 1] ?? null;
+  }, [currentTier]);
+
+  const handleUpgradeClick = async (tier: SubscriptionTier) => {
+    if (!user) {
+      toast.error("You must be signed in to upgrade.");
+      return;
+    }
+    if (tier.name === "free" || tier.name === currentTier) return;
+
+    const price = billingCycle === "monthly" ? tier.price_monthly : tier.price_annual;
+    if (!price || price <= 0) {
+      toast.error("Invalid pricing for this tier. Please contact support.");
+      return;
+    }
+
+    setLoadingTier(tier.name);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-initiate", {
+        body: {
+          payment_type: "subscription",
+          amount: Math.round(price),
+          email: user.email,
+          metadata: {
+            landlord_id: user.id,
+            tier: tier.name,
+            billing_cycle: billingCycle,
+          },
+        },
+      });
+
+      if (error) throw new Error(error.message || "Failed to start payment");
+      if (!data?.authorization_url) {
+        throw new Error(data?.error || "Could not initiate payment. Please try again.");
+      }
+
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to start payment");
+      setLoadingTier(null);
+    }
   };
 
   const handleContactSales = () => {
-    const customTier = tiers.find(t => t.name === "custom");
-    if (customTier) {
-      setSelectedTier(customTier);
-      setShowRequestForm(true);
-    }
-  };
-
-  const onSubmit = async (data: RequestFormData) => {
-    if (!user || !selectedTier) return;
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from("subscription_requests").insert({
-        landlord_id: user.id,
-        requested_tier_id: selectedTier.id,
-        phone_number: data.phone_number,
-        billing_cycle: billingCycle,
-        company_name: data.company_name || null,
-      });
-
-      if (error) throw error;
-
-      setRequestSuccess(true);
-      reset();
-      
-      setTimeout(() => {
-        setShowRequestForm(false);
-        setSelectedTier(null);
-        setRequestSuccess(false);
-        onOpenChange(false);
-      }, 3000);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit upgrade request");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBack = () => {
-    setShowRequestForm(false);
-    setSelectedTier(null);
-    reset();
-  };
-
-  const handleClose = () => {
-    setShowRequestForm(false);
-    setSelectedTier(null);
-    setRequestSuccess(false);
-    reset();
-    onOpenChange(false);
+    toast.info("Please reach out to support for custom enterprise pricing.");
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(o) => !loadingTier && onOpenChange(o)}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {showRequestForm ? `Upgrade to ${selectedTier?.display_name}` : "Choose Your Plan"}
-          </DialogTitle>
+          <DialogTitle className="text-2xl">Choose Your Plan</DialogTitle>
           <DialogDescription>
-            {showRequestForm 
-              ? "Fill in your details and our team will contact you within 24 hours"
-              : "Select the plan that best fits your needs"}
+            Pay securely via Paystack. Your new features activate as soon as the
+            payment is confirmed.
           </DialogDescription>
         </DialogHeader>
 
-        {!showRequestForm ? (
-          <div className="space-y-6 pt-4">
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4">
-              <span className={billingCycle === "monthly" ? "font-medium" : "text-muted-foreground"}>
-                Monthly
-              </span>
-              <Switch
-                checked={billingCycle === "annual"}
-                onCheckedChange={(checked) => setBillingCycle(checked ? "annual" : "monthly")}
+        <div className="space-y-6 pt-4">
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-4">
+            <span className={billingCycle === "monthly" ? "font-medium" : "text-muted-foreground"}>
+              Monthly
+            </span>
+            <Switch
+              checked={billingCycle === "annual"}
+              onCheckedChange={(checked) => setBillingCycle(checked ? "annual" : "monthly")}
+              disabled={loadingTier !== null}
+            />
+            <span className={billingCycle === "annual" ? "font-medium" : "text-muted-foreground"}>
+              Annual
+              <span className="ml-1 text-xs text-primary">(Save up to 17%)</span>
+            </span>
+          </div>
+
+          {/* Pricing Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {visibleTiers.map((tier) => (
+              <PricingCard
+                key={tier.id}
+                tier={tier.name as any}
+                displayName={tier.display_name}
+                description={tier.description || ""}
+                priceMonthly={tier.price_monthly}
+                priceAnnual={tier.price_annual}
+                maxProperties={tier.max_properties}
+                maxTenants={tier.max_tenants}
+                features={tier.features}
+                isCurrentTier={tier.name === currentTier}
+                isRecommended={tier.name === recommendedTierName}
+                isLoading={loadingTier === tier.name}
+                disabled={loadingTier !== null && loadingTier !== tier.name}
+                billingCycle={billingCycle}
+                onUpgrade={() => handleUpgradeClick(tier)}
+                onContactSales={handleContactSales}
               />
-              <span className={billingCycle === "annual" ? "font-medium" : "text-muted-foreground"}>
-                Annual
-                <span className="ml-1 text-xs text-green-600 dark:text-green-400">(Save up to 17%)</span>
-              </span>
-            </div>
-
-            {/* Pricing Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {tiers.map((tier) => (
-                <PricingCard
-                  key={tier.id}
-                  tier={tier.name as "free" | "pro" | "enterprise" | "custom"}
-                  displayName={tier.display_name}
-                  description={tier.description || ""}
-                  priceMonthly={tier.price_monthly}
-                  priceAnnual={tier.price_annual}
-                  maxProperties={tier.max_properties}
-                  maxTenants={tier.max_tenants}
-                  features={tier.features}
-                  isCurrentTier={tier.name === currentTier}
-                  billingCycle={billingCycle}
-                  onUpgrade={() => handleUpgradeClick(tier)}
-                  onContactSales={handleContactSales}
-                />
-              ))}
-            </div>
+            ))}
           </div>
-        ) : requestSuccess ? (
-          <div className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h3 className="text-xl font-semibold">Request Submitted!</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Thank you for your interest in upgrading to {selectedTier?.display_name}. 
-              Our team will contact you within 24 hours to complete your upgrade.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">Selected Plan</p>
-              <p className="text-lg font-semibold">{selectedTier?.display_name}</p>
-              <p className="text-sm">
-                KES {billingCycle === "monthly" 
-                  ? selectedTier?.price_monthly.toLocaleString() 
-                  : selectedTier?.price_annual.toLocaleString()
-                } / {billingCycle === "monthly" ? "month" : "year"}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="phone_number">Phone Number *</Label>
-                <Input
-                  id="phone_number"
-                  type="tel"
-                  placeholder="e.g., 0712345678"
-                  {...register("phone_number")}
-                />
-                {errors.phone_number && (
-                  <p className="text-sm text-destructive mt-1">{errors.phone_number.message}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="company_name">Company Name (Optional)</Label>
-                <Input
-                  id="company_name"
-                  placeholder="e.g., ABC Properties Ltd"
-                  {...register("company_name")}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
-                Back
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </Button>
-            </div>
-          </form>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );
