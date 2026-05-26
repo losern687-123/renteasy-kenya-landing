@@ -14,8 +14,9 @@ interface LandlordSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userName?: string;
-  tierName?: 'free' | 'pro' | 'enterprise' | 'custom';
+  tierName?: 'free' | 'starter' | 'pro' | 'enterprise' | 'custom';
   onNavigate?: () => void;
+  onUpgradeClick?: () => void;
 }
 
 const navigation = [
@@ -31,8 +32,8 @@ const navigation = [
   { name: "Settings", value: "settings", icon: Settings },
 ];
 
-export function LandlordSidebar({ 
-  activeTab, onTabChange, userName = "Landlord", tierName = "free", onNavigate 
+export function LandlordSidebar({
+  activeTab, onTabChange, userName = "Landlord", tierName = "free", onNavigate, onUpgradeClick
 }: LandlordSidebarProps) {
   const navigate = useNavigate();
 
@@ -73,7 +74,18 @@ export function LandlordSidebar({
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
-              <SubscriptionBadge tier={tierName} size="sm" />
+              <div className="flex items-center gap-2 mt-0.5">
+                <SubscriptionBadge tier={tierName} size="sm" />
+                {tierName === "free" && onUpgradeClick && (
+                  <button
+                    type="button"
+                    onClick={onUpgradeClick}
+                    className="text-[11px] font-medium text-primary hover:underline"
+                  >
+                    Upgrade
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
