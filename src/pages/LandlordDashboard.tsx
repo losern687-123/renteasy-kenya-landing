@@ -7,16 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAndCreateLandlordNotifications } from "@/utils/notificationHelpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Home, DollarSign, Receipt, Copy, CheckCircle, IdCard, Plus, Store } from "lucide-react";
+import { Users, Home, DollarSign, Receipt, Plus, Store } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import AddPropertyForm from "@/components/landlord/AddPropertyForm";
+import PropertyWizard from "@/components/landlord/PropertyWizard";
 import AddTenantForm from "@/components/landlord/AddTenantForm";
 import PropertiesTable from "@/components/landlord/PropertiesTable";
 import TenantsTable from "@/components/landlord/TenantsTable";
 import RecordPaymentForm from "@/components/landlord/RecordPaymentForm";
 import LandlordPaymentsView from "@/components/landlord/LandlordPaymentsView";
-import CreateListingForm from "@/components/landlord/CreateListingForm";
 import ListingsTable from "@/components/landlord/ListingsTable";
+
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
@@ -253,38 +253,18 @@ export default function LandlordDashboard() {
                   </p>
                 </div>
                 
-                {landlordId && (
-                  <Card className="border-primary/30 bg-primary/5">
-                    <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-                        <IdCard className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground font-medium">Your Landlord ID</p>
-                        <p className="text-xl font-bold text-primary tracking-wider">{landlordId}</p>
-                        <p className="text-xs text-muted-foreground">Share this with your tenants to connect</p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={copyLandlordId}
-                        className="gap-2 border-primary/30 hover:bg-primary/10"
-                      >
-                        {copiedId ? (
-                          <>
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            Copy
-                          </>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
+                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Home className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 text-sm">
+                    <p className="font-semibold">Each property has its own unique code</p>
+                    <p className="text-muted-foreground text-xs mt-0.5">
+                      Add a property to get a <span className="font-mono font-medium">PROP-XXXXXX</span> code you can share with tenants.
+                    </p>
+                  </div>
+                </div>
+
               </div>
             </FadeIn>
 
@@ -413,11 +393,12 @@ export default function LandlordDashboard() {
         return (
           <div className="space-y-6">
             <div className="grid lg:grid-cols-2 gap-6">
-              <AddPropertyForm onSuccess={handleRefresh} />
+              <PropertyWizard onSuccess={handleRefresh} onUpgradeClick={() => setUpgradeModalOpen(true)} />
               <PropertiesTable refresh={refreshKey > 0} onListProperty={handleListProperty} />
             </div>
           </div>
         );
+
 
       case "tenants":
         return (
@@ -482,17 +463,14 @@ export default function LandlordDashboard() {
           <div className="space-y-6">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold">Marketplace Listings</h2>
-              <p className="text-muted-foreground">Create and manage your property listings on the marketplace</p>
+              <p className="text-muted-foreground">
+                New properties can be published to the marketplace directly from the Properties tab. Manage existing listings below.
+              </p>
             </div>
-            <div className="grid lg:grid-cols-2 gap-6">
-              <CreateListingForm
-                onSuccess={handleRefresh}
-                preselectedPropertyId={listPropertyId}
-              />
-              <ListingsTable refresh={refreshKey > 0} />
-            </div>
+            <ListingsTable refresh={refreshKey > 0} />
           </div>
         );
+
 
       case "messages":
         return (
