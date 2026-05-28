@@ -121,9 +121,10 @@ export default function TenantSettings() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [rentReminders, setRentReminders] = useState(true);
   const [paymentAlerts, setPaymentAlerts] = useState(true);
-  const [landlordCode, setLandlordCode] = useState("");
+  const [propertyCode, setPropertyCode] = useState("");
   const [connectionStatus, setConnectionStatus] = useState<string>("");
-  const [connectedLandlordId, setConnectedLandlordId] = useState<string>("");
+  const [linkedPropertyName, setLinkedPropertyName] = useState<string>("");
+  const [linkedLandlordName, setLinkedLandlordName] = useState<string>("");
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -170,15 +171,31 @@ export default function TenantSettings() {
 
     const { data } = await supabase
       .from("tenants")
-      .select("verification_status, linked_landlord_id")
+      .select("verification_status, property_id, landlord_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setConnectionStatus(data.verification_status || "pending");
-      setConnectedLandlordId(data.linked_landlord_id || "");
+      if (data.property_id) {
+        const { data: prop } = await supabase
+          .from("properties")
+          .select("name")
+          .eq("id", data.property_id)
+          .maybeSingle();
+        if (prop) setLinkedPropertyName(prop.name);
+      }
+      if (data.landlord_id) {
+        const { data: ll } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("id", data.landlord_id)
+          .maybeSingle();
+        if (ll) setLinkedLandlordName(ll.name || "");
+      }
     }
   };
+
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     if (!user) return;
@@ -242,96 +259,100 @@ export default function TenantSettings() {
     }
   };
 
-  const handleLandlordConnect = async () => {
-    if (!user || !landlordCode.trim()) {
-      toast.error("Please enter a landlord ID");
+  const handlePropertyConnect = async () => {
+    if (!user || !propertyCode.trim()) {
+      toast.error("Please enter a property code");
       return;
     }
 
-    const landlordIdRegex = /^LND-\d{6}$/;
-    if (!landlordIdRegex.test(landlordCode.toUpperCase())) {
-      toast.error("Invalid format. Use LND-XXXXXX (e.g., LND-123456)");
+    const code = propertyCode.trim().toUpperCase();
+    const codeRegex = /^PROP-\d{6}$/;
+    if (!codeRegex.test(code)) {
+      toast.error("Invalid format. Use PROP-XXXXXX (e.g., PROP-123456)");
       return;
     }
 
     setIsUpdating(true);
 
     try {
-      const { data: validation, error: validationError } = await supabase.rpc('validate_landlord_id', {
-        landlord_id_input: landlordCode.toUpperCase()
+      const { data: validation, error: validationError } = await supabase.rpc("validate_property_code", {
+        code_input: code,
       });
 
       if (validationError) {
-        toast.error("Error validating landlord ID. Please try again.");
+        toast.error("Error validating property code. Please try again.");
         setIsUpdating(false);
         return;
       }
 
-      const result = validation as { valid: boolean; error?: string; landlord_user_id?: string };
+      const result = validation as {
+        valid: boolean;
+        error?: string;
+        property_id?: string;
+        landlord_user_id?: string;
+        landlord_name?: string;
+        property_name?: string;
+      };
 
       if (!result.valid) {
-        toast.error(result.error || "Invalid landlord ID");
+        toast.error(result.error || "Invalid property code");
         setIsUpdating(false);
         return;
       }
 
-      const landlordUserId = result.landlord_user_id;
-
-      // Check if already connected
       const { data: existingTenant } = await supabase
         .from("tenants")
         .select("id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (existingTenant) {
-        toast.error("You are already connected to a landlord");
+        toast.error("You are already connected to a property");
         setIsUpdating(false);
         return;
       }
 
-      // Get profile data
       const { data: profile } = await supabase
         .from("profiles")
         .select("name, email")
         .eq("id", user.id)
         .single();
 
-      const { error } = await supabase
-        .from("tenants")
-        .insert({
-          id: user.id,
-          landlord_id: landlordUserId,
-          linked_landlord_id: landlordCode.toUpperCase(),
-          name: profile?.name || "",
-          email: profile?.email || "",
-          phone: user.phone || "",
-          verification_status: "pending",
-        });
+      const { error } = await supabase.from("tenants").insert({
+        id: user.id,
+        landlord_id: result.landlord_user_id!,
+        property_id: result.property_id!,
+        name: profile?.name || "",
+        email: profile?.email || "",
+        phone: user.phone || "",
+        verification_status: "pending",
+      });
 
       if (error) throw error;
 
-      // Notify landlord of the new tenant link (don't block on failure)
       try {
         await supabase.rpc("notify_landlord_of_tenant_link", {
-          _landlord_user_id: landlordUserId,
+          _landlord_user_id: result.landlord_user_id!,
           _tenant_name: profile?.name || user.email || "A tenant",
+          _property_name: result.property_name || null,
         });
       } catch (notifyErr) {
         console.error("Failed to notify landlord:", notifyErr);
       }
 
-      toast.success("Connection request sent to landlord");
+      toast.success(`Connected to ${result.property_name}. Awaiting landlord approval.`);
       setConnectionStatus("pending");
-      setConnectedLandlordId(landlordCode.toUpperCase());
-      setLandlordCode("");
+      setLinkedPropertyName(result.property_name || "");
+      setLinkedLandlordName(result.landlord_name || "");
+      setPropertyCode("");
     } catch (error: any) {
       console.error("Connection error:", error);
-      toast.error("Failed to connect with landlord");
+      toast.error(error?.message || "Failed to connect to property");
     } finally {
       setIsUpdating(false);
     }
   };
+
 
   const handleSaveNotifications = async () => {
     if (!user) return;
