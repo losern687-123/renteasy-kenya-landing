@@ -531,65 +531,75 @@ export default function TenantSettings() {
           <TabsContent value="landlord">
             <Card>
               <CardHeader>
-                <CardTitle>Landlord Connection</CardTitle>
+                <CardTitle>Property Connection</CardTitle>
                 <CardDescription>
-                  Connect your account to your landlord for automated rent tracking
+                  Enter the property code your landlord shared with you to link your account
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {connectionStatus && (
-                  <div className={`p-3 rounded-lg flex items-center gap-2 ${
-                    connectionStatus === "verified" ? "bg-green-500/10 border border-green-500/30" : "bg-muted"
+                  <div className={`p-4 rounded-lg flex items-start gap-3 ${
+                    connectionStatus === "verified"
+                      ? "bg-green-500/10 border border-green-500/30"
+                      : "bg-amber-500/10 border border-amber-500/30"
                   }`}>
-                    {connectionStatus === "verified" && (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    {connectionStatus === "verified" ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    ) : (
+                      <Loader2 className="h-5 w-5 text-amber-600 mt-0.5 shrink-0 animate-spin" />
                     )}
-                    <div>
+                    <div className="space-y-1">
                       <p className="text-sm font-medium">
-                        Connection Status: <span className="capitalize">{connectionStatus}</span>
+                        Status: <span className="capitalize">{connectionStatus === "verified" ? "Approved" : "Pending approval"}</span>
                       </p>
-                      {connectedLandlordId && (
+                      {linkedPropertyName && (
                         <p className="text-xs text-muted-foreground">
-                          Connected to: <span className="font-mono">{connectedLandlordId}</span>
+                          Property: <span className="font-medium text-foreground">{linkedPropertyName}</span>
+                        </p>
+                      )}
+                      {linkedLandlordName && (
+                        <p className="text-xs text-muted-foreground">
+                          Landlord: <span className="font-medium text-foreground">{linkedLandlordName}</span>
                         </p>
                       )}
                     </div>
                   </div>
                 )}
 
-                {!connectionStatus || connectionStatus === "" ? (
+                {!connectionStatus ? (
                   <>
                     <div>
-                      <Label htmlFor="landlord-code">Landlord ID</Label>
+                      <Label htmlFor="property-code">Property code</Label>
                       <Input
-                        id="landlord-code"
-                        placeholder="LND-123456"
-                        value={landlordCode}
-                        onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
-                        maxLength={10}
-                        className="font-mono"
+                        id="property-code"
+                        placeholder="PROP-123456"
+                        value={propertyCode}
+                        onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
+                        maxLength={11}
+                        className="font-mono uppercase tracking-wider"
                       />
                       <p className="text-sm text-muted-foreground mt-2">
-                        Ask your landlord for their unique ID (e.g., LND-123456)
+                        Your landlord assigns a unique code (e.g., PROP-123456) to each property they own.
                       </p>
                     </div>
 
-                    <Button 
-                      onClick={handleLandlordConnect} 
-                      disabled={isUpdating || !landlordCode}
+                    <Button
+                      onClick={handlePropertyConnect}
+                      disabled={isUpdating || !propertyCode}
                     >
                       {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Connect to Landlord
+                      Connect to property
                     </Button>
                   </>
                 ) : connectionStatus !== "verified" && (
                   <p className="text-sm text-muted-foreground">
-                    Your connection request is {connectionStatus}. Your landlord will verify your account.
+                    Your connection request is awaiting landlord approval. You'll get a notification once approved.
                   </p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
+
 
           <TabsContent value="account">
             <div className="space-y-6">
