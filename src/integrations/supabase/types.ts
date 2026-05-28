@@ -359,34 +359,55 @@ export type Database = {
       properties: {
         Row: {
           available_for_listing: boolean | null
+          bathrooms: number | null
+          bedrooms: number | null
+          capacity: number | null
           created_at: string
+          deposit: number | null
+          description: string | null
           id: string
           landlord_id: string
           location: string
           name: string
           occupancy_status: string | null
+          property_code: string
+          property_type: string | null
           rent_amount: number
           updated_at: string
         }
         Insert: {
           available_for_listing?: boolean | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          capacity?: number | null
           created_at?: string
+          deposit?: number | null
+          description?: string | null
           id?: string
           landlord_id: string
           location: string
           name: string
           occupancy_status?: string | null
+          property_code?: string
+          property_type?: string | null
           rent_amount: number
           updated_at?: string
         }
         Update: {
           available_for_listing?: boolean | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          capacity?: number | null
           created_at?: string
+          deposit?: number | null
+          description?: string | null
           id?: string
           landlord_id?: string
           location?: string
           name?: string
           occupancy_status?: string | null
+          property_code?: string
+          property_type?: string | null
           rent_amount?: number
           updated_at?: string
         }
@@ -910,6 +931,7 @@ export type Database = {
     }
     Functions: {
       generate_landlord_code: { Args: never; Returns: string }
+      generate_property_code: { Args: never; Returns: string }
       generate_unique_landlord_id: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
@@ -922,14 +944,24 @@ export type Database = {
         }
         Returns: boolean
       }
-      notify_landlord_of_tenant_link: {
-        Args: { _landlord_user_id: string; _tenant_name: string }
-        Returns: undefined
-      }
+      notify_landlord_of_tenant_link:
+        | {
+            Args: { _landlord_user_id: string; _tenant_name: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _landlord_user_id: string
+              _property_name?: string
+              _tenant_name: string
+            }
+            Returns: undefined
+          }
       validate_landlord_id: {
         Args: { landlord_id_input: string }
         Returns: Json
       }
+      validate_property_code: { Args: { code_input: string }; Returns: Json }
     }
     Enums: {
       app_role: "tenant" | "landlord" | "admin" | "property_seeker"
