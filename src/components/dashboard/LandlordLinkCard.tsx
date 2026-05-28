@@ -2,118 +2,123 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Building2, Link2, UserCheck, AlertCircle } from "lucide-react";
+import { Building2, Link2, UserCheck, AlertCircle, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardSkeleton } from "@/components/ui/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-interface LandlordInfo {
-  name: string;
-  landlordId: string;
+interface LinkedInfo {
+  landlordName: string;
+  propertyName: string;
+  propertyLocation: string;
+  propertyCode: string;
   status: string;
 }
 
 export const LandlordLinkCard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [landlordInfo, setLandlordInfo] = useState<LandlordInfo | null>(null);
+  const [info, setInfo] = useState<LinkedInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLinked, setIsLinked] = useState(false);
 
   useEffect(() => {
-    const fetchLandlordLink = async () => {
+    const fetch = async () => {
       if (!user) return;
 
-      const { data: tenantData, error: tenantError } = await supabase
+      const { data: tenant } = await supabase
         .from("tenants")
-        .select("landlord_id, verification_status")
+        .select("landlord_id, property_id, verification_status")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (tenantError) {
-        console.error("Error fetching tenant link:", tenantError);
+      if (!tenant?.landlord_id) {
         setLoading(false);
         return;
       }
 
-      if (tenantData?.landlord_id) {
-        const { data: landlordProfile } = await supabase
-          .from("profiles")
-          .select("name, landlord_id")
-          .eq("id", tenantData.landlord_id)
-          .single();
+      const [{ data: landlord }, { data: property }] = await Promise.all([
+        supabase.from("profiles").select("name").eq("id", tenant.landlord_id).maybeSingle(),
+        tenant.property_id
+          ? supabase.from("properties").select("name, location, property_code").eq("id", tenant.property_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
-        if (landlordProfile) {
-          setLandlordInfo({
-            name: landlordProfile.name || "Your Landlord",
-            landlordId: landlordProfile.landlord_id || "",
-            status: tenantData.verification_status || "pending",
-          });
-          setIsLinked(true);
-        }
-      }
-
+      setInfo({
+        landlordName: landlord?.name || "Your Landlord",
+        propertyName: property?.name || "Property",
+        propertyLocation: property?.location || "",
+        propertyCode: property?.property_code || "",
+        status: tenant.verification_status || "pending",
+      });
       setLoading(false);
     };
 
-    fetchLandlordLink();
+    fetch();
   }, [user]);
 
-  const isPending = isLinked && landlordInfo?.status !== "approved";
+  const isPending = info?.status !== "verified" && info?.status !== "approved";
 
-  if (loading) {
-    return <CardSkeleton />;
-  }
+  if (loading) return <CardSkeleton />;
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Link2 className="h-5 w-5 text-primary" />
-          Landlord Connection
+          Property Connection
         </CardTitle>
-        <CardDescription>Your linked property manager</CardDescription>
+        <CardDescription>The property you're linked to</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLinked && landlordInfo ? (
+        {info ? (
           <div className={cn(
-            "flex items-center gap-4 p-4 rounded-xl border-2 transition-all",
+            "p-4 rounded-xl border-2 transition-all space-y-3",
             isPending
               ? "border-amber-500/30 bg-amber-500/5"
               : "border-primary/20 bg-primary/5"
           )}>
-            <div className={cn(
-              "rounded-xl p-3",
-              isPending ? "bg-amber-500/10" : "bg-primary/10"
-            )}>
-              <UserCheck className={cn("h-8 w-8", isPending ? "text-amber-600" : "text-primary")} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-start gap-3">
+              <div className={cn(
+                "rounded-xl p-2.5 shrink-0",
+                isPending ? "bg-amber-500/10" : "bg-primary/10"
+              )}>
+                <Building2 className={cn("h-6 w-6", isPending ? "text-amber-600" : "text-primary")} />
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-xs",
+                    "text-[10px] mb-1",
                     isPending
                       ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
                       : "border-primary/30 text-primary bg-primary/10"
                   )}
                 >
-                  {isPending ? "Pending Approval" : "Connected"}
+                  {isPending ? "Pending Approval" : "Approved"}
                 </Badge>
-              </div>
-              <p className="text-lg font-semibold truncate">{landlordInfo.name}</p>
-              <p className="text-sm text-muted-foreground font-mono tracking-wider">
-                {landlordInfo.landlordId}
-              </p>
-              {isPending && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Your landlord has been notified and will verify your account.
+                <p className="text-base font-semibold truncate">{info.propertyName}</p>
+                {info.propertyLocation && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> {info.propertyLocation}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Landlord: <span className="font-medium text-foreground">{info.landlordName}</span>
                 </p>
-              )}
+                {info.propertyCode && (
+                  <p className="text-xs font-mono text-muted-foreground tracking-wider pt-1">
+                    {info.propertyCode}
+                  </p>
+                )}
+              </div>
             </div>
+            {isPending && (
+              <p className="text-xs text-muted-foreground border-t border-amber-500/20 pt-2">
+                Your landlord has been notified and will verify your connection shortly.
+              </p>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/30">
@@ -121,9 +126,9 @@ export const LandlordLinkCard = () => {
               <AlertCircle className="h-8 w-8 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground mb-1">Not connected to a landlord</p>
-              <p className="text-xs text-muted-foreground/70 mb-3">
-                Link your account using your landlord's unique ID
+              <p className="text-sm font-medium mb-1">Not linked to a property</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Ask your landlord for the property code (e.g., PROP-123456)
               </p>
               <Button
                 variant="outline"
@@ -132,7 +137,7 @@ export const LandlordLinkCard = () => {
                 className="h-8"
               >
                 <Building2 className="mr-1.5 h-3.5 w-3.5" />
-                Connect in Settings
+                Enter property code
               </Button>
             </div>
           </div>

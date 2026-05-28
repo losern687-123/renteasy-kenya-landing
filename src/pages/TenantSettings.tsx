@@ -121,9 +121,10 @@ export default function TenantSettings() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [rentReminders, setRentReminders] = useState(true);
   const [paymentAlerts, setPaymentAlerts] = useState(true);
-  const [landlordCode, setLandlordCode] = useState("");
+  const [propertyCode, setPropertyCode] = useState("");
   const [connectionStatus, setConnectionStatus] = useState<string>("");
-  const [connectedLandlordId, setConnectedLandlordId] = useState<string>("");
+  const [linkedPropertyName, setLinkedPropertyName] = useState<string>("");
+  const [linkedLandlordName, setLinkedLandlordName] = useState<string>("");
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -170,15 +171,31 @@ export default function TenantSettings() {
 
     const { data } = await supabase
       .from("tenants")
-      .select("verification_status, linked_landlord_id")
+      .select("verification_status, property_id, landlord_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setConnectionStatus(data.verification_status || "pending");
-      setConnectedLandlordId(data.linked_landlord_id || "");
+      if (data.property_id) {
+        const { data: prop } = await supabase
+          .from("properties")
+          .select("name")
+          .eq("id", data.property_id)
+          .maybeSingle();
+        if (prop) setLinkedPropertyName(prop.name);
+      }
+      if (data.landlord_id) {
+        const { data: ll } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("id", data.landlord_id)
+          .maybeSingle();
+        if (ll) setLinkedLandlordName(ll.name || "");
+      }
     }
   };
+
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     if (!user) return;
@@ -242,96 +259,100 @@ export default function TenantSettings() {
     }
   };
 
-  const handleLandlordConnect = async () => {
-    if (!user || !landlordCode.trim()) {
-      toast.error("Please enter a landlord ID");
+  const handlePropertyConnect = async () => {
+    if (!user || !propertyCode.trim()) {
+      toast.error("Please enter a property code");
       return;
     }
 
-    const landlordIdRegex = /^LND-\d{6}$/;
-    if (!landlordIdRegex.test(landlordCode.toUpperCase())) {
-      toast.error("Invalid format. Use LND-XXXXXX (e.g., LND-123456)");
+    const code = propertyCode.trim().toUpperCase();
+    const codeRegex = /^PROP-\d{6}$/;
+    if (!codeRegex.test(code)) {
+      toast.error("Invalid format. Use PROP-XXXXXX (e.g., PROP-123456)");
       return;
     }
 
     setIsUpdating(true);
 
     try {
-      const { data: validation, error: validationError } = await supabase.rpc('validate_landlord_id', {
-        landlord_id_input: landlordCode.toUpperCase()
+      const { data: validation, error: validationError } = await supabase.rpc("validate_property_code", {
+        code_input: code,
       });
 
       if (validationError) {
-        toast.error("Error validating landlord ID. Please try again.");
+        toast.error("Error validating property code. Please try again.");
         setIsUpdating(false);
         return;
       }
 
-      const result = validation as { valid: boolean; error?: string; landlord_user_id?: string };
+      const result = validation as {
+        valid: boolean;
+        error?: string;
+        property_id?: string;
+        landlord_user_id?: string;
+        landlord_name?: string;
+        property_name?: string;
+      };
 
       if (!result.valid) {
-        toast.error(result.error || "Invalid landlord ID");
+        toast.error(result.error || "Invalid property code");
         setIsUpdating(false);
         return;
       }
 
-      const landlordUserId = result.landlord_user_id;
-
-      // Check if already connected
       const { data: existingTenant } = await supabase
         .from("tenants")
         .select("id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (existingTenant) {
-        toast.error("You are already connected to a landlord");
+        toast.error("You are already connected to a property");
         setIsUpdating(false);
         return;
       }
 
-      // Get profile data
       const { data: profile } = await supabase
         .from("profiles")
         .select("name, email")
         .eq("id", user.id)
         .single();
 
-      const { error } = await supabase
-        .from("tenants")
-        .insert({
-          id: user.id,
-          landlord_id: landlordUserId,
-          linked_landlord_id: landlordCode.toUpperCase(),
-          name: profile?.name || "",
-          email: profile?.email || "",
-          phone: user.phone || "",
-          verification_status: "pending",
-        });
+      const { error } = await supabase.from("tenants").insert({
+        id: user.id,
+        landlord_id: result.landlord_user_id!,
+        property_id: result.property_id!,
+        name: profile?.name || "",
+        email: profile?.email || "",
+        phone: user.phone || "",
+        verification_status: "pending",
+      });
 
       if (error) throw error;
 
-      // Notify landlord of the new tenant link (don't block on failure)
       try {
         await supabase.rpc("notify_landlord_of_tenant_link", {
-          _landlord_user_id: landlordUserId,
+          _landlord_user_id: result.landlord_user_id!,
           _tenant_name: profile?.name || user.email || "A tenant",
+          _property_name: result.property_name || null,
         });
       } catch (notifyErr) {
         console.error("Failed to notify landlord:", notifyErr);
       }
 
-      toast.success("Connection request sent to landlord");
+      toast.success(`Connected to ${result.property_name}. Awaiting landlord approval.`);
       setConnectionStatus("pending");
-      setConnectedLandlordId(landlordCode.toUpperCase());
-      setLandlordCode("");
+      setLinkedPropertyName(result.property_name || "");
+      setLinkedLandlordName(result.landlord_name || "");
+      setPropertyCode("");
     } catch (error: any) {
       console.error("Connection error:", error);
-      toast.error("Failed to connect with landlord");
+      toast.error(error?.message || "Failed to connect to property");
     } finally {
       setIsUpdating(false);
     }
   };
+
 
   const handleSaveNotifications = async () => {
     if (!user) return;
@@ -510,65 +531,75 @@ export default function TenantSettings() {
           <TabsContent value="landlord">
             <Card>
               <CardHeader>
-                <CardTitle>Landlord Connection</CardTitle>
+                <CardTitle>Property Connection</CardTitle>
                 <CardDescription>
-                  Connect your account to your landlord for automated rent tracking
+                  Enter the property code your landlord shared with you to link your account
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {connectionStatus && (
-                  <div className={`p-3 rounded-lg flex items-center gap-2 ${
-                    connectionStatus === "verified" ? "bg-green-500/10 border border-green-500/30" : "bg-muted"
+                  <div className={`p-4 rounded-lg flex items-start gap-3 ${
+                    connectionStatus === "verified"
+                      ? "bg-green-500/10 border border-green-500/30"
+                      : "bg-amber-500/10 border border-amber-500/30"
                   }`}>
-                    {connectionStatus === "verified" && (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    {connectionStatus === "verified" ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    ) : (
+                      <Loader2 className="h-5 w-5 text-amber-600 mt-0.5 shrink-0 animate-spin" />
                     )}
-                    <div>
+                    <div className="space-y-1">
                       <p className="text-sm font-medium">
-                        Connection Status: <span className="capitalize">{connectionStatus}</span>
+                        Status: <span className="capitalize">{connectionStatus === "verified" ? "Approved" : "Pending approval"}</span>
                       </p>
-                      {connectedLandlordId && (
+                      {linkedPropertyName && (
                         <p className="text-xs text-muted-foreground">
-                          Connected to: <span className="font-mono">{connectedLandlordId}</span>
+                          Property: <span className="font-medium text-foreground">{linkedPropertyName}</span>
+                        </p>
+                      )}
+                      {linkedLandlordName && (
+                        <p className="text-xs text-muted-foreground">
+                          Landlord: <span className="font-medium text-foreground">{linkedLandlordName}</span>
                         </p>
                       )}
                     </div>
                   </div>
                 )}
 
-                {!connectionStatus || connectionStatus === "" ? (
+                {!connectionStatus ? (
                   <>
                     <div>
-                      <Label htmlFor="landlord-code">Landlord ID</Label>
+                      <Label htmlFor="property-code">Property code</Label>
                       <Input
-                        id="landlord-code"
-                        placeholder="LND-123456"
-                        value={landlordCode}
-                        onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
-                        maxLength={10}
-                        className="font-mono"
+                        id="property-code"
+                        placeholder="PROP-123456"
+                        value={propertyCode}
+                        onChange={(e) => setPropertyCode(e.target.value.toUpperCase())}
+                        maxLength={11}
+                        className="font-mono uppercase tracking-wider"
                       />
                       <p className="text-sm text-muted-foreground mt-2">
-                        Ask your landlord for their unique ID (e.g., LND-123456)
+                        Your landlord assigns a unique code (e.g., PROP-123456) to each property they own.
                       </p>
                     </div>
 
-                    <Button 
-                      onClick={handleLandlordConnect} 
-                      disabled={isUpdating || !landlordCode}
+                    <Button
+                      onClick={handlePropertyConnect}
+                      disabled={isUpdating || !propertyCode}
                     >
                       {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Connect to Landlord
+                      Connect to property
                     </Button>
                   </>
                 ) : connectionStatus !== "verified" && (
                   <p className="text-sm text-muted-foreground">
-                    Your connection request is {connectionStatus}. Your landlord will verify your account.
+                    Your connection request is awaiting landlord approval. You'll get a notification once approved.
                   </p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
+
 
           <TabsContent value="account">
             <div className="space-y-6">
