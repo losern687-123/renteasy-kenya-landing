@@ -145,17 +145,16 @@ export default function LandlordDashboard() {
     }
   };
 
+  // Legacy landlord ID copy helper kept as no-op; per-property codes replace it
   const copyLandlordId = () => {
     if (landlordId) {
       navigator.clipboard.writeText(landlordId);
       setCopiedId(true);
-      toast({
-        title: "Copied!",
-        description: "Landlord ID copied to clipboard. Share it with your tenants.",
-      });
       setTimeout(() => setCopiedId(false), 2000);
     }
   };
+  void copyLandlordId; void copiedId; void listPropertyId;
+
 
   const loadDashboardData = async () => {
     if (!user) return;
