@@ -1,115 +1,106 @@
-## Current state
+# Realignment Plan
 
-- **Upgrade modal** (`src/components/subscription/UpgradeModal.tsx`) currently collects phone + company and inserts a row into `subscription_requests` for manual fulfillment — no Paystack call.
-- **Subscription tiers in DB**: `free` (KES 0), `pro` (KES 3,999), `enterprise` (KES 12,999), `custom`. Pricing does not match what you specified. update the prices
-- `**paystack-initiate**` edge function already accepts `payment_type: "subscription"` with `metadata: { landlord_id, tier }`. No edge-function changes needed.
-- **Tier name "pro"** is referenced across ~12 files (`SubscriptionBadge`, `PricingCard`, `LockedFeatureCard`, hooks, sidebars, analytics gating). Renaming it would touch all of them and risk breaking gating logic — so we'll keep the internal name `pro` and just change its **display name + price**.
-- `**LockedFeatureCard**` already calls `onUpgrade` prop. Each consumer (analytics, reports) wires that to open the upgrade modal — but I should audit that all locked surfaces actually pass an `onUpgrade` that opens the modal.
-- **No subscription badge** currently appears in the landlord sidebar/header (only inside `SubscriptionOverviewCard` on the overview tab).
+Five themed workstreams. Each is independent and shippable on its own.
 
 ---
 
-## Implementation plan
+## 1. Property-level link codes (replaces single Landlord ID for tenants)
 
-### Part 0 — Database tier alignment (one migration)
+**Problem today:** tenant enters `LND-XXXXXX` → gets attached to a landlord but to no property → landlord sees the tenant floating with no unit → rent can't be recorded → the system feels broken. The landlord-wide code also makes no sense alongside the landlord-adds-tenant flow.
 
-Update `subscription_tiers` to match your pricing without breaking the `pro` tier-name references:
+**New model:**
 
-```sql
--- Update existing tiers
-UPDATE subscription_tiers SET price_monthly = 0,    price_annual = 0,      display_name = 'Free',         sort_order = 1 WHERE name = 'free';
-UPDATE subscription_tiers SET price_monthly = 999,  price_annual = 9990,   display_name = 'Professional', sort_order = 3 WHERE name = 'pro';
-UPDATE subscription_tiers SET price_monthly = 2499, price_annual = 24990,  display_name = 'Enterprise',   sort_order = 4 WHERE name = 'enterprise';
+- Each `properties` row gets its own unique code `PROP-XXXXXX` (auto-generated, like `LND-` is today).
+- Properties also gain `property_type` (1BR / 2BR / Studio / Bedsitter / House) and `capacity` (max tenants), so landlords describe the unit and its rent up-front.
+- Tenant Settings stops asking for Landlord ID — it asks for **Property Code**.
+- A new RPC `validate_property_code(code)` returns `{ valid, landlord_id, property_id, property_name, rent_amount }`.
+- Linking writes `tenants.property_id` and `tenants.landlord_id` in one step, status `pending`, and notifies the landlord (existing notification function, updated message to include property name).
+- Landlord dashboard groups tenants under each property card, so approvals and rent recording happen in-context.
 
--- New Starter tier (kept distinct internal name)
-INSERT INTO subscription_tiers (name, display_name, description, price_monthly, price_annual, max_properties, max_tenants, features, sort_order, is_active)
-VALUES ('starter', 'Starter', 'For small landlords getting started', 499, 4990, 10, 25,
-        '["Up to 10 properties","Up to 25 tenants","Email reminders","Basic analytics"]'::jsonb, 2, true)
-ON CONFLICT DO NOTHING;
+**Migration touches:** add `property_code`, `property_type`, `capacity` to `properties`; backfill codes for existing rows; new SECURITY DEFINER RPC; tighten `tenants` RLS (tenant can only self-link if `property_id` matches a real property under the resolved landlord).
 
--- Hide 'custom' from the 4-tier upgrade grid
-UPDATE subscription_tiers SET is_active = false WHERE name = 'custom';
-```
-
-Annual prices = monthly × 10 (≈17% saving). Property/tenant limits for Starter are reasonable defaults; tell me if you want different numbers.
-
-### Part 1 — Wire UpgradeModal to Paystack (`src/components/subscription/UpgradeModal.tsx`)
-
-Rewrite the modal so the "Upgrade" button on each `PricingCard` calls Paystack directly instead of opening the request form:
-
-- Drop the `subscription_requests` insert flow, the phone/company form, the `requestSchema`, and the success screen.
-- New `handleUpgradeClick(tier)`:
-  - Guard: `tier.name === "free"` or `tier.name === currentTier` → no-op.
-  - Set per-button loading state (`loadingTier: string | null`) and disable *all* upgrade buttons while one is in flight.
-  - Call `supabase.functions.invoke("paystack-initiate", { body: { payment_type: "subscription", amount: Math.round(price), email: user.email, metadata: { landlord_id: user.id, tier: tier.name } } })`.
-    - `price` = `priceMonthly` when `billingCycle==="monthly"`, else `priceAnnual`.
-  - Success → `window.location.href = data.authorization_url`.
-  - Error → `toast.error(...)`, clear loading.
-- Add "Recommended" badge logic: highlight the next tier above the current one (e.g. current=free → recommended=starter; current=starter → recommended=pro). Pass new prop `isRecommended` into `PricingCard`.
-
-### Part 1b — `PricingCard` updates
-
-- Accept new `isRecommended?: boolean` and `isLoading?: boolean` props.
-- Render "Recommended" badge (forest-green) when `isRecommended`.
-- Button label: `Upgrade to {displayName}` (per spec), and shows `<Loader2 spinning />` when `isLoading`.
-- Keep existing "Current Plan" badge + disabled-button behavior.
-
-### Part 2 — Paystack callback handling on Landlord dashboard (`src/pages/LandlordDashboard.tsx`)
-
-Add a mount-time effect that mirrors the tenant dashboard pattern:
-
-```ts
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.get("reference") && !params.get("trxref")) return;
-  const handled = useRef(false); // module-level ref so it runs once
-  // toast "Verifying your payment, please wait..."
-  // setTimeout 3000ms:
-  //   queryClient.invalidateQueries({ queryKey: ["subscription-limits"] })
-  //   queryClient.invalidateQueries({ queryKey: ["subscription-tiers"] })
-  //   toast.success("Subscription upgraded! Your new features are now active.")
-  //   setUpgradeModalOpen(false)
-  //   window.history.replaceState({}, "", window.location.pathname)
-}, []);
-```
-
-Uses `useQueryClient()` from `@tanstack/react-query`. No webhook verification on the client; the existing `paystack-webhook` is the source of truth for the DB.
-
-### Part 3 — Subscription tier badge in landlord header/sidebar
-
-Audit `LandlordLayout`/`LandlordSidebar`. Add a small `SubscriptionBadge` in the sidebar footer (or header right side on desktop) using `useSubscriptionLimits().tierName`:
-
-- Map `tierName` → badge variant. Extend `SubscriptionBadge` to accept `"starter"` (with Forest Green styling for all paid tiers per your spec, muted for free).
-- Next to the badge, if `tierName === "free"`, render a small `<button>Upgrade</button>` link that calls a new `onUpgradeClick` prop. `LandlordLayout` wires it to `setUpgradeModalOpen(true)` shared with the dashboard.
-- For paid tiers, badge only (Forest Green bg-primary/10 text-primary border-primary/30).
-
-This means `LandlordLayout` needs to own (or receive) the upgrade-modal open state so the badge button and dashboard tabs share one modal instance. Simplest: lift `upgradeModalOpen` into `LandlordLayout` via context **or** keep dashboard ownership and pass `onUpgradeClick` down through layout props. I'll go with the latter (minimal surface change): `LandlordLayout` accepts `onUpgradeClick?: () => void`.
-
-### Part 4 — Locked feature cards open the upgrade modal
-
-- Audit every `<LockedFeatureCard onUpgrade={...} />` site (`AnalyticsDashboard`, `ReportsTab`). Confirm each one calls `setUpgradeModalOpen(true)` or an equivalent prop bubbled up from `LandlordDashboard`. Fix any that don't.
-- Add a small "Upgrade to unlock" label with the `Lock` icon above the button if it's not already visually present (it currently shows `Lock` icon + tier badge, but the explicit "Upgrade to unlock" copy is missing — add it as a muted-foreground caption).
-- **No gating changes** — `tierRequired` checks and `useSubscriptionLimits` are untouched.
+**The old `LND-XXXXXX**` stays on the profile (used by the marketplace and admin), but is no longer the tenant-linking mechanism.
 
 ---
 
-## Untouched (explicitly)
+## 2. Rent setup per property (landlord side)
 
-- `paystack-initiate`, `paystack-webhook`, all other edge functions
-- `paystack_transactions`, `rent_records`, `tenants`, `profiles`, `notifications`, all RLS, all SECURITY DEFINER functions
-- Tenant Pay Now / Cash / Bank Transfer / payment history / Landlord Link card / settings
-- Landlord properties, tenants, payments, analytics, reports, bulk CSV, marketplace, chat, notifications
-- Admin pages and admin auth
-- Seeker pages
-- Auth flows, RBAC, RouteGuard
-- Theme / Realtime / Resend / WhatsApp handoff
+When a landlord adds a property, the form captures: name, location, **property type**, **bedrooms**, **bathrooms**, **capacity**, **monthly rent**, and a short description. The wizard in §4 owns this UI.
 
-The `subscription_requests` table is left in place (only the modal's *use* of it is removed) — if you later want a hybrid "request quote" path for Custom/Enterprise, the table stays available.
+Listing cards on the marketplace already pull from `properties` + `property_listings`; we surface `property_type` and `capacity` on the public card so seekers see "2BR · sleeps 4 · KES 25,000/mo" at a glance.
 
-## Warnings
+---
 
-1. **DB price change is destructive to existing data semantics.** Any landlord currently subscribed to "pro" at 3,999 will, on next renewal/UI render, see 999. No existing `landlord_subscriptions` rows are modified, but next checkout uses the new price. If you have any paying customer on the old pricing, tell me and I'll grandfather them.
-2. **Internal tier name stays `pro**`, display becomes `Professional`. This avoids touching 12 files but means edge functions and gating logic still receive `tier: "pro"` in metadata — the webhook must map `pro → Professional` when updating subscriptions if it uses display names anywhere (quick check needed during impl).
-3. **Annual savings** default to ~17% (monthly × 10). Change if you want a different discount.
-4. Webhook is the source of truth — the dashboard's "Subscription upgraded!" toast fires after a 3s delay regardless of whether the webhook has actually completed. If the webhook is slow the user may see the toast before tier limits flip. The TanStack invalidation will re-fetch and correct itself.
-5. Custom tier is set to `is_active = false`. If you want it visible somewhere (e.g. a separate "Need more? Contact sales" CTA), tell me and I'll keep it active and filter it out only in the 4-tier grid instead.
+## 3. Tenant payments + printable receipt
+
+After any successful payment (Paystack callback verifies on dashboard mount; cash/bank flips status when landlord confirms), the matching `rent_records` row becomes "paid" and a **Receipt** button appears next to it.
+
+Clicking it opens a clean printable receipt (`/tenant/receipt/:id`) with:
+
+- Tenant name, property name, landlord name
+- Amount, payment method (M-Pesa / Card / Bank / Cash via Paystack channel), reference, date
+- "Print" and "Download PDF" buttons (`window.print()` + `react-to-print` style page)
+
+No new tables — receipt reads from `rent_records` + `paystack_transactions`.
+
+---
+
+## 4. Landlord property-posting wizard (multi-step)
+
+Replaces the current two-form flow (AddProperty → CreateListing) with one wizard that always creates the internal property and optionally publishes it to the marketplace.
+
+```text
+Step 1 — Basics       name, location, type, bedrooms, bathrooms, capacity
+Step 2 — Pricing      monthly rent (KES), deposit, available-from date
+Step 3 — Photos       drag-and-drop upload (existing ListingPhotoUpload)
+Step 4 — Amenities    chip multi-select (existing list) + short description
+Step 5 — Publish      toggle: "Keep internal only" / "Publish to marketplace"
+                      → on submit: writes properties row + property_code,
+                        and (if toggled) property_listings + photos
+```
+
+Progress bar at top, "Back / Continue" footer, validation per step, draft state held in component (no DB drafts). On finish → toast with the new **Property Code** so the landlord can hand it to tenants immediately.
+
+---
+
+## 5. Visual refresh — Ocean Deep, depth level 3
+
+Update `index.css` design tokens (HSL):
+
+```text
+--primary       210 67% 15%   (#0c2340 deep navy)
+--primary-glow  198 56% 39%   (#2d8a9e teal)
+--accent        178 41% 55%   (#5cbdb9 soft teal)
+--secondary     208 60% 27%   (#1a4a6e mid navy)
+--background    210 40% 98%   (cool white)
+--sidebar       210 67% 11%   (deeper than primary)
+```
+
+Depth 3 visual moves:
+
+- Card surfaces: subtle 1px border + `--shadow-md`; hover lifts to `--shadow-lg` with 150ms ease.
+- Hero blocks on Landing, Dashboards, Marketplace get a single soft `--gradient-hero` (navy → teal) — used sparingly, never on cards.
+- KPI numbers in **Manrope** (display), body stays Inter.
+- Marketplace listing detail page gets a redesigned card: large photo gallery left, sticky info column right (price, type, capacity, amenities chips, Save + Inquire CTAs). Amenities grouped: "Inside the home", "Building & security", "Outdoor".
+- Dashboards: stat cards gain an accent icon disk (teal tint), section headers get a thin teal underline.
+- Motion: keep current Framer transitions, add a 200ms stagger on dashboard card grids.
+
+Memory update: replace the "SaaS aesthetic / Forest Green / no gradients" rule with the Ocean Deep rule.
+
+---
+
+## Order of execution
+
+1. **Migration** (§1 + §2 schema) — property code, type, capacity, RPC.
+2. **Wizard** (§4) — new posting flow uses the new fields.
+3. **Tenant linking rewrite** (§1) — Property Code input, landlord dashboard regroups tenants under properties.
+4. **Receipts** (§3) — receipt route + print button on paid rows.
+5. **Visual refresh** (§5) — tokens, hero gradient, listing detail redesign, sidebar restyle.
+
+---
+
+## What I left out (confirm before I proceed)
+
+- You didn't list Landlord or Seeker issues, and didn't dictate wizard steps. I proposed defaults above (5-step wizard, group-by-property on landlord dashboard, seeker flow untouched). Tell me if any of that should change.
+- Receipts will print to PDF via the browser print dialog. If you want server-generated PDFs (emailed via Resend), say so — that's an edge-function add.
+- Old landlord-wide `LND-XXXXXX` codes stay valid for admin/marketplace identity but are no longer used for tenant linking.On the issue of seekers transtioning to tenants they should make use of the linkcode of the specific property they are going to shared by their [landlord.In](http://landlord.In) terms of UI we need to make it more visually appealing and have a more modern approach to the design and not make it look like basic AI slop.Remove any iteration of the old landlord tenant linking code so as to make for a smoother transtion to the new plan easier 
