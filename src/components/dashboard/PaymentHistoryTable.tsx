@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Receipt } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeletons";
 
@@ -125,13 +126,28 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
                     <TableCell>{formatDate(record.payment_date)}</TableCell>
                     <TableCell>{getStatusBadge(record.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit?.(record)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        {record.status === "Paid" && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                          >
+                            <Link to={`/tenant/receipt/${record.id}`}>
+                              <Receipt className="h-3.5 w-3.5 sm:mr-1" />
+                              <span className="hidden sm:inline">Receipt</span>
+                            </Link>
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit?.(record)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

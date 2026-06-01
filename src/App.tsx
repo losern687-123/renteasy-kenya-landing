@@ -13,6 +13,7 @@ import TenantDashboard from "./pages/TenantDashboard";
 import TenantSettings from "./pages/TenantSettings";
 import TenantAddPayment from "./pages/TenantAddPayment";
 import TenantHistory from "./pages/TenantHistory";
+import TenantReceipt from "./pages/TenantReceipt";
 import LandlordDashboard from "./pages/LandlordDashboard";
 import LandlordPending from "./pages/LandlordPending";
 import LandlordRejected from "./pages/LandlordRejected";
@@ -97,6 +98,14 @@ const App = () => (
               element={
                 <RouteGuard allowedRoles={['tenant']}>
                   <TenantHistory />
+                </RouteGuard>
+              } 
+            />
+            <Route 
+              path="/tenant/receipt/:id" 
+              element={
+                <RouteGuard allowedRoles={['tenant']}>
+                  <TenantReceipt />
                 </RouteGuard>
               } 
             />
