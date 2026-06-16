@@ -46,10 +46,10 @@ export function BecomeTenantCard({ userName }: Props) {
         return;
       }
 
-      // Fetch profile email/phone for the tenants row
+      // Fetch profile name
       const { data: profile } = await supabase
         .from("profiles")
-        .select("name, phone")
+        .select("name")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -59,10 +59,11 @@ export function BecomeTenantCard({ userName }: Props) {
         property_id: result.property_id!,
         name: profile?.name || userName || "Tenant",
         email: user.email || "",
-        phone: profile?.phone || "",
+        phone: "",
         status: "pending",
       });
       if (tErr) throw tErr;
+
 
       // Flip role: property_seeker -> tenant
       const { error: rErr } = await supabase
