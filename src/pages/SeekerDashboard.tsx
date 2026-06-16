@@ -169,24 +169,8 @@ export default function SeekerDashboard() {
         );
 
       case "settings":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Settings</h2>
-            <Card>
-              <CardHeader>
-                <CardTitle>Become a Tenant</CardTitle>
-                <CardDescription>
-                  Already renting? Enter your landlord's ID to connect as a tenant.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  This feature will be available once you connect with a landlord through the marketplace.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <BecomeTenantCard userName={userName} />;
+
 
       default:
         return null;
