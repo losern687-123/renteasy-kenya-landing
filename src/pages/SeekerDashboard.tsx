@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Search, Heart, FileText, MessageSquare, Upload, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ConversationList } from "@/components/chat/ConversationList";
+import { BecomeTenantCard } from "@/components/seeker/BecomeTenantCard";
+
 
 export default function SeekerDashboard() {
   const { user, userRole, loading } = useAuth();
