@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Building2, UserCircle, Search, Link2 } from "lucide-react";
+import { Building2, UserCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
@@ -29,9 +29,8 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
-  const [landlordCode, setLandlordCode] = useState("");
-  const [isValidatingLandlord, setIsValidatingLandlord] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   if (user && !loading) {
     redirectBasedOnRole();
@@ -52,15 +51,8 @@ export default function Auth() {
           });
           return false;
         }
-        if (role === 'tenant' && landlordCode.trim() && !/^LND-\d{6}$/.test(landlordCode.trim())) {
-          toast({
-            title: "Validation Error",
-            description: "Landlord ID must be in format LND-XXXXXX (e.g. LND-123456)",
-            variant: "destructive",
-          });
-          return false;
-        }
       }
+
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -87,7 +79,7 @@ export default function Auth() {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         }
       } else {
-        const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined, role === 'tenant' ? landlordCode.trim() || undefined : undefined);
+        const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
@@ -159,27 +151,11 @@ export default function Auth() {
                   </div>
 
                   {role === 'tenant' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="landlordCode" className="text-sm font-medium text-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Link2 className="w-4 h-4" />
-                          Landlord ID <span className="text-muted-foreground font-normal">(optional)</span>
-                        </span>
-                      </Label>
-                      <Input
-                        id="landlordCode"
-                        type="text"
-                        placeholder="e.g. LND-123456"
-                        value={landlordCode}
-                        onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
-                        maxLength={10}
-                        className="h-12 font-mono tracking-wider"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Enter your landlord's unique ID to automatically link your account. You can also do this later in settings.
-                      </p>
-                    </div>
+                    <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3">
+                      You'll link to your rental using your landlord's <strong>property code</strong> (PROP-XXXXXX) from your tenant settings after signup.
+                    </p>
                   )}
+
 
                   {role === 'landlord' && (
                     <div className="space-y-2">
