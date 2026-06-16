@@ -151,27 +151,11 @@ export default function Auth() {
                   </div>
 
                   {role === 'tenant' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="landlordCode" className="text-sm font-medium text-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Link2 className="w-4 h-4" />
-                          Landlord ID <span className="text-muted-foreground font-normal">(optional)</span>
-                        </span>
-                      </Label>
-                      <Input
-                        id="landlordCode"
-                        type="text"
-                        placeholder="e.g. LND-123456"
-                        value={landlordCode}
-                        onChange={(e) => setLandlordCode(e.target.value.toUpperCase())}
-                        maxLength={10}
-                        className="h-12 font-mono tracking-wider"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Enter your landlord's unique ID to automatically link your account. You can also do this later in settings.
-                      </p>
-                    </div>
+                    <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3">
+                      You'll link to your rental using your landlord's <strong>property code</strong> (PROP-XXXXXX) from your tenant settings after signup.
+                    </p>
                   )}
+
 
                   {role === 'landlord' && (
                     <div className="space-y-2">
