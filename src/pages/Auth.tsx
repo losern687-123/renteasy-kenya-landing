@@ -53,7 +53,6 @@ export default function Auth() {
         }
       }
 
-      }
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
