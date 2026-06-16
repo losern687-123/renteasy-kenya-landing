@@ -79,7 +79,7 @@ export default function Auth() {
           toast({ title: "Login failed", description: error.message, variant: "destructive" });
         }
       } else {
-        const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined, role === 'tenant' ? landlordCode.trim() || undefined : undefined);
+        const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
