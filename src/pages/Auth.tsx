@@ -29,9 +29,8 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
-  const [landlordCode, setLandlordCode] = useState("");
-  const [isValidatingLandlord, setIsValidatingLandlord] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   if (user && !loading) {
     redirectBasedOnRole();
