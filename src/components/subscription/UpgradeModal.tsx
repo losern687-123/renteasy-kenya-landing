@@ -93,7 +93,7 @@ export function UpgradeModal({ open, onOpenChange, tiers, currentTier }: Upgrade
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !loadingTier && onOpenChange(o)}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Choose Your Plan</DialogTitle>
@@ -112,7 +112,6 @@ export function UpgradeModal({ open, onOpenChange, tiers, currentTier }: Upgrade
             <Switch
               checked={billingCycle === "annual"}
               onCheckedChange={(checked) => setBillingCycle(checked ? "annual" : "monthly")}
-              disabled={loadingTier !== null}
             />
             <span className={billingCycle === "annual" ? "font-medium" : "text-muted-foreground"}>
               Annual
@@ -136,13 +135,14 @@ export function UpgradeModal({ open, onOpenChange, tiers, currentTier }: Upgrade
                 isCurrentTier={tier.name === currentTier}
                 isRecommended={tier.name === recommendedTierName}
                 isLoading={loadingTier === tier.name}
-                disabled={loadingTier !== null && loadingTier !== tier.name}
+                disabled={false}
                 billingCycle={billingCycle}
                 onUpgrade={() => handleUpgradeClick(tier)}
                 onContactSales={handleContactSales}
               />
             ))}
           </div>
+
         </div>
       </DialogContent>
     </Dialog>
