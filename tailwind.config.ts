@@ -32,14 +32,20 @@ export default {
   				'system-ui',
   				'sans-serif'
   			],
-  			mono: [
-  				'ui-monospace',
-  				'SFMono-Regular',
-  				'Menlo',
-  				'Monaco',
-  				'Consolas',
-  				'monospace'
-  			]
+  		serif: [
+  			'Cormorant Garamond',
+  			'ui-serif',
+  			'Georgia',
+  			'serif'
+  		],
+  		mono: [
+  			'ui-monospace',
+  			'SFMono-Regular',
+  			'Menlo',
+  			'Monaco',
+  			'Consolas',
+  			'monospace'
+  		]
   		},
   		colors: {
   			border: 'hsl(var(--border))',
