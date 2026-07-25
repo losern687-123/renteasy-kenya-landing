@@ -1,53 +1,51 @@
-import { Navbar } from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import TrustSignals from "@/components/TrustSignals";
-import Features from "@/components/Features";
-import Testimonials from "@/components/Testimonials";
-import CTASection from "@/components/CTASection";
-import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { LuxuryNav } from "@/components/landing/LuxuryNav";
+import { LuxuryHero } from "@/components/landing/LuxuryHero";
+import { StatsStrip } from "@/components/landing/StatsStrip";
+import { FeaturedListings } from "@/components/landing/FeaturedListings";
+import { ExperienceSection } from "@/components/landing/ExperienceSection";
+import { LuxuryCTA } from "@/components/landing/LuxuryCTA";
 
-const ScrollReveal = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{
-        duration: 0.5,
-        delay,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
+const ScrollReveal = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-80px" }}
+    transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+  >
+    {children}
+  </motion.div>
+);
 
 const Index = () => {
+  useEffect(() => {
+    // Ensure landing uses light-on-dark rendering regardless of user theme
+    document.documentElement.style.colorScheme = "dark";
+    return () => {
+      document.documentElement.style.colorScheme = "";
+    };
+  }, []);
+
   return (
     <motion.div
-      className="min-h-screen"
+      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4 }}
     >
-      <Navbar />
-      <Hero />
+      <LuxuryNav />
+      <LuxuryHero />
+      <StatsStrip />
       <ScrollReveal>
-        <TrustSignals />
+        <FeaturedListings />
       </ScrollReveal>
-      <ScrollReveal>
-        <Features />
+      <ScrollReveal delay={0.05}>
+        <ExperienceSection />
       </ScrollReveal>
-      <ScrollReveal delay={0.1}>
-        <Testimonials />
-      </ScrollReveal>
-      <ScrollReveal delay={0.1}>
-        <CTASection />
-      </ScrollReveal>
-      <ScrollReveal>
-        <Footer />
+      <ScrollReveal delay={0.05}>
+        <LuxuryCTA />
       </ScrollReveal>
     </motion.div>
   );
