@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
 import { LuxuryHero } from "@/components/landing/LuxuryHero";
@@ -19,21 +18,13 @@ const ScrollReveal = ({ children, delay = 0 }: { children: React.ReactNode; dela
 );
 
 const Index = () => {
-  useEffect(() => {
-    // Ensure landing uses light-on-dark rendering regardless of user theme
-    document.documentElement.style.colorScheme = "dark";
-    return () => {
-      document.documentElement.style.colorScheme = "";
-    };
-  }, []);
-
   return (
     <motion.div
-      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      className="min-h-screen bg-background text-foreground"
       style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       <LuxuryNav />
       <LuxuryHero />
