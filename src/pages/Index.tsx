@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
 import { LuxuryHero } from "@/components/landing/LuxuryHero";
