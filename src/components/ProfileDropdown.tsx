@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { User, Settings, LogOut, LayoutDashboard, Building2, Shield, Clock, XCircle } from "lucide-react";
+import { User, LogOut, LayoutDashboard, Building2, Shield, Clock, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
