@@ -20,12 +20,14 @@ const ScrollReveal = ({ children, delay = 0 }: { children: React.ReactNode; dela
 
 const Index = () => {
   useEffect(() => {
-    // Ensure landing uses light-on-dark rendering regardless of user theme
+    // Landing page is designed dark; preserve for form controls & scrollbars
+    const prev = document.documentElement.style.colorScheme;
     document.documentElement.style.colorScheme = "dark";
     return () => {
-      document.documentElement.style.colorScheme = "";
+      document.documentElement.style.colorScheme = prev;
     };
   }, []);
+
 
   return (
     <motion.div

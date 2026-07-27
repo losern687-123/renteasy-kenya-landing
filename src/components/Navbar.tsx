@@ -99,9 +99,9 @@ export const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "text-sm font-medium transition-colors",
+                    "relative text-sm font-medium transition-colors duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100 motion-reduce:after:hidden",
                     isActivePath(link.path)
-                      ? "text-primary"
+                      ? "text-primary after:scale-x-100"
                       : "text-muted-foreground hover:text-primary"
                   )}
                 >
@@ -109,6 +109,7 @@ export const Navbar = () => {
                 </Link>
               ))}
             </div>
+
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-3">
@@ -135,19 +136,25 @@ export const Navbar = () => {
             </div>
 
             {/* Mobile Actions */}
-            <div className="lg:hidden flex items-center gap-2">
+            <div className="lg:hidden flex items-center gap-1.5">
               <ThemeToggle variant="icon" />
-              {user && <NotificationBell />}
+              {user && (
+                <>
+                  <NotificationBell />
+                  <ProfileDropdown />
+                </>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="h-10 w-10 touch-manipulation"
+                className="h-11 w-11 touch-manipulation"
                 aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
+
           </div>
         </div>
       </nav>
