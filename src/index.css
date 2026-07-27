@@ -5,71 +5,71 @@
 
 @layer base {
   :root {
-    /* Ivory & Gold — light editorial variant */
-    --background: 40 33% 97%;           /* #faf8f2 ivory */
-    --foreground: 0 0% 8%;
+    /* Noir & Gold — editorial luxury (app-wide) */
+    --background: 0 0% 5%;              /* #0d0d0d */
+    --foreground: 40 20% 95%;           /* #f5f3ee */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card: 0 0% 10%;                   /* #1a1a1a */
+    --card-foreground: 40 20% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 40 20% 95%;
 
-    --primary: 38 55% 42%;              /* deeper gold for light bg */
-    --primary-foreground: 40 33% 97%;
-    --primary-glow: 42 76% 60%;
+    --primary: 43 55% 55%;              /* #c9a84c gold */
+    --primary-foreground: 0 0% 6%;
+    --primary-glow: 42 76% 74%;         /* #f0d78c light gold */
 
-    --secondary: 40 20% 92%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 40 20% 95%;
 
-    --muted: 40 20% 94%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 40 10% 65%;
 
-    --accent: 42 55% 55%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 42 76% 74%;
+    --accent-foreground: 0 0% 6%;
 
-    --destructive: 0 72% 50%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 38 30% 82%;
-    --input: 38 30% 82%;
-    --ring: 38 55% 42%;
+    --border: 43 55% 55% / 0.18;
+    --input: 0 0% 18%;
+    --ring: 43 55% 55%;
 
     --radius: 0.5rem;
 
-    --gradient-hero: linear-gradient(135deg, hsl(40 33% 97%) 0%, hsl(40 20% 92%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(38 55% 42%) 0%, hsl(42 76% 60%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(40 33% 97%) 0%, hsl(0 0% 100%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 5%) 0%, hsl(0 0% 12%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(43 55% 55%) 0%, hsl(42 76% 74%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 8%) 100%);
 
-    --sidebar-background: 0 0% 8%;
+    --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 40 20% 92%;
     --sidebar-primary: 43 55% 55%;
     --sidebar-primary-foreground: 0 0% 6%;
-    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 40 20% 92%;
     --sidebar-border: 43 55% 55% / 0.15;
     --sidebar-ring: 43 55% 55%;
 
-    --chart-1: 38 55% 42%;
-    --chart-2: 42 76% 60%;
-    --chart-3: 25 30% 45%;
-    --chart-4: 200 40% 45%;
-    --chart-5: 0 60% 50%;
+    --chart-1: 43 55% 55%;
+    --chart-2: 42 76% 74%;
+    --chart-3: 40 20% 80%;
+    --chart-4: 25 60% 55%;
+    --chart-5: 0 72% 55%;
 
-    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.04);
-    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.06);
-    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
-    --shadow: 0 2px 4px 0 hsl(0 0% 0% / 0.08);
-    --shadow-md: 0 6px 12px -2px hsl(0 0% 0% / 0.10);
-    --shadow-lg: 0 14px 24px -4px hsl(0 0% 0% / 0.12);
-    --shadow-xl: 0 24px 40px -8px hsl(0 0% 0% / 0.14);
-    --shadow-2xl: 0 32px 60px -16px hsl(0 0% 0% / 0.2);
+    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.35);
+    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.4);
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.45), 0 1px 2px -1px hsl(0 0% 0% / 0.4);
+    --shadow: 0 2px 4px 0 hsl(0 0% 0% / 0.5);
+    --shadow-md: 0 6px 12px -2px hsl(0 0% 0% / 0.55), 0 3px 6px -3px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 14px 24px -4px hsl(0 0% 0% / 0.6), 0 6px 10px -6px hsl(0 0% 0% / 0.45);
+    --shadow-xl: 0 24px 40px -8px hsl(0 0% 0% / 0.65);
+    --shadow-2xl: 0 32px 60px -16px hsl(0 0% 0% / 0.75);
 
     --spacing: 0.25rem;
   }
 
   .dark {
-    /* Noir & Gold — dark editorial (default) */
+    /* Noir & Gold is dark by default — .dark mirrors :root */
     --background: 0 0% 5%;
     --foreground: 40 20% 95%;
     --card: 0 0% 10%;
@@ -90,9 +90,6 @@
     --border: 43 55% 55% / 0.18;
     --input: 0 0% 18%;
     --ring: 43 55% 55%;
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 5%) 0%, hsl(0 0% 12%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(43 55% 55%) 0%, hsl(42 76% 74%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 8%) 100%);
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 40 20% 92%;
     --sidebar-primary: 43 55% 55%;
@@ -130,66 +127,33 @@
 
 @layer utilities {
   .story-link {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-500 hover:after:scale-x-100 hover:after:origin-bottom-left;
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
 
   .hover-scale {
-    @apply transition-transform duration-300 ease-out hover:scale-[1.02];
+    @apply transition-transform duration-200 hover:scale-105;
   }
-
-  /* Noir & Gold premium hover: subtle gold hairline sweep */
-  .hover-gold {
-    @apply transition-colors duration-500 ease-out hover:text-primary;
-  }
-
-  .gold-underline {
-    background-image: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
-    background-size: 0% 1px;
-    background-repeat: no-repeat;
-    background-position: 0 100%;
-    transition: background-size 0.6s cubic-bezier(0.65, 0, 0.35, 1);
-  }
-  .gold-underline:hover { background-size: 100% 1px; }
-
-  .lift-on-hover {
-    @apply transition-all duration-500 ease-out;
-  }
-  .lift-on-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 40px -20px hsl(43 55% 55% / 0.25);
-  }
-
-  .gold-ring-hover {
-    @apply transition-shadow duration-500 ease-out;
-  }
-  .gold-ring-hover:hover {
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4), 0 12px 32px -12px hsl(var(--primary) / 0.2);
-  }
-
-  .fade-in-up {
-    animation: fade-in-up 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  }
-}
-
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 .theme-transition,
 .theme-transition *,
 .theme-transition *::before,
 .theme-transition *::after {
-  transition: background-color 0.4s ease,
-              border-color 0.4s ease,
-              color 0.4s ease,
-              fill 0.4s ease,
-              stroke 0.4s ease,
-              box-shadow 0.4s ease !important;
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              fill 0.3s ease,
+              stroke 0.3s ease,
+              box-shadow 0.3s ease !important;
 }
 
-html { color-scheme: light dark; }
-html.dark { color-scheme: dark; }
+html {
+  color-scheme: dark;
+}
+
+html.dark {
+  color-scheme: dark;
+}
 
 @media (hover: none) and (pointer: coarse) {
   .touch-feedback {
