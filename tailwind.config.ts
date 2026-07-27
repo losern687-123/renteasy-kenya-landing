@@ -15,6 +15,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
+  				'Karla',
   				'Inter',
   				'ui-sans-serif',
   				'system-ui',
@@ -27,10 +28,10 @@ export default {
   				'sans-serif'
   			],
   			display: [
-  				'Inter',
-  				'ui-sans-serif',
-  				'system-ui',
-  				'sans-serif'
+  				'Cormorant Garamond',
+  				'ui-serif',
+  				'Georgia',
+  				'serif'
   			],
   		serif: [
   			'Cormorant Garamond',
@@ -47,6 +48,7 @@ export default {
   			'monospace'
   		]
   		},
+
   		colors: {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
