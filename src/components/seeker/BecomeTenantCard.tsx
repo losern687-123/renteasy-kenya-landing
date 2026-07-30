@@ -15,7 +15,8 @@ interface Props {
 
 interface ValidationResult {
   valid: boolean;
-  landlord_id?: string;
+  error?: string;
+  landlord_user_id?: string;
   property_id?: string;
   property_name?: string;
   rent_amount?: number;
@@ -41,8 +42,8 @@ export function BecomeTenantCard({ userName }: Props) {
       });
       if (vErr) throw vErr;
       const result = validation as unknown as ValidationResult;
-      if (!result?.valid) {
-        toast.error("Invalid property code");
+      if (!result?.valid || !result.landlord_user_id || !result.property_id) {
+        toast.error(result?.error || "Invalid property code");
         return;
       }
 
@@ -55,8 +56,8 @@ export function BecomeTenantCard({ userName }: Props) {
 
       const { error: tErr } = await supabase.from("tenants").insert({
         id: user.id,
-        landlord_id: result.landlord_id!,
-        property_id: result.property_id!,
+        landlord_id: result.landlord_user_id,
+        property_id: result.property_id,
         name: profile?.name || userName || "Tenant",
         email: user.email || "",
         phone: "",
