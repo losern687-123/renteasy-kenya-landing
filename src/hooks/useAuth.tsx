@@ -173,6 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               await supabase.rpc('notify_landlord_of_tenant_link', {
                 _landlord_user_id: landlordProfile.id,
                 _tenant_name: name,
+                _property_name: null,
               });
             }
           }

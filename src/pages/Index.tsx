@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
 import { LuxuryHero } from "@/components/landing/LuxuryHero";
 import { StatsStrip } from "@/components/landing/StatsStrip";
 import { FeaturedListings } from "@/components/landing/FeaturedListings";
 import { ExperienceSection } from "@/components/landing/ExperienceSection";
 import { LuxuryCTA } from "@/components/landing/LuxuryCTA";
+import { AdminShortcut } from "@/components/AdminShortcut";
 
 const ScrollReveal = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
   <motion.div
@@ -37,6 +39,7 @@ const Index = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
+      <AdminShortcut />
       <LuxuryNav />
       <LuxuryHero />
       <StatsStrip />
@@ -49,6 +52,15 @@ const Index = () => {
       <ScrollReveal delay={0.05}>
         <LuxuryCTA />
       </ScrollReveal>
+      <div className="py-6 text-center">
+        <Link
+          to="/admin/login"
+          aria-label="Admin portal"
+          className="text-[10px] uppercase tracking-[0.3em] text-[#f5f3ee]/15 hover:text-[#c9a84c] transition-colors"
+        >
+          Admin
+        </Link>
+      </div>
     </motion.div>
   );
 };
