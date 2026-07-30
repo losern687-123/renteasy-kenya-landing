@@ -65,13 +65,20 @@ export function BecomeTenantCard({ userName }: Props) {
       });
       if (tErr) throw tErr;
 
-
       // Flip role: property_seeker -> tenant
       const { error: rErr } = await supabase
         .from("user_roles")
         .update({ role: "tenant" })
         .eq("user_id", user.id);
       if (rErr) throw rErr;
+
+      // Notify the landlord of the new pending link
+      await supabase.rpc("notify_landlord_of_tenant_link", {
+        _landlord_user_id: result.landlord_user_id,
+        _tenant_name: profile?.name || userName || "Tenant",
+        _property_name: result.property_name ?? null,
+      });
+
 
       toast.success(`Linked to ${result.property_name}. Awaiting landlord approval.`);
       setTimeout(() => navigate("/tenant-dashboard"), 800);

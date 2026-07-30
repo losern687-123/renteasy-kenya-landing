@@ -1,13 +1,14 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Generates a 'pending' rent_records row for every approved tenant
+// Generates an 'Unpaid' rent_records row for every approved tenant
 // (status='approved', property_id set) for the current calendar month,
 // skipping any tenant that already has a record dated within that month.
+// Also flips past-due unpaid records to 'Overdue'.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -23,6 +24,7 @@ Deno.serve(async (req) => {
     const monthStart = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
     const nextMonthStart = new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10);
     const dueDate = new Date(Date.UTC(year, month, 5)).toISOString().slice(0, 10); // 5th of month
+    const today = now.toISOString().slice(0, 10);
 
     // Fetch approved tenants with linked property
     const { data: tenants, error: tErr } = await supabase
@@ -63,14 +65,26 @@ Deno.serve(async (req) => {
         property_name: prop.name,
         amount: prop.rent_amount,
         due_date: dueDate,
-        status: "pending",
+        status: "Unpaid",
       });
 
       if (!insErr) created++;
     }
 
+    // Mark past-due unpaid records as Overdue
+    const { data: overdueRows } = await supabase
+      .from("rent_records")
+      .update({ status: "Overdue" })
+      .in("status", ["Unpaid", "unpaid", "pending"])
+      .lt("due_date", today)
+      .select("id");
+
+    const overdue = overdueRows?.length ?? 0;
+
+    console.log(JSON.stringify({ ok: true, created, skipped, overdue, month: monthStart }));
+
     return new Response(
-      JSON.stringify({ ok: true, created, skipped, month: monthStart }),
+      JSON.stringify({ ok: true, created, skipped, overdue, month: monthStart }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {
