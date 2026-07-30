@@ -39,6 +39,7 @@ const Index = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
+      <AdminShortcut />
       <LuxuryNav />
       <LuxuryHero />
       <StatsStrip />
@@ -51,6 +52,15 @@ const Index = () => {
       <ScrollReveal delay={0.05}>
         <LuxuryCTA />
       </ScrollReveal>
+      <div className="py-6 text-center">
+        <Link
+          to="/admin/login"
+          aria-label="Admin portal"
+          className="text-[10px] uppercase tracking-[0.3em] text-[#f5f3ee]/15 hover:text-[#c9a84c] transition-colors"
+        >
+          Admin
+        </Link>
+      </div>
     </motion.div>
   );
 };
