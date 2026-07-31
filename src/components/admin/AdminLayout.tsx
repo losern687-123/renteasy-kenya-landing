@@ -4,6 +4,8 @@ import { AdminHeader } from "./AdminHeader";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
 
 interface AdminLayoutProps {
   children: ReactNode;
