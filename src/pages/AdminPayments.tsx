@@ -27,14 +27,17 @@ interface Payment {
   id: string;
   tenant_id: string;
   amount: number;
-  status: string;
-  payment_method: string;
+  status: string | null;
+  payment_method: string | null;
   payment_date: string | null;
   due_date: string;
-  property_name: string;
-  tenant_name: string;
+  property_name: string | null;
+  tenant_name: string | null;
   created_at: string;
 }
+
+const norm = (v: string | null | undefined) => (v ?? "").toLowerCase();
+
 
 const AdminPayments = () => {
   const { isAuthorized, isLoading: authLoading } = useAdminAuth();
