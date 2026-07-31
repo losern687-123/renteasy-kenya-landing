@@ -41,6 +41,9 @@ import SeekerDashboard from "./pages/SeekerDashboard";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
 import ListingDetailPage from "./pages/marketplace/ListingDetailPage";
 import ChatPage from "./pages/Chat";
+import ProductsIndex from "./pages/marketing/ProductsIndex";
+import ProductPage from "./pages/marketing/ProductPage";
+
 
 const queryClient = new QueryClient();
 
