@@ -70,22 +70,25 @@ const AdminPayments = () => {
   };
 
   const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.tenant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.property_name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
-    
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      norm(payment.tenant_name).includes(q) ||
+      norm(payment.property_name).includes(q);
+
+    const matchesStatus =
+      statusFilter === "all" || norm(payment.status) === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const paidAmount = payments
-    .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+    .filter(p => norm(p.status) === 'paid')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const pendingAmount = payments
-    .filter(p => p.status === 'pending')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+    .filter(p => ['pending', 'unpaid', 'overdue'].includes(norm(p.status)))
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
 
   if (authLoading || !isAuthorized) {
     return (
