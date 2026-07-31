@@ -195,14 +195,14 @@ const AdminPayments = () => {
                   <TableBody>
                     {filteredPayments.map((payment) => (
                       <TableRow key={payment.id}>
-                        <TableCell className="font-medium">{payment.tenant_name}</TableCell>
-                        <TableCell>{payment.property_name}</TableCell>
+                        <TableCell className="font-medium">{payment.tenant_name || "—"}</TableCell>
+                        <TableCell>{payment.property_name || "—"}</TableCell>
                         <TableCell className="font-semibold">
-                          KES {Number(payment.amount).toLocaleString()}
+                          KES {Number(payment.amount || 0).toLocaleString()}
                         </TableCell>
-                        <TableCell className="capitalize">{payment.payment_method}</TableCell>
+                        <TableCell className="capitalize">{payment.payment_method || "—"}</TableCell>
                         <TableCell>
-                          {new Date(payment.due_date).toLocaleDateString()}
+                          {payment.due_date ? new Date(payment.due_date).toLocaleDateString() : "—"}
                         </TableCell>
                         <TableCell>
                           {payment.payment_date 
@@ -212,9 +212,10 @@ const AdminPayments = () => {
                         <TableCell>
                           <Badge
                             variant={
-                              payment.status === 'paid' ? 'default' :
-                              payment.status === 'overdue' ? 'destructive' : 'secondary'
+                              norm(payment.status) === 'paid' ? 'default' :
+                              norm(payment.status) === 'overdue' ? 'destructive' : 'secondary'
                             }
+
                             className="capitalize"
                           >
                             {payment.status}
