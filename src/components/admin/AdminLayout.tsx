@@ -51,8 +51,11 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
         </div>
 
         <main className="p-4 lg:p-6">
-          {children}
+          <ErrorBoundary label="This admin page failed to load">
+            {children}
+          </ErrorBoundary>
         </main>
+
       </div>
     </div>
   );
