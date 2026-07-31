@@ -17,7 +17,7 @@ export const LuxuryHero = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-[#0d0d0d]/40" />
       </div>
 
-      <div className="relative z-10 px-6 md:px-20 max-w-5xl pt-28 md:pt-0">
+      <div className="relative z-10 px-6 md:px-20 max-w-5xl pt-32 md:pt-40 pb-16">
         <motion.span
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
