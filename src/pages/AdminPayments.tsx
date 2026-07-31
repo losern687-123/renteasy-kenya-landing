@@ -215,11 +215,11 @@ const AdminPayments = () => {
                               norm(payment.status) === 'paid' ? 'default' :
                               norm(payment.status) === 'overdue' ? 'destructive' : 'secondary'
                             }
-
                             className="capitalize"
                           >
-                            {payment.status}
+                            {payment.status || "Unknown"}
                           </Badge>
+
                         </TableCell>
                       </TableRow>
                     ))}
