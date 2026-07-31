@@ -4,6 +4,8 @@ import { AdminHeader } from "./AdminHeader";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -51,8 +53,11 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
         </div>
 
         <main className="p-4 lg:p-6">
-          {children}
+          <ErrorBoundary label="This admin page failed to load">
+            {children}
+          </ErrorBoundary>
         </main>
+
       </div>
     </div>
   );

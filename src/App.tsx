@@ -41,6 +41,9 @@ import SeekerDashboard from "./pages/SeekerDashboard";
 import MarketplacePage from "./pages/marketplace/MarketplacePage";
 import ListingDetailPage from "./pages/marketplace/ListingDetailPage";
 import ChatPage from "./pages/Chat";
+import ProductsIndex from "./pages/marketing/ProductsIndex";
+import ProductPage from "./pages/marketing/ProductPage";
+
 
 const queryClient = new QueryClient();
 
@@ -59,7 +62,10 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/waitlist" element={<Waitlist />} />
-            
+            <Route path="/products" element={<ProductsIndex />} />
+            <Route path="/products/:slug" element={<ProductPage />} />
+
+
             {/* Tenant Routes */}
             <Route 
               path="/tenant-dashboard" 

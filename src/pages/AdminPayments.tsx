@@ -27,14 +27,17 @@ interface Payment {
   id: string;
   tenant_id: string;
   amount: number;
-  status: string;
-  payment_method: string;
+  status: string | null;
+  payment_method: string | null;
   payment_date: string | null;
   due_date: string;
-  property_name: string;
-  tenant_name: string;
+  property_name: string | null;
+  tenant_name: string | null;
   created_at: string;
 }
+
+const norm = (v: string | null | undefined) => (v ?? "").toLowerCase();
+
 
 const AdminPayments = () => {
   const { isAuthorized, isLoading: authLoading } = useAdminAuth();
@@ -67,22 +70,25 @@ const AdminPayments = () => {
   };
 
   const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.tenant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.property_name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
-    
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      norm(payment.tenant_name).includes(q) ||
+      norm(payment.property_name).includes(q);
+
+    const matchesStatus =
+      statusFilter === "all" || norm(payment.status) === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const paidAmount = payments
-    .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+    .filter(p => norm(p.status) === 'paid')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const pendingAmount = payments
-    .filter(p => p.status === 'pending')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+    .filter(p => ['pending', 'unpaid', 'overdue'].includes(norm(p.status)))
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
 
   if (authLoading || !isAuthorized) {
     return (
@@ -159,8 +165,10 @@ const AdminPayments = () => {
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
                     <SelectItem value="overdue">Overdue</SelectItem>
                   </SelectContent>
+
                 </Select>
               </div>
             </div>
@@ -187,14 +195,14 @@ const AdminPayments = () => {
                   <TableBody>
                     {filteredPayments.map((payment) => (
                       <TableRow key={payment.id}>
-                        <TableCell className="font-medium">{payment.tenant_name}</TableCell>
-                        <TableCell>{payment.property_name}</TableCell>
+                        <TableCell className="font-medium">{payment.tenant_name || "—"}</TableCell>
+                        <TableCell>{payment.property_name || "—"}</TableCell>
                         <TableCell className="font-semibold">
-                          KES {Number(payment.amount).toLocaleString()}
+                          KES {Number(payment.amount || 0).toLocaleString()}
                         </TableCell>
-                        <TableCell className="capitalize">{payment.payment_method}</TableCell>
+                        <TableCell className="capitalize">{payment.payment_method || "—"}</TableCell>
                         <TableCell>
-                          {new Date(payment.due_date).toLocaleDateString()}
+                          {payment.due_date ? new Date(payment.due_date).toLocaleDateString() : "—"}
                         </TableCell>
                         <TableCell>
                           {payment.payment_date 
@@ -204,13 +212,14 @@ const AdminPayments = () => {
                         <TableCell>
                           <Badge
                             variant={
-                              payment.status === 'paid' ? 'default' :
-                              payment.status === 'overdue' ? 'destructive' : 'secondary'
+                              norm(payment.status) === 'paid' ? 'default' :
+                              norm(payment.status) === 'overdue' ? 'destructive' : 'secondary'
                             }
                             className="capitalize"
                           >
-                            {payment.status}
+                            {payment.status || "Unknown"}
                           </Badge>
+
                         </TableCell>
                       </TableRow>
                     ))}

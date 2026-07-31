@@ -1,53 +1,32 @@
-## Where things stand (verified against the live backend today)
+## Two fixes first
 
-Backend is healthy: database and connection pooler up, 0 restarts, 48% memory, 3% disk, 6/60 connections, 14.9 MB of data. The monthly rent cron job (`generate-monthly-rent-job`, runs 02:00 on the 1st) is registered and active.
+**Admin Payments blank page — cause confirmed.** `AdminPayments.tsx` filters with `payment.tenant_name.toLowerCase()`. A query against the live table shows the single existing rent record has a null `tenant_name`, so the component throws on render and React unmounts the tree — the white screen in your screenshot. Fix: null-safe filtering for `tenant_name` / `property_name`, plus an error boundary fallback so an admin page never renders blank again. Also correct the stats maths on that page — it sums `status === 'paid'` / `'pending'` in lowercase while the database now stores title-case `Paid` / `Pending` / `Unpaid` / `Overdue`, so those cards currently read KES 0.
 
-## Workflow-by-workflow
+**Hero eyebrow overlapping the navbar.** The nav is absolutely positioned over the hero, and the hero's content block only has top padding below the `md` breakpoint (`pt-28 md:pt-0`). On desktop "— The Private Collection" slides under the logo row. Fix: keep top padding at all sizes so hero copy always clears the nav bar.
 
-**1. Signup and roles — working.** Signup writes a profile and a role row via a database trigger. Roles live in their own table (tenant / landlord / admin / property_seeker) and route guards read from it.
+## Marketing site
 
-**2. Landlord verification — working.** Landlord signup creates a pending application; admin approves via the `approve-landlord` function; approved landlords reach the dashboard, others land on pending/rejected screens. 5 applications exist.
+Ten new pages, all in the existing Noir & Gold luxury system (Cormorant Garamond headings, Karla body, `#0d0d0d` / `#c9a84c`) — matching the landing page, not the Forest Green spec. Payments copy says "M-Pesa, card and bank transfer via Paystack", which is what the platform actually does.
 
-**3. Property posting (5-step wizard) — working.** Each property gets a `PROP-XXXXXX` code. Only 1 property and 0 marketplace listings exist so far, so this path is effectively untested with real volume.
+**Shared shells (built once, reused):**
+- `MarketingLayout` — luxury nav + footer wrapper for every marketing page
+- `ProductPage` template driven by a content object: hero, benefits, feature grid, use-case testimonials, tier availability table, FAQ accordion, closing CTA
+- Reusable `TierMatrix`, `FaqAccordion`, `UseCaseCards`, `EmailCaptureForm`
 
-**4. Tenant links to a property by code — working.** Tenant Settings validates the code, creates the tenant row, notifies the landlord, and shows "pending approval" until the landlord confirms.
+**Product pages** (`/products/…`): rent-tracking, tenant-management, marketplace, analytics, bulk-operations, messaging, services (coming-soon with interest capture). Content follows your brief, with feature claims trimmed where the platform doesn't yet do them (WhatsApp two-way, SMS) — those are labelled "coming soon" rather than sold as live.
 
-**5. Seeker upgrades to tenant — BROKEN.** `BecomeTenantCard` reads `landlord_id` from the validation response, but the function returns that field as `landlord_user_id`. The value is always undefined, so the tenant row insert fails and the seeker can never upgrade. Tenant Settings uses the correct field name — only the seeker card is wrong.
+**Pricing** (`/pricing`) — monthly/annual toggle with the 10% annual badge, four cards with Pro highlighted, expandable feature-comparison accordion, pricing FAQ. Existing tiers unchanged. `/pricing/compare` renders the full feature matrix with a sticky header row and quick-link sidebar.
 
-**6. Rent records and payments — working but inconsistent.** Manual recording, Paystack checkout, webhook confirmation, and receipts all function. The webhook verifies the Paystack signature, is idempotent, and writes an audit log. Problem: the monthly cron inserts rent rows with status `"pending"` in lowercase while the whole app and the database guard trigger use title-case `"Paid" / "Pending" / "Unpaid" / "Overdue"`. Auto-generated invoices will therefore behave unpredictably in status filters and badges. Nothing marks an unpaid record `Overdue` after the due date — that status exists in the UI but is never set.
+**Resources** (`/resources`) — tabbed hub. Blog tab lists 8 articles, each a real written page at `/resources/blog/:slug`. Guides tab lists the six guides as "coming soon" with email capture (no PDFs generated). Newsletter tab holds the signup form.
 
-**7. Subscriptions — working.** Paystack webhook cancels the old subscription, inserts the new one, records the payment, and updates the tier. No subscriptions exist yet, so it is untested against real traffic.
+**Forms** all reuse the existing waitlist path — `send-waitlist-email` edge function with a source/interests field so newsletter, services waitlist and guide interest are distinguishable. No new tables.
 
-**8. Notifications, chat, marketplace, audit logs — working.** In-app notifications, conversations, listings, and the admin audit page with date/action filters all operate as built.
-
-## What I would fix, in priority order
-
-1. **Seeker to tenant upgrade** — correct the field name so the insert succeeds; add an error surface so a failure is visible rather than silent.
-2. **Rent status casing** — make the cron function insert `"Unpaid"` and normalize any existing lowercase rows, so generated invoices flow through the same filters as manual ones.
-3. **Overdue marking** — extend the monthly job (or add a small daily job) to flip unpaid records past their due date to `Overdue`, so tenants and landlords see accurate state.
-4. **Duplicate database function** — two versions of the landlord-notify function exist (2-argument and 3-argument). Overloads like this can make the API pick the wrong one; drop the obsolete 2-argument version and point the signup path at the current one.
-5. **Guard rails on linking** — prevent a second active tenant row for the same person, and give a clear message when a code belongs to an unapproved landlord.
-6. **End-to-end pass** — drive the browser through seeker upgrade, tenant link, landlord approval, invoice generation, and a Paystack callback to confirm each step after the fixes.
-
-## Keeping the backend running 24/7
-
-The hosted backend is always-on — it does not sleep on idle, and only stops if it is manually paused. Practical steps to keep it that way:
-
-- **Do not pause it** unless you intend to; it can be resumed on request.
-- **Scheduled jobs** run inside the database, so invoices and reminders fire whether or not anyone has the app open. Worth adding a small run-log so a silently failed month is visible.
-- **Capacity**: current usage is comfortable (48% memory, 3% disk). If memory or connections climb, the instance size can be increased from Cloud settings; disk is a separate control.
-- **Monitoring**: I can add a lightweight admin health panel showing last cron run, failed payment webhooks, and stuck pending links, so breakdowns surface before users report them.
-
-&nbsp;
-
-Another thing to add is that I can't enter the Admin portal thanks to the new changes to the UI find a way to place the admin portal some where where only I can access it 
-
-&nbsp;
+**Navigation** — a Products mega-dropdown added to the luxury nav (Platform Features / Services / Resources columns) on desktop, and an expandable section in the existing mobile drawer.
 
 ## Technical notes
 
-- Fix in `src/components/seeker/BecomeTenantCard.tsx`: use `landlord_user_id` from `validate_property_code`.
-- Fix in `supabase/functions/generate-monthly-rent/index.ts`: insert `status: "Unpaid"`; pin the client import to an `npm:` specifier for consistency with the other functions.
-- Migration: drop the 2-argument `notify_landlord_of_tenant_link` overload; add a partial unique index preventing duplicate active tenant links; backfill lowercase rent statuses.
-- No changes to Paystack functions, RLS policies, or the design system.
-  &nbsp;
+- New route entries in `src/App.tsx`; all marketing routes public.
+- Per-page `<title>`, meta description and canonical via a small `Seo` component; JSON-LD `Product`/`FAQPage` on product pages; sitemap entries added.
+- Hero/section imagery generated to match the existing architectural photography; screenshots of live dashboards used where the brief asks for interface visuals.
+- Mobile-first, 44px tap targets, `prefers-reduced-motion` respected via the existing global rule.
+- No changes to pricing tiers, database schema, RLS, or any tenant/landlord workflow.
