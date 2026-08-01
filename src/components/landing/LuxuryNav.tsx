@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Marketplace", to: "/marketplace", type: "route" as const },
-  { name: "Neighborhoods", to: "#neighborhoods", type: "hash" as const },
-  { name: "Experience", to: "#experience", type: "hash" as const },
+  { name: "Solutions", to: "/products", type: "route" as const },
+  { name: "Pricing", to: "/pricing", type: "route" as const },
+  { name: "Resources", to: "/resources", type: "route" as const },
 ];
+
 
 export const LuxuryNav = () => {
   const [open, setOpen] = useState(false);

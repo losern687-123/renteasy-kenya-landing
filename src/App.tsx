@@ -43,6 +43,11 @@ import ListingDetailPage from "./pages/marketplace/ListingDetailPage";
 import ChatPage from "./pages/Chat";
 import ProductsIndex from "./pages/marketing/ProductsIndex";
 import ProductPage from "./pages/marketing/ProductPage";
+import PricingPage from "./pages/marketing/PricingPage";
+import ComparePage from "./pages/marketing/ComparePage";
+import ResourcesIndex from "./pages/marketing/ResourcesIndex";
+import ArticlePage from "./pages/marketing/ArticlePage";
+import NewsletterPage from "./pages/marketing/NewsletterPage";
 
 
 const queryClient = new QueryClient();
@@ -64,6 +69,11 @@ const App = () => (
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/products" element={<ProductsIndex />} />
             <Route path="/products/:slug" element={<ProductPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/pricing/compare" element={<ComparePage />} />
+            <Route path="/resources" element={<ResourcesIndex />} />
+            <Route path="/resources/blog/:slug" element={<ArticlePage />} />
+            <Route path="/newsletter" element={<NewsletterPage />} />
 
 
             {/* Tenant Routes */}
