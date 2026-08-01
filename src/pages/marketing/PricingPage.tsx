@@ -1,0 +1,146 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
+import MarketingLayout from "@/components/marketing/MarketingLayout";
+import Seo, { faqJsonLd } from "@/components/marketing/Seo";
+import {
+  Section,
+  SectionHeading,
+  FaqAccordion,
+  CtaBand,
+  Reveal,
+  goldButton,
+  ghostButton,
+} from "@/components/marketing/sections";
+import { tiers, pricingFaqs } from "@/content/pricing";
+
+const PricingPage = () => {
+  const [annual, setAnnual] = useState(false);
+
+  return (
+    <MarketingLayout>
+      <Seo
+        title="Pricing — RentEasy Kenya property management plans"
+        description="Simple KES pricing for Kenyan landlords. Start free with 5 properties, upgrade for analytics, bulk operations and automated rent reminders."
+        path="/pricing"
+        jsonLd={faqJsonLd(pricingFaqs)}
+      />
+
+      <Section className="pb-8">
+        <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
+          — Plans &amp; pricing
+        </span>
+        <h1 className="max-w-3xl font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.02] text-[#f5f3ee]">
+          Priced for Kenyan landlords,{" "}
+          <span className="italic font-light text-[#f0d78c]">from one unit upwards</span>
+        </h1>
+        <p className="mt-6 max-w-xl text-[#f5f3ee]/60 font-light leading-relaxed">
+          Every plan includes rent invoicing, online payments through Paystack and
+          receipts. Higher tiers raise your limits and unlock automation.
+        </p>
+
+        <div className="mt-10 inline-flex items-center border border-[#c9a84c]/25">
+          {[
+            { label: "Monthly", value: false },
+            { label: "Annual · 2 months free", value: true },
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              onClick={() => setAnnual(opt.value)}
+              className={`min-h-[44px] px-5 sm:px-7 text-[10px] uppercase tracking-[0.25em] transition-colors ${
+                annual === opt.value
+                  ? "bg-[#c9a84c] text-[#0d0d0d]"
+                  : "text-[#f5f3ee]/60 hover:text-[#c9a84c]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section className="pt-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {tiers.map((t, i) => {
+            const price = annual ? t.annual : t.monthly;
+            return (
+              <Reveal key={t.slug} delay={i * 0.05}>
+                <div
+                  className={`flex h-full flex-col border p-7 transition-colors ${
+                    t.highlight
+                      ? "border-[#c9a84c]/60 bg-[#141414]"
+                      : "border-[#c9a84c]/15 bg-[#0d0d0d] hover:border-[#c9a84c]/40"
+                  }`}
+                >
+                  {t.highlight && (
+                    <span className="mb-4 self-start border border-[#c9a84c]/50 px-2 py-1 text-[8px] uppercase tracking-[0.25em] text-[#c9a84c]">
+                      Most chosen
+                    </span>
+                  )}
+                  <h2 className="font-serif text-2xl text-[#f5f3ee]">{t.name}</h2>
+                  <p className="mt-2 text-xs text-[#f5f3ee]/50 font-light">
+                    {t.tagline}
+                  </p>
+
+                  <div className="mt-6 flex items-baseline gap-2">
+                    <span className="font-serif text-4xl text-[#f0d78c]">
+                      {price === 0 ? "Free" : `KES ${price.toLocaleString()}`}
+                    </span>
+                    {price !== 0 && (
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-[#f5f3ee]/40">
+                        /{annual ? "yr" : "mo"}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-6 space-y-1 border-y border-[#c9a84c]/12 py-4 text-[11px] uppercase tracking-[0.2em] text-[#f5f3ee]/55">
+                    <p>{t.properties}</p>
+                    <p>{t.tenants}</p>
+                  </div>
+
+                  <ul className="mt-6 flex-1 space-y-3">
+                    {t.features.map((f) => (
+                      <li key={f} className="flex gap-3 text-sm text-[#f5f3ee]/65 font-light">
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    to="/auth"
+                    className={`mt-8 w-full ${t.highlight ? goldButton : ghostButton}`}
+                  >
+                    {t.cta}
+                  </Link>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        <Link
+          to="/pricing/compare"
+          className="mt-10 inline-block text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] hover:text-[#f0d78c] transition-colors"
+        >
+          Compare every feature →
+        </Link>
+      </Section>
+
+      <Section className="bg-[#111111] border-y border-[#c9a84c]/10">
+        <Reveal>
+          <SectionHeading eyebrow="Questions" title="Pricing, answered" />
+          <FaqAccordion faqs={pricingFaqs} />
+        </Reveal>
+      </Section>
+
+      <CtaBand
+        title="Start on the free plan"
+        emphasis="today."
+        sub="No card required. Add your first property and issue your first invoice in minutes."
+      />
+    </MarketingLayout>
+  );
+};
+
+export default PricingPage;
