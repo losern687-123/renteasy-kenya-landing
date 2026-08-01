@@ -34,7 +34,7 @@ const ResourcesIndex = () => {
         }}
       />
 
-      <Section className="pb-8">
+      <Section className="!pb-0">
         <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
           — Resources
         </span>
@@ -59,7 +59,7 @@ const ResourcesIndex = () => {
       </Section>
 
       {featured && (
-        <Section className="pt-0 pb-10">
+        <Section className="!pt-10 !pb-10">
           <Reveal>
             <Link
               to={`/resources/blog/${featured.slug}`}
@@ -82,7 +82,7 @@ const ResourcesIndex = () => {
         </Section>
       )}
 
-      <Section className="pt-0">
+      <Section className="!pt-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((a, i) => (
             <Reveal key={a.slug} delay={i * 0.04}>

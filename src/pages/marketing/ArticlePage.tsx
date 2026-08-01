@@ -30,7 +30,7 @@ const ArticlePage = () => {
       />
 
       <article>
-        <Section className="pb-6">
+        <Section className="!pb-0">
           <Link
             to="/resources"
             className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] hover:text-[#f0d78c] transition-colors"
@@ -58,7 +58,7 @@ const ArticlePage = () => {
           </div>
         </Section>
 
-        <Section className="pt-0">
+        <Section className="!pt-10">
           <div className="max-w-3xl">
             {article.body.map((block, i) => (
               <div key={i} className="mb-10 last:mb-0">

@@ -26,7 +26,7 @@ const PricingPage = () => {
         jsonLd={faqJsonLd(pricingFaqs)}
       />
 
-      <Section className="pb-8">
+      <Section className="!pb-0">
         <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
           — Plans &amp; pricing
         </span>
@@ -59,7 +59,7 @@ const PricingPage = () => {
         </div>
       </Section>
 
-      <Section className="pt-4">
+      <Section className="!pt-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {tiers.map((t, i) => {
             const price = annual ? t.annual : t.monthly;

@@ -20,7 +20,7 @@ const ComparePage = () => (
       path="/pricing/compare"
     />
 
-    <Section className="pb-6">
+    <Section className="!pb-0">
       <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
         — Full comparison
       </span>
@@ -40,7 +40,7 @@ const ComparePage = () => (
       </Link>
     </Section>
 
-    <Section className="pt-4">
+    <Section className="!pt-10">
       <Reveal>
         <div className="overflow-x-auto border border-[#c9a84c]/15">
           <table className="w-full min-w-[760px] text-left">
