@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import Seo from "@/components/marketing/Seo";
@@ -64,8 +65,8 @@ const ComparePage = () => (
             </thead>
             <tbody>
               {comparisonGroups.map((g) => (
-                <>
-                  <tr key={g.group} className="bg-[#111111]">
+                <Fragment key={g.group}>
+                  <tr className="bg-[#111111]">
                     <td
                       colSpan={5}
                       className="p-3 text-[10px] uppercase tracking-[0.3em] text-[#c9a84c]"
@@ -86,7 +87,7 @@ const ComparePage = () => (
                       ))}
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
