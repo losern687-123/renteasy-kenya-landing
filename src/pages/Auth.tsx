@@ -88,9 +88,10 @@ export default function Auth() {
           if (msg.includes("already registered") || msg.includes("already been registered")) {
             toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
           } else if (msg.includes("weak") || msg.includes("pwned") || msg.includes("easy to guess")) {
+            setBreachedPassword(password);
             toast({
               title: "Choose a stronger password",
-              description: "That password has appeared in known data breaches. Try a longer, unique passphrase (e.g. 3 unrelated words plus a number and symbol).",
+              description: "That password has appeared in known data breaches. Check the password checklist below — try a longer, unique passphrase (e.g. 3 unrelated words plus a number and symbol).",
               variant: "destructive",
             });
           } else {
