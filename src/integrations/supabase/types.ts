@@ -933,6 +933,10 @@ export type Database = {
       generate_landlord_code: { Args: never; Returns: string }
       generate_property_code: { Args: never; Returns: string }
       generate_unique_landlord_id: { Args: never; Returns: string }
+      get_listing_landlord_name: {
+        Args: { _listing_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
