@@ -216,8 +216,16 @@ export default function Auth() {
                 />
                 {!isLogin && (
                   <>
-                    <PasswordStrengthIndicator password={password} />
-                    <PasswordRequirements password={password} />
+                    <PasswordStrengthIndicator
+                      password={password}
+                      breached={!!breachedPassword}
+                      breachedValue={breachedPassword ?? undefined}
+                    />
+                    <PasswordRequirements
+                      password={password}
+                      breached={!!breachedPassword}
+                      breachedValue={breachedPassword ?? undefined}
+                    />
                     <p className="text-xs text-muted-foreground">
                       Avoid common passwords — we check against known breach lists.
                     </p>
