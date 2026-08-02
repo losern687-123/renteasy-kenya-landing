@@ -78,6 +78,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "chat_conversations_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "chat_conversations_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -89,6 +96,13 @@ export type Database = {
             columns: ["seeker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_conversations_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
         ]
@@ -131,6 +145,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
         ]
@@ -183,6 +204,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_landlord_applications_profiles"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
         ]
       }
       landlord_subscriptions: {
@@ -231,6 +259,13 @@ export type Database = {
             columns: ["landlord_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "landlord_subscriptions_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: true
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
           {
@@ -453,6 +488,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "property_inquiries_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "property_inquiries_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -464,6 +506,13 @@ export type Database = {
             columns: ["seeker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_inquiries_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
         ]
@@ -523,6 +572,13 @@ export type Database = {
             columns: ["landlord_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_listings_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
           {
@@ -651,6 +707,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_properties_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
         ]
       }
       seeker_documents: {
@@ -681,6 +744,13 @@ export type Database = {
             columns: ["seeker_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seeker_documents_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
         ]
@@ -740,6 +810,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "subscription_payments_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "subscription_payments_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
@@ -791,6 +868,13 @@ export type Database = {
             columns: ["landlord_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
             referencedColumns: ["id"]
           },
           {
@@ -899,6 +983,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tenants_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "public_listing_landlords"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tenants_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
@@ -927,7 +1018,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_listing_landlords: {
+        Row: {
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          id?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_landlord_code: { Args: never; Returns: string }
