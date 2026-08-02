@@ -75,7 +75,7 @@ export const FeaturedListings = () => {
             return (
               <Link
                 key={l.id}
-                to={`/marketplace/listing/${l.id}`}
+                to={`/marketplace/${l.id}`}
                 className={`${spans[i]} relative group cursor-pointer overflow-hidden bg-[#1a1a1a]`}
               >
                 {photo ? (
