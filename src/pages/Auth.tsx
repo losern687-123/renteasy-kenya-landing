@@ -32,6 +32,7 @@ export default function Auth() {
   const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [breachedPassword, setBreachedPassword] = useState<string | null>(null);
 
 
   if (user && !loading) {
