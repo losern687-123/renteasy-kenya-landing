@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, BedDouble, Bath, Heart, Building2, Loader2 } from "lucide-react";
+import { LuxuryNav } from "@/components/landing/LuxuryNav";
+import { MarketingFooter } from "@/components/marketing/MarketingLayout";
+import { Search, MapPin, BedDouble, Bath, Building2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -26,7 +21,7 @@ interface Listing {
     name: string;
     location: string;
     rent_amount: number;
-  };
+  } | null;
   property_photos: {
     storage_path: string;
     is_primary: boolean;
@@ -36,13 +31,24 @@ interface Listing {
 const locations = ["All Locations", "Westlands", "Karen", "Kilimani", "Lavington", "Kileleshwa", "Langata", "South B", "South C", "Embakasi", "Kasarani"];
 const propertyTypes = ["All Types", "apartment", "house", "bedsitter", "studio", "single_room"];
 
+const label = (v: string) =>
+  v.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
 export default function MarketplacePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedType, setSelectedType] = useState("All Types");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
+
+  useEffect(() => {
+    const prev = document.documentElement.style.colorScheme;
+    document.documentElement.style.colorScheme = "dark";
+    window.scrollTo(0, 0);
+    return () => {
+      document.documentElement.style.colorScheme = prev;
+    };
+  }, []);
 
   useEffect(() => {
     fetchListings();
@@ -51,14 +57,14 @@ export default function MarketplacePage() {
   const fetchListings = async () => {
     try {
       const { data, error } = await supabase
-        .from('property_listings')
+        .from("property_listings")
         .select(`
           *,
           properties (name, location, rent_amount),
           property_photos (storage_path, is_primary)
         `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setListings((data as any) || []);
@@ -69,167 +75,181 @@ export default function MarketplacePage() {
     }
   };
 
-  const filteredListings = listings.filter(listing => {
-    const matchesSearch = !searchQuery || 
-      listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listing.properties?.location?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesLocation = selectedLocation === "All Locations" || 
-      listing.properties?.location?.toLowerCase().includes(selectedLocation.toLowerCase());
-    
-    const matchesType = selectedType === "All Types" || listing.property_type === selectedType;
-    
-    const matchesPrice = listing.properties?.rent_amount >= priceRange[0] && 
-      listing.properties?.rent_amount <= priceRange[1];
+  const filteredListings = listings.filter((listing) => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      listing.title?.toLowerCase().includes(q) ||
+      listing.properties?.location?.toLowerCase().includes(q) ||
+      listing.properties?.name?.toLowerCase().includes(q);
 
-    return matchesSearch && matchesLocation && matchesType && matchesPrice;
+    const matchesLocation =
+      selectedLocation === "All Locations" ||
+      listing.properties?.location?.toLowerCase().includes(selectedLocation.toLowerCase());
+
+    const matchesType = selectedType === "All Types" || listing.property_type === selectedType;
+
+    return matchesSearch && matchesLocation && matchesType;
   });
 
+  const primaryPhoto = (l: Listing) =>
+    l.property_photos?.find((p) => p.is_primary)?.storage_path ||
+    l.property_photos?.[0]?.storage_path;
+
+  const selectClass =
+    "h-12 w-full sm:w-[190px] bg-transparent border border-[#c9a84c]/25 text-[#f5f3ee] text-[11px] uppercase tracking-[0.25em] px-4 focus:outline-none focus:border-[#c9a84c] transition-colors";
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      {/* Hero */}
-      <section className="bg-primary/5 py-12 sm:py-16 px-4">
-        <div className="container mx-auto max-w-4xl text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-            Find Your Perfect <span className="text-primary">Rental Home</span>
+    <div
+      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
+    >
+      <LuxuryNav />
+
+      {/* Editorial hero */}
+      <section className="relative pt-32 md:pt-40 pb-14 md:pb-20 px-6 md:px-12 border-b border-[#c9a84c]/15">
+        <div className="max-w-7xl mx-auto">
+          <span className="block text-[#c9a84c] text-[10px] uppercase tracking-[0.4em] mb-5">
+            — The Collection
+          </span>
+          <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] max-w-3xl">
+            Residences <span className="italic font-light text-[#f0d78c]">Across Nairobi</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Browse verified rental properties across Nairobi with photos, amenities, and direct landlord contact.
+          <p className="mt-6 max-w-xl text-[#f5f3ee]/60 font-light leading-relaxed">
+            Browse every available home on RentEasy Kenya — photographed, verified and
+            listed directly by the landlord. No account required.
           </p>
         </div>
       </section>
 
       {/* Filters */}
-      <section className="sticky top-[72px] z-30 bg-background border-b border-border py-4 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search properties..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11"
-              />
-            </div>
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger className="w-full sm:w-[180px] h-11">
-                <SelectValue placeholder="Location" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map(loc => (
-                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-full sm:w-[160px] h-11">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {propertyTypes.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type === "All Types" ? type : type.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <section className="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-sm border-b border-[#c9a84c]/15 py-5 px-6 md:px-12">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#c9a84c]" />
+            <input
+              placeholder="Search by title, estate or location"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search listings"
+              className="w-full h-12 pl-11 pr-4 bg-transparent border border-[#c9a84c]/25 text-[#f5f3ee] placeholder:text-[#f5f3ee]/35 text-sm focus:outline-none focus:border-[#c9a84c] transition-colors"
+            />
           </div>
+          <select
+            aria-label="Filter by location"
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className={selectClass}
+          >
+            {locations.map((loc) => (
+              <option key={loc} value={loc} className="bg-[#0d0d0d]">{loc}</option>
+            ))}
+          </select>
+          <select
+            aria-label="Filter by property type"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className={selectClass}
+          >
+            {propertyTypes.map((type) => (
+              <option key={type} value={type} className="bg-[#0d0d0d]">
+                {type === "All Types" ? type : label(type)}
+              </option>
+            ))}
+          </select>
         </div>
       </section>
 
-      {/* Listings Grid */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-muted-foreground">
-              {filteredListings.length} {filteredListings.length === 1 ? 'property' : 'properties'} found
-            </p>
-          </div>
+      {/* Listings */}
+      <section className="py-14 md:py-20 px-6 md:px-12">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-[10px] uppercase tracking-[0.35em] text-[#c9a84c]/70 mb-8">
+            {filteredListings.length} {filteredListings.length === 1 ? "Residence" : "Residences"}
+          </p>
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="w-7 h-7 animate-spin text-[#c9a84c]" />
             </div>
           ) : filteredListings.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Building2 className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold">No properties available yet</h3>
-                <p className="text-muted-foreground mt-2">
-                  Check back soon — landlords are adding new listings every day.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="border border-[#c9a84c]/15 py-20 px-8 text-center">
+              <Building2 className="w-10 h-10 text-[#c9a84c]/40 mx-auto mb-6" />
+              <h2 className="font-serif text-2xl md:text-3xl">No residences match your search</h2>
+              <p className="mt-4 text-[#f5f3ee]/50 font-light">
+                Adjust your filters, or check back soon — landlords list new homes every week.
+              </p>
+            </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredListings.map((listing, index) => (
-                <motion.div
-                  key={listing.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Link to={`/marketplace/${listing.id}`}>
-                    <Card className="overflow-hidden hover:shadow-md transition-shadow group cursor-pointer">
-                      {/* Image placeholder */}
-                      <div className="aspect-[4/3] bg-muted relative">
-                        {listing.property_photos?.[0] ? (
-                          <img 
-                            src={listing.property_photos[0].storage_path} 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {filteredListings.map((listing, index) => {
+                const photo = primaryPhoto(listing);
+                return (
+                  <motion.div
+                    key={listing.id}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.5, delay: Math.min(index, 5) * 0.05 }}
+                  >
+                    <Link
+                      to={`/marketplace/${listing.id}`}
+                      className="group block border border-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-colors duration-500"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-[#1a1a1a]">
+                        {photo ? (
+                          <img
+                            src={photo}
                             alt={listing.title}
-                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-95 transition-all duration-700 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Building2 className="w-12 h-12 text-muted-foreground/30" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Building2 className="w-10 h-10 text-[#c9a84c]/25" />
                           </div>
                         )}
-                        <Badge className="absolute top-3 left-3 bg-primary">
-                          {listing.property_type.replace("_", " ")}
-                        </Badge>
-                        <button className="absolute top-3 right-3 w-8 h-8 bg-background/80 rounded-full flex items-center justify-center hover:bg-background transition-colors">
-                          <Heart className="w-4 h-4 text-muted-foreground" />
-                        </button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/20 to-transparent" />
+                        <span className="absolute top-4 left-4 text-[9px] uppercase tracking-[0.35em] text-[#c9a84c] bg-[#0d0d0d]/70 px-3 py-1.5">
+                          {label(listing.property_type || "residence")}
+                        </span>
                       </div>
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {listing.title}
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{listing.properties?.location}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {listing.bedrooms && (
-                            <span className="flex items-center gap-1">
-                              <BedDouble className="w-3.5 h-3.5" /> {listing.bedrooms} bed
-                            </span>
-                          )}
-                          {listing.bathrooms && (
-                            <span className="flex items-center gap-1">
-                              <Bath className="w-3.5 h-3.5" /> {listing.bathrooms} bath
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-lg font-bold text-primary">
-                          KES {listing.properties?.rent_amount?.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mo</span>
+
+                      <div className="p-6 space-y-3">
+                        <h2 className="font-serif text-2xl leading-snug group-hover:text-[#f0d78c] transition-colors line-clamp-1">
+                          {listing.title}
+                        </h2>
+                        <p className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/55">
+                          <MapPin className="w-3.5 h-3.5 text-[#c9a84c]" />
+                          {listing.properties?.location || "Nairobi"}
                         </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              ))}
+                        <div className="flex items-center gap-5 text-[11px] uppercase tracking-[0.2em] text-[#f5f3ee]/45">
+                          {listing.bedrooms ? (
+                            <span className="flex items-center gap-1.5">
+                              <BedDouble className="w-3.5 h-3.5" /> {listing.bedrooms} Bed
+                            </span>
+                          ) : null}
+                          {listing.bathrooms ? (
+                            <span className="flex items-center gap-1.5">
+                              <Bath className="w-3.5 h-3.5" /> {listing.bathrooms} Bath
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="pt-2 border-t border-[#c9a84c]/10 text-[#c9a84c] text-sm tracking-[0.15em]">
+                          {typeof listing.properties?.rent_amount === "number"
+                            ? `KES ${listing.properties.rent_amount.toLocaleString()} / MO`
+                            : "PRICE ON ENQUIRY"}
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>
       </section>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   );
 }
