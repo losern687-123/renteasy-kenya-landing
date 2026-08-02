@@ -10,6 +10,8 @@ import { Building2, UserCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useRoleRedirect } from "@/hooks/useRoleRedirect";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 
 const emailSchema = z.string().email("Invalid email address").max(255, "Email must be less than 255 characters");
 const passwordSchema = z.string()
@@ -81,8 +83,15 @@ export default function Auth() {
       } else {
         const { error } = await signUp(email, password, name, role, role === 'landlord' ? nationalId : undefined);
         if (error) {
-          if (error.message.includes("already registered")) {
+          const msg = (error.message || "").toLowerCase();
+          if (msg.includes("already registered") || msg.includes("already been registered")) {
             toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
+          } else if (msg.includes("weak") || msg.includes("pwned") || msg.includes("easy to guess")) {
+            toast({
+              title: "Choose a stronger password",
+              description: "That password has appeared in known data breaches. Try a longer, unique passphrase (e.g. 3 unrelated words plus a number and symbol).",
+              variant: "destructive",
+            });
           } else {
             toast({ title: "Registration failed", description: error.message, variant: "destructive" });
           }
@@ -203,6 +212,15 @@ export default function Auth() {
                   minLength={8}
                   className="h-12"
                 />
+                {!isLogin && (
+                  <>
+                    <PasswordStrengthIndicator password={password} />
+                    <PasswordRequirements password={password} />
+                    <p className="text-xs text-muted-foreground">
+                      Avoid common passwords — we check against known breach lists.
+                    </p>
+                  </>
+                )}
               </div>
 
               <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
