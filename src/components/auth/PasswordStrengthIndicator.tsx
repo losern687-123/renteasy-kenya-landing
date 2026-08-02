@@ -3,69 +3,76 @@ import { cn } from "@/lib/utils";
 
 interface PasswordStrengthIndicatorProps {
   password: string;
+  /** Set when the backend rejected the password as found in known breach lists */
+  breached?: boolean;
+  breachedValue?: string;
 }
 
-export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicatorProps) {
+const LEVELS = [
+  { label: "Very Weak", bar: "bg-destructive", text: "text-destructive" },
+  { label: "Weak", bar: "bg-destructive/70", text: "text-destructive" },
+  { label: "Fair", bar: "bg-muted-foreground", text: "text-muted-foreground" },
+  { label: "Strong", bar: "bg-primary/70", text: "text-primary" },
+  { label: "Very Strong", bar: "bg-primary", text: "text-primary" },
+];
+
+export function PasswordStrengthIndicator({ password, breached, breachedValue }: PasswordStrengthIndicatorProps) {
+  const isBreached = !!breached && breachedValue === password;
+
   const strength = useMemo(() => {
-    if (!password) return { score: 0, label: "", color: "" };
+    if (!password) return { score: 0, ...LEVELS[0], advice: "" };
 
     let score = 0;
-
-    // Length checks
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
     if (password.length >= 16) score += 1;
-
-    // Character type checks
     if (/[A-Z]/.test(password)) score += 1;
     if (/[a-z]/.test(password)) score += 1;
     if (/[0-9]/.test(password)) score += 1;
     if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
-    // Variety bonus
     const uniqueChars = new Set(password.split("")).size;
     if (uniqueChars > password.length * 0.7) score += 1;
 
-    // Normalize to 0-4 scale
-    const normalizedScore = Math.min(4, Math.floor(score / 2));
+    let normalizedScore = Math.min(4, Math.floor(score / 2));
 
-    const levels = [
-      { label: "Very Weak", color: "bg-red-500" },
-      { label: "Weak", color: "bg-orange-500" },
-      { label: "Fair", color: "bg-yellow-500" },
-      { label: "Strong", color: "bg-green-500" },
-      { label: "Very Strong", color: "bg-emerald-500" },
-    ];
+    let advice = "";
+    if (password.length < 12) advice = "Make it longer — 12+ characters is much harder to crack.";
+    else if (uniqueChars <= password.length * 0.5) advice = "Too many repeated characters — mix it up.";
+    else if (normalizedScore < 4) advice = "Add another word, number or symbol for extra strength.";
 
-    return {
-      score: normalizedScore,
-      ...levels[normalizedScore],
-    };
+    return { score: normalizedScore, ...LEVELS[normalizedScore], advice };
   }, [password]);
 
   if (!password) return null;
 
+  const level = isBreached ? LEVELS[0] : strength;
+  const shown = isBreached ? 0 : strength.score;
+  const label = isBreached ? "Compromised" : strength.label;
+
   return (
     <div className="space-y-2">
-      <div className="flex gap-1">
+      <div className="flex gap-1" role="presentation">
         {[0, 1, 2, 3].map((index) => (
           <div
             key={index}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-all duration-300",
-              index <= strength.score ? strength.color : "bg-muted"
+              index <= shown ? level.bar : "bg-muted"
             )}
           />
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Password strength: <span className={cn("font-medium", {
-          "text-red-500": strength.score === 0,
-          "text-orange-500": strength.score === 1,
-          "text-yellow-500": strength.score === 2,
-          "text-green-500": strength.score === 3,
-          "text-emerald-500": strength.score === 4,
-        })}>{strength.label}</span>
+      <p className="text-xs text-muted-foreground" aria-live="polite">
+        Password strength: <span className={cn("font-medium", level.text)}>{label}</span>
+        {!isBreached && strength.advice && (
+          <span className="block mt-0.5">{strength.advice}</span>
+        )}
+        {isBreached && (
+          <span className="block mt-0.5 text-destructive">
+            Found in a known breach — choose a completely different password.
+          </span>
+        )}
       </p>
     </div>
   );
