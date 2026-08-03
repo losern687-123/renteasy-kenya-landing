@@ -44,7 +44,7 @@ export const LuxuryNav = () => {
         <div className="flex items-center justify-between px-5 md:px-12 py-4 md:py-6">
         <Link
           to="/"
-          className="text-base sm:text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.25em] text-primary font-serif whitespace-nowrap"
+          className="text-base sm:text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.25em] text-accent font-serif whitespace-nowrap"
         >
           RENTEASY <span className="italic font-light">Kenya</span>
         </Link>
@@ -81,7 +81,7 @@ export const LuxuryNav = () => {
               </Link>
               <Link
                 to="/waitlist"
-                className="hidden md:inline-block px-5 md:px-8 py-2.5 border border-primary text-primary text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-background transition-all duration-500 motion-reduce:transition-none"
+                className="hidden md:inline-block px-5 md:px-8 py-2.5 border border-accent text-accent text-[10px] uppercase tracking-[0.2em] hover:bg-accent hover:text-background transition-all duration-500 motion-reduce:transition-none"
               >
                 Join Waitlist
               </Link>
