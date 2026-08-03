@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 import { MarketingFooter } from "@/components/marketing/MarketingLayout";
 import { PhotoGallery } from "@/components/marketplace/PhotoGallery";
 import { InquiryForm } from "@/components/marketplace/InquiryForm";
@@ -154,15 +155,16 @@ export default function ListingDetailPage() {
     navigate(`/chat/${newConvo.id}`);
   };
 
-  const shell = "min-h-screen bg-[#0d0d0d] text-[#f5f3ee]";
+  const shell = "relative isolate min-h-screen bg-background text-foreground";
   const fontStyle = { fontFamily: "'Karla', system-ui, sans-serif" } as const;
 
   if (loading) {
     return (
       <div className={shell} style={fontStyle}>
-        <LuxuryNav />
+        <EditorialBackdrop />
+      <LuxuryNav />
         <div className="flex items-center justify-center py-40">
-          <Loader2 className="w-7 h-7 animate-spin text-[#c9a84c]" />
+          <Loader2 className="w-7 h-7 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -180,20 +182,21 @@ export default function ListingDetailPage() {
       .slice(0, 2) || "LL";
 
   const factClass =
-    "flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] border border-[#c9a84c]/20 px-4 py-3 text-[#f5f3ee]/70";
+    "flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] border border-primary/20 px-4 py-3 text-foreground/70";
   const btnGold =
-    "w-full h-12 inline-flex items-center justify-center gap-2 bg-[#c9a84c] text-[#0d0d0d] text-[10px] uppercase tracking-[0.3em] hover:bg-[#f0d78c] transition-colors";
+    "w-full h-12 inline-flex items-center justify-center gap-2 bg-primary text-background text-[10px] uppercase tracking-[0.3em] hover:bg-accent transition-colors";
   const btnGhost =
-    "w-full h-12 inline-flex items-center justify-center gap-2 border border-[#c9a84c]/30 text-[#c9a84c] text-[10px] uppercase tracking-[0.3em] hover:border-[#c9a84c] hover:text-[#f0d78c] transition-colors";
+    "w-full h-12 inline-flex items-center justify-center gap-2 border border-primary/30 text-primary text-[10px] uppercase tracking-[0.3em] hover:border-primary hover:text-accent transition-colors";
 
   return (
     <div className={shell} style={fontStyle}>
+      <EditorialBackdrop />
       <LuxuryNav />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-28 md:pt-36 pb-16 space-y-8">
         <Link
           to="/marketplace"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] hover:text-[#f0d78c] transition-colors"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary hover:text-accent transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to the Collection
         </Link>
@@ -204,19 +207,19 @@ export default function ListingDetailPage() {
             <PhotoGallery photos={photos} />
 
             <div>
-              <span className="block text-[#c9a84c] text-[10px] uppercase tracking-[0.4em] mb-4">
+              <span className="block text-primary text-[10px] uppercase tracking-[0.4em] mb-4">
                 {label(listing.property_type || "residence")}
               </span>
               <h1 className="font-serif text-3xl md:text-5xl leading-tight">{listing.title}</h1>
-              <p className="flex items-center gap-2 mt-4 text-[11px] uppercase tracking-[0.25em] text-[#f5f3ee]/55">
-                <MapPin className="w-4 h-4 text-[#c9a84c]" />
+              <p className="flex items-center gap-2 mt-4 text-[11px] uppercase tracking-[0.25em] text-foreground/55">
+                <MapPin className="w-4 h-4 text-primary" />
                 {listing.properties?.location || "Nairobi"}
               </p>
-              <p className="mt-6 font-serif text-3xl text-[#c9a84c]">
+              <p className="mt-6 font-serif text-3xl text-primary">
                 {typeof listing.properties?.rent_amount === "number"
                   ? `KES ${listing.properties.rent_amount.toLocaleString()}`
                   : "Price on enquiry"}
-                <span className="text-xs font-sans tracking-[0.25em] uppercase text-[#f5f3ee]/45 ml-2">
+                <span className="text-xs font-sans tracking-[0.25em] uppercase text-foreground/45 ml-2">
                   / month
                 </span>
               </p>
@@ -225,51 +228,51 @@ export default function ListingDetailPage() {
             <div className="flex flex-wrap gap-3">
               {listing.bedrooms ? (
                 <div className={factClass}>
-                  <BedDouble className="w-4 h-4 text-[#c9a84c]" />
+                  <BedDouble className="w-4 h-4 text-primary" />
                   {listing.bedrooms} Bedroom{listing.bedrooms > 1 ? "s" : ""}
                 </div>
               ) : null}
               {listing.bathrooms ? (
                 <div className={factClass}>
-                  <Bath className="w-4 h-4 text-[#c9a84c]" />
+                  <Bath className="w-4 h-4 text-primary" />
                   {listing.bathrooms} Bathroom{listing.bathrooms > 1 ? "s" : ""}
                 </div>
               ) : null}
               {listing.move_in_date ? (
                 <div className={factClass}>
-                  <Calendar className="w-4 h-4 text-[#c9a84c]" />
+                  <Calendar className="w-4 h-4 text-primary" />
                   Available {new Date(listing.move_in_date).toLocaleDateString()}
                 </div>
               ) : null}
               <div className={factClass}>
-                <Eye className="w-4 h-4 text-[#c9a84c]" />
+                <Eye className="w-4 h-4 text-primary" />
                 {listing.views_count || 0} Views
               </div>
             </div>
 
             {listing.description && (
-              <div className="border-t border-[#c9a84c]/15 pt-8">
-                <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-5">
+              <div className="border-t border-primary/15 pt-8">
+                <h2 className="text-[10px] uppercase tracking-[0.4em] text-primary mb-5">
                   — The Residence
                 </h2>
-                <p className="text-[#f5f3ee]/65 font-light leading-relaxed whitespace-pre-line max-w-2xl">
+                <p className="text-foreground/65 font-light leading-relaxed whitespace-pre-line max-w-2xl">
                   {listing.description}
                 </p>
               </div>
             )}
 
             {amenities.length > 0 && (
-              <div className="border-t border-[#c9a84c]/15 pt-8">
-                <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-5">
+              <div className="border-t border-primary/15 pt-8">
+                <h2 className="text-[10px] uppercase tracking-[0.4em] text-primary mb-5">
                   — Amenities
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {amenities.map((amenity: string, i: number) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 text-sm font-light text-[#f5f3ee]/70"
+                      className="flex items-center gap-2 text-sm font-light text-foreground/70"
                     >
-                      <CheckCircle className="w-4 h-4 text-[#c9a84c] shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-primary shrink-0" />
                       <span>{amenity}</span>
                     </div>
                   ))}
@@ -280,14 +283,14 @@ export default function ListingDetailPage() {
 
           {/* Right */}
           <aside className="space-y-6 lg:sticky lg:top-28 self-start">
-            <div className="border border-[#c9a84c]/20 p-6 space-y-6">
+            <div className="border border-primary/20 p-6 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 border border-[#c9a84c]/40 flex items-center justify-center text-[#c9a84c] font-serif text-lg">
+                <div className="w-12 h-12 border border-primary/40 flex items-center justify-center text-primary font-serif text-lg">
                   {initials}
                 </div>
                 <div>
                   <p className="font-serif text-xl">{landlordName || "Landlord"}</p>
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-[#f5f3ee]/45 mt-1">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-foreground/45 mt-1">
                     Property Owner
                   </p>
                 </div>
@@ -301,20 +304,20 @@ export default function ListingDetailPage() {
                   <Building2 className="w-4 h-4" /> Apply Now
                 </button>
                 <button onClick={toggleSave} disabled={savingToggle} className={btnGhost}>
-                  <Heart className={`w-4 h-4 ${isSaved ? "fill-[#c9a84c]" : ""}`} />
+                  <Heart className={`w-4 h-4 ${isSaved ? "fill-primary" : ""}`} />
                   {isSaved ? "Saved" : "Save Residence"}
                 </button>
               </div>
 
               {!user && (
-                <p className="text-[10px] uppercase tracking-[0.2em] text-[#f5f3ee]/40 leading-relaxed">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-foreground/40 leading-relaxed">
                   Browsing is open to everyone — sign in to enquire or save.
                 </p>
               )}
             </div>
 
-            <div className="border border-[#c9a84c]/20 p-6 space-y-4">
-              <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#c9a84c]">
+            <div className="border border-primary/20 p-6 space-y-4">
+              <h2 className="text-[10px] uppercase tracking-[0.4em] text-primary">
                 — Property Info
               </h2>
               <dl className="space-y-3 text-sm">
@@ -324,10 +327,10 @@ export default function ListingDetailPage() {
                   ["Listed", new Date(listing.created_at).toLocaleDateString()],
                 ].map(([k, v]) => (
                   <div key={k as string} className="flex justify-between gap-4">
-                    <dt className="text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/45">
+                    <dt className="text-[10px] uppercase tracking-[0.25em] text-foreground/45">
                       {k}
                     </dt>
-                    <dd className="text-[#f5f3ee]/80 font-light text-right">{v || "—"}</dd>
+                    <dd className="text-foreground/80 font-light text-right">{v || "—"}</dd>
                   </div>
                 ))}
               </dl>

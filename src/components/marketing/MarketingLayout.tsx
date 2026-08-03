@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from "react";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 import { Link } from "react-router-dom";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
 
@@ -26,16 +27,16 @@ const accountLinks = [
 ];
 
 export const MarketingFooter = () => (
-  <footer className="w-full bg-[#0d0d0d] border-t border-[#c9a84c]/15 px-6 md:px-12 py-16">
+  <footer className="w-full bg-background border-t border-primary/15 px-6 md:px-12 py-16">
     <div className="max-w-6xl mx-auto grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
       <div>
         <Link
           to="/"
-          className="font-serif text-xl tracking-[0.2em] text-[#c9a84c]"
+          className="font-serif text-xl tracking-[0.2em] text-primary"
         >
           RENTEASY <span className="italic font-light">Kenya</span>
         </Link>
-        <p className="mt-4 text-sm leading-relaxed text-[#f5f3ee]/50 font-light">
+        <p className="mt-4 text-sm leading-relaxed text-foreground/50 font-light">
           Property management and a curated rental marketplace for Kenya's
           landlords, tenants and property seekers.
         </p>
@@ -47,7 +48,7 @@ export const MarketingFooter = () => (
         { title: "Get Started", links: accountLinks },
       ].map((col) => (
         <div key={col.title}>
-          <h3 className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] mb-5">
+          <h3 className="text-[10px] uppercase tracking-[0.3em] text-primary mb-5">
             {col.title}
           </h3>
           <ul className="space-y-3">
@@ -55,7 +56,7 @@ export const MarketingFooter = () => (
               <li key={l.name}>
                 <Link
                   to={l.to}
-                  className="text-sm text-[#f5f3ee]/60 hover:text-[#c9a84c] transition-colors"
+                  className="text-sm text-foreground/60 hover:text-primary transition-colors"
                 >
                   {l.name}
                 </Link>
@@ -66,7 +67,7 @@ export const MarketingFooter = () => (
       ))}
     </div>
 
-    <div className="max-w-6xl mx-auto mt-14 pt-8 border-t border-[#c9a84c]/10 text-[9px] uppercase tracking-[0.35em] text-[#c9a84c]/40">
+    <div className="max-w-6xl mx-auto mt-14 pt-8 border-t border-primary/10 text-[9px] uppercase tracking-[0.35em] text-primary/40">
       © {new Date().getFullYear()} RentEasy Kenya
     </div>
   </footer>
@@ -74,24 +75,20 @@ export const MarketingFooter = () => (
 
 export const MarketingLayout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
-    const prev = document.documentElement.style.colorScheme;
-    document.documentElement.style.colorScheme = "dark";
     window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.style.colorScheme = prev;
-    };
   }, []);
 
   return (
     <div
-      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      className="relative isolate min-h-screen bg-background text-foreground"
       style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
     >
-      <div className="relative">
+      <EditorialBackdrop />
+      <div className="relative z-10">
         <LuxuryNav />
+        <main className="pt-24 md:pt-28">{children}</main>
+        <MarketingFooter />
       </div>
-      <main className="pt-24 md:pt-28">{children}</main>
-      <MarketingFooter />
     </div>
   );
 };

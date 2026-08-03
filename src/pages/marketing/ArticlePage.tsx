@@ -1,3 +1,5 @@
+import { HeroVeil } from "@/components/shared/HeroVeil";
+import heroArticle from "@/assets/marketing-rent.jpg";
 import { useParams, Navigate, Link } from "react-router-dom";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import Seo from "@/components/marketing/Seo";
@@ -30,23 +32,24 @@ const ArticlePage = () => {
       />
 
       <article>
-        <Section className="!pb-0">
+        <Section className="relative isolate overflow-hidden !pt-32 md:!pt-40 !pb-16 md:!pb-20">
+          <HeroVeil image={heroArticle} />
           <Link
             to="/resources"
-            className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] hover:text-[#f0d78c] transition-colors"
+            className="text-[10px] uppercase tracking-[0.3em] text-primary hover:text-accent transition-colors"
           >
             ← All resources
           </Link>
-          <span className="mt-8 block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c]">
+          <span className="mt-8 block text-[10px] uppercase tracking-[0.4em] text-primary">
             — {article.category}
           </span>
-          <h1 className="mt-5 max-w-3xl font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.03] text-[#f5f3ee]">
+          <h1 className="mt-5 max-w-3xl font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.03] on-veil">
             {article.title}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-[#f5f3ee]/60 font-light leading-relaxed">
+          <p className="mt-6 max-w-2xl text-lg on-veil-muted font-light leading-relaxed">
             {article.description}
           </p>
-          <div className="mt-8 flex gap-6 border-t border-[#c9a84c]/15 pt-6 text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/40">
+          <div className="mt-8 flex gap-6 border-t border-primary/15 pt-6 text-[10px] uppercase tracking-[0.25em] text-foreground/40">
             <span>
               {new Date(article.date).toLocaleDateString("en-KE", {
                 day: "numeric",
@@ -63,24 +66,24 @@ const ArticlePage = () => {
             {article.body.map((block, i) => (
               <div key={i} className="mb-10 last:mb-0">
                 {block.heading && (
-                  <h2 className="mb-4 font-serif text-2xl md:text-3xl text-[#f0d78c]">
+                  <h2 className="mb-4 font-serif text-2xl md:text-3xl text-accent">
                     {block.heading}
                   </h2>
                 )}
                 {block.paragraphs.map((p, j) => (
                   <p
                     key={j}
-                    className="mb-4 text-[#f5f3ee]/70 font-light leading-[1.85]"
+                    className="mb-4 text-foreground/70 font-light leading-[1.85]"
                   >
                     {p}
                   </p>
                 ))}
                 {block.list && (
-                  <ul className="mt-5 space-y-3 border-l border-[#c9a84c]/30 pl-6">
+                  <ul className="mt-5 space-y-3 border-l border-primary/30 pl-6">
                     {block.list.map((item) => (
                       <li
                         key={item}
-                        className="text-sm text-[#f5f3ee]/60 font-light leading-relaxed"
+                        className="text-sm text-foreground/60 font-light leading-relaxed"
                       >
                         {item}
                       </li>
@@ -93,8 +96,8 @@ const ArticlePage = () => {
         </Section>
       </article>
 
-      <Section className="bg-[#111111] border-y border-[#c9a84c]/10">
-        <h2 className="mb-8 text-[10px] uppercase tracking-[0.4em] text-[#c9a84c]">
+      <Section className="bg-card border-y border-primary/10">
+        <h2 className="mb-8 text-[10px] uppercase tracking-[0.4em] text-primary">
           Keep reading
         </h2>
         <div className="grid gap-6 sm:grid-cols-3">
@@ -102,15 +105,15 @@ const ArticlePage = () => {
             <Link
               key={r.slug}
               to={`/resources/blog/${r.slug}`}
-              className="group border border-[#c9a84c]/15 bg-[#0d0d0d] p-7 transition-colors hover:border-[#c9a84c]/50"
+              className="group border border-primary/15 bg-background p-7 transition-colors hover:border-primary/50"
             >
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#c9a84c]">
+              <span className="text-[9px] uppercase tracking-[0.3em] text-primary">
                 {r.category}
               </span>
-              <h3 className="mt-3 font-serif text-xl text-[#f5f3ee] group-hover:text-[#f0d78c] transition-colors">
+              <h3 className="mt-3 font-serif text-xl text-foreground group-hover:text-accent transition-colors">
                 {r.title}
               </h3>
-              <p className="mt-2 text-sm text-[#f5f3ee]/50 font-light line-clamp-3">
+              <p className="mt-2 text-sm text-foreground/50 font-light line-clamp-3">
                 {r.description}
               </p>
             </Link>

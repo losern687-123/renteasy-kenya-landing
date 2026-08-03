@@ -5,56 +5,67 @@
 
 @layer base {
   :root {
-    /* Light — Noir & Gold "day" (cream + deep gold) */
-    --background: 40 30% 96%;           /* #f7f4ec */
-    --foreground: 0 0% 8%;              /* near-black */
+    /* Light — Alabaster & Bronze (daylight counterpart of Noir & Gold) */
+    --background: 60 4% 96%;            /* #f4f4f2 alabaster */
+    --foreground: 0 0% 11%;             /* #1c1c1c charcoal ink */
 
-    --card: 40 25% 99%;
-    --card-foreground: 0 0% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
 
-    --popover: 40 25% 99%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 40 55% 38%;              /* deep gold */
-    --primary-foreground: 40 25% 99%;
-    --primary-glow: 42 65% 55%;
+    --primary: 33 38% 40%;              /* #8c6b3f bronze */
+    --primary-foreground: 60 4% 97%;
+    --primary-glow: 33 44% 54%;
 
-    --secondary: 40 20% 90%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 60 3% 91%;             /* #e2e2df stone */
+    --secondary-foreground: 0 0% 13%;
 
-    --muted: 40 20% 92%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 60 3% 93%;
+    --muted-foreground: 0 0% 38%;
 
-    --accent: 42 65% 55%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 33 44% 52%;
+    --accent-foreground: 0 0% 11%;
 
-    --destructive: 0 72% 45%;
+    --destructive: 0 68% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 30% 82%;
-    --input: 40 20% 88%;
-    --ring: 40 55% 38%;
+    --border: 36 8% 83%;
+    --input: 60 3% 89%;
+    --ring: 33 38% 40%;
 
     --radius: 0.5rem;
 
-    --gradient-hero: linear-gradient(135deg, hsl(40 30% 96%) 0%, hsl(40 20% 90%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(40 55% 38%) 0%, hsl(42 65% 55%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(40 30% 96%) 0%, hsl(40 25% 93%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(60 4% 96%) 0%, hsl(60 3% 91%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(33 38% 40%) 0%, hsl(33 44% 54%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(60 4% 96%) 0%, hsl(60 3% 93%) 100%);
 
-    --sidebar-background: 40 25% 94%;
-    --sidebar-foreground: 0 0% 12%;
-    --sidebar-primary: 40 55% 38%;
-    --sidebar-primary-foreground: 40 25% 99%;
-    --sidebar-accent: 40 20% 90%;
-    --sidebar-accent-foreground: 0 0% 12%;
-    --sidebar-border: 40 30% 82%;
-    --sidebar-ring: 40 55% 38%;
+    /* Atmosphere veils — keep background imagery legible in both modes */
+    --veil-page: linear-gradient(180deg, hsl(60 4% 96% / 0.82) 0%, hsl(60 4% 96% / 0.93) 55%, hsl(60 4% 96% / 0.98) 100%);
+    --veil-banner: linear-gradient(180deg, hsl(0 0% 8% / 0.45) 0%, hsl(0 0% 8% / 0.72) 100%);
+    --atmos-opacity: 0.5;
+    --veil-nav: linear-gradient(180deg, hsl(0 0% 5% / 0.82) 0%, hsl(0 0% 5% / 0.45) 100%);
+    --veil-card: linear-gradient(0deg, hsl(0 0% 5% / 0.9) 0%, hsl(0 0% 5% / 0.35) 45%, hsl(0 0% 5% / 0.05) 100%);
+    --veil-foreground: 40 20% 96%;
+    --veil-foreground-muted: 40 12% 86%;
+    --veil-hero-h: linear-gradient(90deg, hsl(0 0% 6% / 0.92) 0%, hsl(0 0% 6% / 0.6) 55%, hsl(0 0% 6% / 0.25) 100%);
+    --veil-hero-v: linear-gradient(0deg, hsl(0 0% 6% / 0.85) 0%, hsl(0 0% 6% / 0.15) 45%, hsl(0 0% 6% / 0.45) 100%);
 
-    --chart-1: 40 55% 38%;
-    --chart-2: 42 65% 55%;
-    --chart-3: 25 55% 45%;
-    --chart-4: 0 60% 50%;
-    --chart-5: 200 40% 45%;
+    --sidebar-background: 60 4% 93%;
+    --sidebar-foreground: 0 0% 13%;
+    --sidebar-primary: 33 38% 40%;
+    --sidebar-primary-foreground: 60 4% 97%;
+    --sidebar-accent: 60 3% 89%;
+    --sidebar-accent-foreground: 0 0% 13%;
+    --sidebar-border: 36 8% 83%;
+    --sidebar-ring: 33 38% 40%;
+
+    --chart-1: 33 38% 40%;
+    --chart-2: 33 44% 54%;
+    --chart-3: 25 30% 45%;
+    --chart-4: 0 55% 48%;
+    --chart-5: 200 25% 45%;
 
     --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.06);
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.08);
@@ -94,6 +105,17 @@
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 5%) 0%, hsl(0 0% 12%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(43 55% 55%) 0%, hsl(42 76% 74%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 8%) 100%);
+
+    --veil-page: linear-gradient(180deg, hsl(0 0% 5% / 0.86) 0%, hsl(0 0% 5% / 0.95) 60%, hsl(0 0% 5%) 100%);
+    --veil-banner: linear-gradient(180deg, hsl(0 0% 3% / 0.45) 0%, hsl(0 0% 3% / 0.82) 100%);
+    --atmos-opacity: 0.42;
+    --veil-nav: linear-gradient(180deg, hsl(0 0% 3% / 0.85) 0%, hsl(0 0% 3% / 0.5) 100%);
+    --veil-card: linear-gradient(0deg, hsl(0 0% 3% / 0.92) 0%, hsl(0 0% 3% / 0.4) 45%, hsl(0 0% 3% / 0.05) 100%);
+    --veil-foreground: 40 20% 96%;
+    --veil-foreground-muted: 40 12% 84%;
+    --veil-hero-h: linear-gradient(90deg, hsl(0 0% 4% / 0.95) 0%, hsl(0 0% 4% / 0.7) 55%, hsl(0 0% 4% / 0.3) 100%);
+    --veil-hero-v: linear-gradient(0deg, hsl(0 0% 4% / 0.9) 0%, hsl(0 0% 4% / 0.2) 45%, hsl(0 0% 4% / 0.5) 100%);
+
 
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 40 20% 92%;
@@ -185,6 +207,17 @@
 @layer utilities {
   .story-link {
     @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  .on-veil { color: hsl(var(--veil-foreground)); }
+  .on-veil-muted { color: hsl(var(--veil-foreground-muted)); }
+
+  .editorial-rule {
+    @apply relative flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-primary;
+  }
+  .editorial-rule::before {
+    content: '';
+    @apply h-px w-8 bg-primary/70;
   }
 
   .hover-scale {

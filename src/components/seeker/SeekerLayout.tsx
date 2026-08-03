@@ -4,6 +4,8 @@ import { SeekerBottomNav } from "./SeekerBottomNav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
+import { PageBanner } from "@/components/shared/PageBanner";
 
 interface SeekerLayoutProps {
   children: ReactNode;
@@ -16,7 +18,8 @@ export function SeekerLayout({ children, activeTab, onTabChange, userName }: See
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-muted">
+    <div className="relative min-h-screen bg-background">
+      <EditorialBackdrop />
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <SeekerSidebar activeTab={activeTab} onTabChange={onTabChange} userName={userName} />
@@ -34,9 +37,9 @@ export function SeekerLayout({ children, activeTab, onTabChange, userName }: See
         </SheetContent>
       </Sheet>
 
-      <div className="lg:pl-64">
+      <div className="relative z-10 lg:pl-64">
         {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-background border-b border-border">
+        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md">
           <Button
             variant="ghost"
             size="icon"
@@ -59,7 +62,8 @@ export function SeekerLayout({ children, activeTab, onTabChange, userName }: See
           </header>
         </div>
 
-        <main className="p-4 lg:p-6 pb-24 lg:pb-6">
+        <main className="p-4 lg:p-6 pb-24 lg:pb-6 space-y-6">
+          <PageBanner eyebrow="Property Seeker" title="Find your next home" subtitle="Browse curated listings and link to a property with its code" />
           {children}
         </main>
       </div>

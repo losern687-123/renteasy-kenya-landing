@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PageTransition, FadeIn } from "@/components/PageTransition";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
+import { PageBanner } from "@/components/shared/PageBanner";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -28,9 +30,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-muted flex w-full">
+    <div className="relative min-h-screen bg-background flex w-full">
+      <EditorialBackdrop />
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-sidebar border-r border-sidebar-border flex-col fixed h-screen">
+      <aside className="hidden lg:flex w-64 bg-sidebar border-r border-sidebar-border flex-col fixed h-screen z-20">
         <div className="flex h-[72px] items-center border-b border-sidebar-border px-6">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
@@ -78,9 +81,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col lg:ml-64">
+      <main className="relative z-10 flex-1 flex flex-col lg:ml-64">
         {/* Mobile Header */}
-        <header className="lg:hidden bg-background border-b border-border px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <header className="lg:hidden bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center sticky top-0 z-50">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">RE</span>
@@ -146,14 +149,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <div className="max-w-7xl mx-auto">
             <PageTransition>
               <FadeIn>
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    Welcome back, {tenantName}!
-                  </h2>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    Manage your rent payments and track your records
-                  </p>
-                </div>
+                <PageBanner
+                  className="mb-6"
+                  eyebrow="Tenant Residence"
+                  title={`Welcome back, ${tenantName}`}
+                  subtitle="Manage your rent payments and track your records"
+                />
               </FadeIn>
               {children}
             </PageTransition>
@@ -161,7 +162,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Mobile Bottom Nav */}
-        <nav className="lg:hidden bg-background border-t border-border p-2 flex justify-around fixed bottom-0 left-0 right-0 z-50">
+        <nav className="lg:hidden bg-background/90 backdrop-blur-md border-t border-border p-2 flex justify-around fixed bottom-0 left-0 right-0 z-50">
           {menuItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
             return (

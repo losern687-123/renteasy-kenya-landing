@@ -59,32 +59,32 @@ export const EmailCaptureForm = ({
 
   if (done) {
     return (
-      <div className="border border-[#c9a84c]/30 bg-[#141414] p-10 text-center">
-        <CheckCircle2 className="mx-auto h-8 w-8 text-[#c9a84c]" />
-        <h3 className="mt-4 font-serif text-2xl text-[#f5f3ee]">Thank you</h3>
-        <p className="mt-2 text-sm text-[#f5f3ee]/60 font-light">{successMessage}</p>
+      <div className="border border-primary/30 bg-card p-10 text-center">
+        <CheckCircle2 className="mx-auto h-8 w-8 text-primary" />
+        <h3 className="mt-4 font-serif text-2xl text-foreground">Thank you</h3>
+        <p className="mt-2 text-sm text-foreground/60 font-light">{successMessage}</p>
       </div>
     );
   }
 
   const inputClass =
-    "w-full bg-transparent border border-[#c9a84c]/25 px-4 py-3 text-sm text-[#f5f3ee] placeholder:text-[#f5f3ee]/30 focus:border-[#c9a84c] focus:outline-none transition-colors min-h-[48px]";
+    "w-full bg-transparent border border-primary/25 px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:border-primary focus:outline-none transition-colors min-h-[48px]";
 
   return (
     <form
       onSubmit={submit}
-      className="border border-[#c9a84c]/20 bg-[#141414] p-6 sm:p-10 space-y-5"
+      className="border border-primary/20 bg-card p-6 sm:p-10 space-y-5"
     >
       <div>
-        <h3 className="font-serif text-2xl md:text-3xl text-[#f5f3ee]">{title}</h3>
+        <h3 className="font-serif text-2xl md:text-3xl text-foreground">{title}</h3>
         {description && (
-          <p className="mt-2 text-sm text-[#f5f3ee]/55 font-light">{description}</p>
+          <p className="mt-2 text-sm text-foreground/55 font-light">{description}</p>
         )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${source}-name`} className="block text-[10px] uppercase tracking-[0.25em] text-[#c9a84c] mb-2">
+          <label htmlFor={`${source}-name`} className="block text-[10px] uppercase tracking-[0.25em] text-primary mb-2">
             Full name
           </label>
           <input
@@ -97,7 +97,7 @@ export const EmailCaptureForm = ({
           />
         </div>
         <div>
-          <label htmlFor={`${source}-email`} className="block text-[10px] uppercase tracking-[0.25em] text-[#c9a84c] mb-2">
+          <label htmlFor={`${source}-email`} className="block text-[10px] uppercase tracking-[0.25em] text-primary mb-2">
             Email
           </label>
           <input
@@ -114,7 +114,7 @@ export const EmailCaptureForm = ({
 
       {interests.length > 0 && (
         <fieldset>
-          <legend className="text-[10px] uppercase tracking-[0.25em] text-[#c9a84c] mb-3">
+          <legend className="text-[10px] uppercase tracking-[0.25em] text-primary mb-3">
             Interested in
           </legend>
           <div className="flex flex-wrap gap-2">
@@ -126,8 +126,8 @@ export const EmailCaptureForm = ({
                 aria-pressed={selected.includes(i)}
                 className={`min-h-[44px] px-4 text-[11px] uppercase tracking-[0.2em] border transition-colors ${
                   selected.includes(i)
-                    ? "border-[#c9a84c] bg-[#c9a84c]/15 text-[#c9a84c]"
-                    : "border-[#c9a84c]/20 text-[#f5f3ee]/60 hover:border-[#c9a84c]/50"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-primary/20 text-foreground/60 hover:border-primary/50"
                 }`}
               >
                 {i}
@@ -140,7 +140,7 @@ export const EmailCaptureForm = ({
       <button
         type="submit"
         disabled={submitting}
-        className="w-full sm:w-auto min-h-[48px] px-10 bg-[#c9a84c] text-[#0d0d0d] text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-[#f0d78c] transition-colors disabled:opacity-60"
+        className="w-full sm:w-auto min-h-[48px] px-10 bg-primary text-background text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-accent transition-colors disabled:opacity-60"
       >
         {submitting ? "Submitting…" : buttonLabel}
       </button>
