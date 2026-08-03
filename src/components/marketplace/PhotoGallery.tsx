@@ -19,9 +19,9 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
 
   if (sorted.length === 0) {
     return (
-      <div className="aspect-[16/9] bg-[#1a1a1a] border border-[#c9a84c]/15 flex items-center justify-center">
-        <div className="text-center text-[#f5f3ee]/40">
-          <Building2 className="w-12 h-12 mx-auto mb-3 text-[#c9a84c]/30" />
+      <div className="aspect-[16/9] bg-card border border-primary/15 flex items-center justify-center">
+        <div className="text-center text-foreground/40">
+          <Building2 className="w-12 h-12 mx-auto mb-3 text-primary/30" />
           <p className="text-[10px] uppercase tracking-[0.3em]">No photos available</p>
         </div>
       </div>
@@ -33,7 +33,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
   return (
     <div className="space-y-3">
       {/* Main Image */}
-      <div className="relative aspect-[16/9] overflow-hidden bg-[#1a1a1a] border border-[#c9a84c]/15 group">
+      <div className="relative aspect-[16/9] overflow-hidden bg-card border border-primary/15 group">
         <img
           src={activePhoto.storage_path}
           alt={activePhoto.caption || "Property photo"}
@@ -44,18 +44,18 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
             <button
               aria-label="Previous photo"
               onClick={() => setActiveIndex(i => (i - 1 + sorted.length) % sorted.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-[#0d0d0d]/70 border border-[#c9a84c]/30 flex items-center justify-center text-[#c9a84c] md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-[#0d0d0d]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-background/70 border border-primary/30 flex items-center justify-center text-primary md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-background"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               aria-label="Next photo"
               onClick={() => setActiveIndex(i => (i + 1) % sorted.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-[#0d0d0d]/70 border border-[#c9a84c]/30 flex items-center justify-center text-[#c9a84c] md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-[#0d0d0d]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-background/70 border border-primary/30 flex items-center justify-center text-primary md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-background"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
-            <div className="absolute bottom-3 right-3 bg-[#0d0d0d]/75 text-[#c9a84c] text-[10px] tracking-[0.3em] px-3 py-1.5">
+            <div className="absolute bottom-3 right-3 bg-background/75 text-primary text-[10px] tracking-[0.3em] px-3 py-1.5">
               {activeIndex + 1} / {sorted.length}
             </div>
           </>
@@ -73,8 +73,8 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
               className={cn(
                 "w-16 h-16 sm:w-20 sm:h-20 overflow-hidden shrink-0 border transition-all",
                 index === activeIndex
-                  ? "border-[#c9a84c]"
-                  : "border-[#c9a84c]/15 opacity-55 hover:opacity-100"
+                  ? "border-primary"
+                  : "border-primary/15 opacity-55 hover:opacity-100"
               )}
             >
               <img

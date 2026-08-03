@@ -1,3 +1,5 @@
+import { HeroVeil } from "@/components/shared/HeroVeil";
+import heroResources from "@/assets/neighborhood-karen.jpg";
 import { Link } from "react-router-dom";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import Seo from "@/components/marketing/Seo";
@@ -34,15 +36,16 @@ const ResourcesIndex = () => {
         }}
       />
 
-      <Section className="!pb-0">
-        <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
+      <Section className="!pb-0 relative isolate overflow-hidden !pt-32 md:!pt-40">
+        <HeroVeil image={heroResources} />
+        <span className="block text-[10px] uppercase tracking-[0.4em] text-primary mb-6">
           — Resources
         </span>
-        <h1 className="max-w-3xl font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.02] text-[#f5f3ee]">
+        <h1 className="max-w-3xl font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.02] on-veil">
           Field notes for{" "}
-          <span className="italic font-light text-[#f0d78c]">Kenyan landlords</span>
+          <span className="italic font-light text-accent">Kenyan landlords</span>
         </h1>
-        <p className="mt-6 max-w-xl text-[#f5f3ee]/60 font-light leading-relaxed">
+        <p className="mt-6 max-w-xl on-veil-muted font-light leading-relaxed">
           Written guides on collection, screening, tenancy law and portfolio
           performance — drawn from how landlords actually run their buildings.
         </p>
@@ -50,7 +53,7 @@ const ResourcesIndex = () => {
           {categories.map((c) => (
             <span
               key={c}
-              className="border border-[#c9a84c]/25 px-3 py-2 text-[9px] uppercase tracking-[0.25em] text-[#f5f3ee]/60"
+              className="border border-primary/25 px-3 py-2 text-[9px] uppercase tracking-[0.25em] text-foreground/60"
             >
               {c}
             </span>
@@ -63,18 +66,18 @@ const ResourcesIndex = () => {
           <Reveal>
             <Link
               to={`/resources/blog/${featured.slug}`}
-              className="group block border border-[#c9a84c]/20 bg-[#141414] p-8 md:p-12 transition-colors hover:border-[#c9a84c]/55"
+              className="group block border border-primary/20 bg-card p-8 md:p-12 transition-colors hover:border-primary/55"
             >
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#c9a84c]">
+              <span className="text-[9px] uppercase tracking-[0.3em] text-primary">
                 Featured · {featured.category}
               </span>
-              <h2 className="mt-5 max-w-3xl font-serif text-3xl md:text-4xl leading-[1.08] text-[#f5f3ee] group-hover:text-[#f0d78c] transition-colors">
+              <h2 className="mt-5 max-w-3xl font-serif text-3xl md:text-4xl leading-[1.08] text-foreground group-hover:text-accent transition-colors">
                 {featured.title}
               </h2>
-              <p className="mt-4 max-w-2xl text-[#f5f3ee]/55 font-light leading-relaxed">
+              <p className="mt-4 max-w-2xl text-foreground/55 font-light leading-relaxed">
                 {featured.description}
               </p>
-              <span className="mt-6 block text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/40">
+              <span className="mt-6 block text-[10px] uppercase tracking-[0.25em] text-foreground/40">
                 {featured.readTime}
               </span>
             </Link>
@@ -88,18 +91,18 @@ const ResourcesIndex = () => {
             <Reveal key={a.slug} delay={i * 0.04}>
               <Link
                 to={`/resources/blog/${a.slug}`}
-                className="group flex h-full flex-col border border-[#c9a84c]/15 bg-[#0d0d0d] p-7 transition-colors hover:border-[#c9a84c]/50"
+                className="group flex h-full flex-col border border-primary/15 bg-background p-7 transition-colors hover:border-primary/50"
               >
-                <span className="text-[9px] uppercase tracking-[0.3em] text-[#c9a84c]">
+                <span className="text-[9px] uppercase tracking-[0.3em] text-primary">
                   {a.category}
                 </span>
-                <h3 className="mt-4 font-serif text-xl leading-snug text-[#f5f3ee] group-hover:text-[#f0d78c] transition-colors">
+                <h3 className="mt-4 font-serif text-xl leading-snug text-foreground group-hover:text-accent transition-colors">
                   {a.title}
                 </h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-[#f5f3ee]/55 font-light">
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/55 font-light">
                   {a.description}
                 </p>
-                <span className="mt-6 text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/40">
+                <span className="mt-6 text-[10px] uppercase tracking-[0.25em] text-foreground/40">
                   {a.readTime}
                 </span>
               </Link>
@@ -108,7 +111,7 @@ const ResourcesIndex = () => {
         </div>
       </Section>
 
-      <Section className="bg-[#111111] border-y border-[#c9a84c]/10">
+      <Section className="bg-card border-y border-primary/10">
         <Reveal>
           <SectionHeading
             eyebrow="Newsletter"

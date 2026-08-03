@@ -5,6 +5,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
+import { PageBanner } from "@/components/shared/PageBanner";
 
 
 interface AdminLayoutProps {
@@ -17,7 +19,8 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-muted">
+    <div className="relative min-h-screen bg-background">
+      <EditorialBackdrop />
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <AdminSidebar />
@@ -30,9 +33,9 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
         </SheetContent>
       </Sheet>
 
-      <div className="lg:pl-64">
+      <div className="relative z-10 lg:pl-64">
         {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-background border-b border-border">
+        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md">
           <Button
             variant="ghost"
             size="icon"
@@ -52,7 +55,8 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
           <AdminHeader title={title} subtitle={subtitle} />
         </div>
 
-        <main className="p-4 lg:p-6">
+        <main className="p-4 lg:p-6 space-y-6">
+          <PageBanner eyebrow="Administration" title={title} subtitle={subtitle} />
           <ErrorBoundary label="This admin page failed to load">
             {children}
           </ErrorBoundary>

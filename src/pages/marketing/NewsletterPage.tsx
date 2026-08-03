@@ -1,3 +1,5 @@
+import { HeroVeil } from "@/components/shared/HeroVeil";
+import heroNews from "@/assets/neighborhood-runda.jpg";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 import Seo from "@/components/marketing/Seo";
 import { Section, Reveal, CtaBand } from "@/components/marketing/sections";
@@ -26,26 +28,27 @@ const NewsletterPage = () => (
       path="/newsletter"
     />
 
-    <Section>
+    <Section className="relative isolate overflow-hidden !pt-32 md:!pt-40">
+      <HeroVeil image={heroNews} />
       <div className="grid gap-14 lg:grid-cols-2 lg:items-start">
         <div>
-          <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
+          <span className="block text-[10px] uppercase tracking-[0.4em] text-primary mb-6">
             — Newsletter
           </span>
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.03] text-[#f5f3ee]">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.03] on-veil">
             The landlord{" "}
-            <span className="italic font-light text-[#f0d78c]">dispatch</span>
+            <span className="italic font-light text-accent">dispatch</span>
           </h1>
-          <p className="mt-6 max-w-lg text-[#f5f3ee]/60 font-light leading-relaxed">
+          <p className="mt-6 max-w-lg on-veil-muted font-light leading-relaxed">
             Once a month: a practical guide, a note on what changed in Kenyan
             tenancy practice, and anything new we have shipped.
           </p>
 
-          <div className="mt-12 grid gap-px border border-[#c9a84c]/12 bg-[#c9a84c]/10 sm:grid-cols-3">
+          <div className="mt-12 grid gap-px border border-primary/12 bg-primary/10 sm:grid-cols-3">
             {promises.map((p) => (
-              <div key={p.title} className="bg-[#0d0d0d] p-6">
-                <h2 className="font-serif text-lg text-[#f0d78c]">{p.title}</h2>
-                <p className="mt-2 text-xs leading-relaxed text-[#f5f3ee]/50 font-light">
+              <div key={p.title} className="bg-background p-6">
+                <h2 className="font-serif text-lg text-accent">{p.title}</h2>
+                <p className="mt-2 text-xs leading-relaxed text-foreground/50 font-light">
                   {p.text}
                 </p>
               </div>
@@ -54,7 +57,7 @@ const NewsletterPage = () => (
         </div>
 
         <Reveal>
-          <div className="border border-[#c9a84c]/20 bg-[#141414] p-8 md:p-10">
+          <div className="border border-primary/20 bg-card p-8 md:p-10">
             <EmailCaptureForm
               source="newsletter"
               title="Join the dispatch"

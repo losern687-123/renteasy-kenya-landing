@@ -56,7 +56,7 @@ const ProductPage = () => {
         </Reveal>
       </Section>
 
-      <Section className="bg-[#111111] border-y border-[#c9a84c]/10">
+      <Section className="bg-card border-y border-primary/10">
         <Reveal>
           <SectionHeading eyebrow="Capabilities" title="What's included" />
           <FeatureCards features={product.features} />
@@ -70,7 +70,7 @@ const ProductPage = () => {
         </Reveal>
       </Section>
 
-      <Section className="bg-[#111111] border-y border-[#c9a84c]/10">
+      <Section className="bg-card border-y border-primary/10">
         <Reveal>
           <SectionHeading
             eyebrow="Plans"
@@ -80,7 +80,7 @@ const ProductPage = () => {
           <TierAvailability rows={product.availability} />
           <Link
             to="/pricing/compare"
-            className="mt-6 inline-block text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] hover:text-[#f0d78c] transition-colors"
+            className="mt-6 inline-block text-[10px] uppercase tracking-[0.3em] text-primary hover:text-accent transition-colors"
           >
             See the full comparison →
           </Link>
@@ -94,22 +94,22 @@ const ProductPage = () => {
         </Reveal>
       </Section>
 
-      <Section className="bg-[#111111] border-t border-[#c9a84c]/10">
+      <Section className="bg-card border-t border-primary/10">
         <SectionHeading eyebrow="Explore" title="Related capabilities" />
         <div className="grid gap-6 sm:grid-cols-3">
           {related.map((r) => (
             <Link
               key={r.slug}
               to={`/products/${r.slug}`}
-              className="group border border-[#c9a84c]/15 bg-[#0d0d0d] p-7 transition-colors hover:border-[#c9a84c]/50"
+              className="group border border-primary/15 bg-background p-7 transition-colors hover:border-primary/50"
             >
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#c9a84c]">
+              <span className="text-[9px] uppercase tracking-[0.3em] text-primary">
                 {r.eyebrow}
               </span>
-              <h3 className="mt-3 font-serif text-xl text-[#f5f3ee] group-hover:text-[#f0d78c] transition-colors">
+              <h3 className="mt-3 font-serif text-xl text-foreground group-hover:text-accent transition-colors">
                 {r.name}
               </h3>
-              <p className="mt-2 text-sm text-[#f5f3ee]/50 font-light line-clamp-3">
+              <p className="mt-2 text-sm text-foreground/50 font-light line-clamp-3">
                 {r.hero}
               </p>
             </Link>

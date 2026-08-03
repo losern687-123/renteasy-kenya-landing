@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LuxuryNav } from "@/components/landing/LuxuryNav";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
+import bannerImage from "@/assets/neighborhood-westlands.jpg";
 import { MarketingFooter } from "@/components/marketing/MarketingLayout";
 import { Search, MapPin, BedDouble, Bath, Building2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -97,25 +99,35 @@ export default function MarketplacePage() {
     l.property_photos?.[0]?.storage_path;
 
   const selectClass =
-    "h-12 w-full sm:w-[190px] bg-transparent border border-[#c9a84c]/25 text-[#f5f3ee] text-[11px] uppercase tracking-[0.25em] px-4 focus:outline-none focus:border-[#c9a84c] transition-colors";
+    "h-12 w-full sm:w-[190px] bg-transparent border border-primary/25 text-foreground text-[11px] uppercase tracking-[0.25em] px-4 focus:outline-none focus:border-primary transition-colors";
 
   return (
     <div
-      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      className="relative isolate min-h-screen bg-background text-foreground"
       style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
     >
+      <EditorialBackdrop />
       <LuxuryNav />
 
       {/* Editorial hero */}
-      <section className="relative pt-32 md:pt-40 pb-14 md:pb-20 px-6 md:px-12 border-b border-[#c9a84c]/15">
+      <section className="relative isolate overflow-hidden pt-32 md:pt-40 pb-14 md:pb-20 px-6 md:px-12 border-b border-primary/15">
+        <img
+          src={bannerImage}
+          alt=""
+          aria-hidden
+          width={1920}
+          height={1088}
+          className="absolute inset-0 -z-10 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 -z-10" style={{ backgroundImage: "var(--veil-hero-v)" }} />
         <div className="max-w-7xl mx-auto">
-          <span className="block text-[#c9a84c] text-[10px] uppercase tracking-[0.4em] mb-5">
+          <span className="block text-primary text-[10px] uppercase tracking-[0.4em] mb-5">
             — The Collection
           </span>
-          <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] max-w-3xl">
-            Residences <span className="italic font-light text-[#f0d78c]">Across Nairobi</span>
+          <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] max-w-3xl on-veil">
+            Residences <span className="italic font-light text-accent">Across Nairobi</span>
           </h1>
-          <p className="mt-6 max-w-xl text-[#f5f3ee]/60 font-light leading-relaxed">
+          <p className="mt-6 max-w-xl on-veil-muted font-light leading-relaxed">
             Browse every available home on RentEasy Kenya — photographed, verified and
             listed directly by the landlord. No account required.
           </p>
@@ -123,16 +135,16 @@ export default function MarketplacePage() {
       </section>
 
       {/* Filters */}
-      <section className="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-sm border-b border-[#c9a84c]/15 py-5 px-6 md:px-12">
+      <section className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-primary/15 py-5 px-6 md:px-12">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#c9a84c]" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
             <input
               placeholder="Search by title, estate or location"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search listings"
-              className="w-full h-12 pl-11 pr-4 bg-transparent border border-[#c9a84c]/25 text-[#f5f3ee] placeholder:text-[#f5f3ee]/35 text-sm focus:outline-none focus:border-[#c9a84c] transition-colors"
+              className="w-full h-12 pl-11 pr-4 bg-transparent border border-primary/25 text-foreground placeholder:text-foreground/35 text-sm focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           <select
@@ -142,7 +154,7 @@ export default function MarketplacePage() {
             className={selectClass}
           >
             {locations.map((loc) => (
-              <option key={loc} value={loc} className="bg-[#0d0d0d]">{loc}</option>
+              <option key={loc} value={loc} className="bg-background">{loc}</option>
             ))}
           </select>
           <select
@@ -152,7 +164,7 @@ export default function MarketplacePage() {
             className={selectClass}
           >
             {propertyTypes.map((type) => (
-              <option key={type} value={type} className="bg-[#0d0d0d]">
+              <option key={type} value={type} className="bg-background">
                 {type === "All Types" ? type : label(type)}
               </option>
             ))}
@@ -163,19 +175,19 @@ export default function MarketplacePage() {
       {/* Listings */}
       <section className="py-14 md:py-20 px-6 md:px-12">
         <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-[#c9a84c]/70 mb-8">
+          <p className="text-[10px] uppercase tracking-[0.35em] text-primary/70 mb-8">
             {filteredListings.length} {filteredListings.length === 1 ? "Residence" : "Residences"}
           </p>
 
           {loading ? (
             <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-7 h-7 animate-spin text-[#c9a84c]" />
+              <Loader2 className="w-7 h-7 animate-spin text-primary" />
             </div>
           ) : filteredListings.length === 0 ? (
-            <div className="border border-[#c9a84c]/15 py-20 px-8 text-center">
-              <Building2 className="w-10 h-10 text-[#c9a84c]/40 mx-auto mb-6" />
+            <div className="border border-primary/15 py-20 px-8 text-center">
+              <Building2 className="w-10 h-10 text-primary/40 mx-auto mb-6" />
               <h2 className="font-serif text-2xl md:text-3xl">No residences match your search</h2>
-              <p className="mt-4 text-[#f5f3ee]/50 font-light">
+              <p className="mt-4 text-foreground/50 font-light">
                 Adjust your filters, or check back soon — landlords list new homes every week.
               </p>
             </div>
@@ -193,9 +205,9 @@ export default function MarketplacePage() {
                   >
                     <Link
                       to={`/marketplace/${listing.id}`}
-                      className="group block border border-[#c9a84c]/15 hover:border-[#c9a84c]/50 transition-colors duration-500"
+                      className="group block border border-primary/15 hover:border-primary/50 transition-colors duration-500"
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden bg-[#1a1a1a]">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-card">
                         {photo ? (
                           <img
                             src={photo}
@@ -205,24 +217,24 @@ export default function MarketplacePage() {
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <Building2 className="w-10 h-10 text-[#c9a84c]/25" />
+                            <Building2 className="w-10 h-10 text-primary/25" />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/20 to-transparent" />
-                        <span className="absolute top-4 left-4 text-[9px] uppercase tracking-[0.35em] text-[#c9a84c] bg-[#0d0d0d]/70 px-3 py-1.5">
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                        <span className="absolute top-4 left-4 text-[9px] uppercase tracking-[0.35em] text-primary bg-background/70 px-3 py-1.5">
                           {label(listing.property_type || "residence")}
                         </span>
                       </div>
 
                       <div className="p-6 space-y-3">
-                        <h2 className="font-serif text-2xl leading-snug group-hover:text-[#f0d78c] transition-colors line-clamp-1">
+                        <h2 className="font-serif text-2xl leading-snug group-hover:text-accent transition-colors line-clamp-1">
                           {listing.title}
                         </h2>
-                        <p className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-[#f5f3ee]/55">
-                          <MapPin className="w-3.5 h-3.5 text-[#c9a84c]" />
+                        <p className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-foreground/55">
+                          <MapPin className="w-3.5 h-3.5 text-primary" />
                           {listing.properties?.location || "Nairobi"}
                         </p>
-                        <div className="flex items-center gap-5 text-[11px] uppercase tracking-[0.2em] text-[#f5f3ee]/45">
+                        <div className="flex items-center gap-5 text-[11px] uppercase tracking-[0.2em] text-foreground/45">
                           {listing.bedrooms ? (
                             <span className="flex items-center gap-1.5">
                               <BedDouble className="w-3.5 h-3.5" /> {listing.bedrooms} Bed
@@ -234,7 +246,7 @@ export default function MarketplacePage() {
                             </span>
                           ) : null}
                         </div>
-                        <p className="pt-2 border-t border-[#c9a84c]/10 text-[#c9a84c] text-sm tracking-[0.15em]">
+                        <p className="pt-2 border-t border-primary/10 text-primary text-sm tracking-[0.15em]">
                           {typeof listing.properties?.rent_amount === "number"
                             ? `KES ${listing.properties.rent_amount.toLocaleString()} / MO`
                             : "PRICE ON ENQUIRY"}

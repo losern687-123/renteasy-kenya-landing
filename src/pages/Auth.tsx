@@ -1,3 +1,4 @@
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +106,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 py-8">
+    <div className="relative isolate min-h-screen flex items-center justify-center bg-background p-4 py-8">
+      <EditorialBackdrop />
       <div className="w-full max-w-[400px]">
         {/* Logo */}
         <div className="text-center mb-8">

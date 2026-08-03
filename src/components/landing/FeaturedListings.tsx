@@ -46,24 +46,24 @@ export const FeaturedListings = () => {
     l.property_photos?.[0]?.storage_path;
 
   return (
-    <section id="neighborhoods" className="w-full bg-[#0d0d0d] text-[#f5f3ee] py-24 md:py-32 px-6 md:px-12">
+    <section id="neighborhoods" className="w-full bg-background text-foreground py-24 md:py-32 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 md:mb-20 gap-8">
           <div className="max-w-xl">
-            <span className="block text-[#c9a84c] text-[10px] uppercase tracking-[0.4em] mb-4">
+            <span className="block text-primary text-[10px] uppercase tracking-[0.4em] mb-4">
               — Curated Marketplace
             </span>
             <h2 className="font-serif text-4xl md:text-5xl leading-tight">
-              Curated <span className="italic font-light text-[#f0d78c]">Neighborhoods</span>
+              Curated <span className="italic font-light text-accent">Neighborhoods</span>
             </h2>
-            <p className="text-[#f5f3ee]/60 font-light leading-relaxed mt-6">
+            <p className="text-foreground/60 font-light leading-relaxed mt-6">
               From the verdant estates of Karen to the soaring skylines of Westlands, discover
               homes defined by character, craftsmanship, and sophistication.
             </p>
           </div>
           <Link
             to="/marketplace"
-            className="text-[10px] uppercase tracking-[0.3em] text-[#c9a84c] border-b border-[#c9a84c] pb-1 self-start md:self-end hover:text-[#f0d78c] hover:border-[#f0d78c] transition-colors"
+            className="text-[10px] uppercase tracking-[0.3em] text-primary border-b border-primary pb-1 self-start md:self-end hover:text-accent hover:border-accent transition-colors"
           >
             View All Districts →
           </Link>
@@ -76,25 +76,25 @@ export const FeaturedListings = () => {
               <Link
                 key={l.id}
                 to={`/marketplace/${l.id}`}
-                className={`${spans[i]} relative group cursor-pointer overflow-hidden bg-[#1a1a1a]`}
+                className={`${spans[i]} relative group cursor-pointer overflow-hidden bg-card`}
               >
                 {photo ? (
                   <img
                     src={photo}
                     alt={l.title}
                     loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-90"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-[#1a1a1a]" />
+                  <div className="absolute inset-0 bg-card" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/30 to-transparent" />
+                <div className="absolute inset-0" style={{ backgroundImage: "var(--veil-card)" }} />
                 <div className="absolute bottom-6 md:bottom-8 left-6 md:left-8 right-6 z-10">
-                  <p className="text-[#c9a84c] text-[9px] uppercase tracking-[0.4em] mb-2">
+                  <p className="text-primary text-[9px] uppercase tracking-[0.4em] mb-2">
                     {l.property_type || "Residence"}
                   </p>
-                  <h3 className="font-serif text-2xl md:text-3xl mb-1">{l.title}</h3>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#f5f3ee]/70">
+                  <h3 className="font-serif text-2xl md:text-3xl mb-1 on-veil">{l.title}</h3>
+                  <p className="text-[10px] uppercase tracking-[0.2em] on-veil-muted">
                     {l.properties?.location || "Nairobi"} · {formatKES(l.properties?.rent_amount)}
                   </p>
                 </div>
@@ -107,19 +107,19 @@ export const FeaturedListings = () => {
               <Link
                 key={n.key}
                 to="/marketplace"
-                className={`${n.span} relative group cursor-pointer overflow-hidden bg-[#1a1a1a]`}
+                className={`${n.span} relative group cursor-pointer overflow-hidden bg-card`}
               >
                 <img
                   src={n.img}
                   alt={n.name}
                   loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-90"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/30 to-transparent" />
+                <div className="absolute inset-0" style={{ backgroundImage: "var(--veil-card)" }} />
                 <div className="absolute bottom-6 md:bottom-8 left-6 md:left-8 right-6 z-10">
-                  <p className="text-[#c9a84c] text-[9px] uppercase tracking-[0.4em] mb-2">{n.tag}</p>
-                  <h3 className="font-serif text-2xl md:text-3xl mb-1">{n.name}</h3>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#f5f3ee]/70">
+                  <p className="text-primary text-[9px] uppercase tracking-[0.4em] mb-2">{n.tag}</p>
+                  <h3 className="font-serif text-2xl md:text-3xl mb-1 on-veil">{n.name}</h3>
+                  <p className="text-[10px] uppercase tracking-[0.2em] on-veil-muted">
                     {n.price} / mo
                   </p>
                 </div>

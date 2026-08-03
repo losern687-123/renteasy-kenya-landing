@@ -31,14 +31,20 @@ export const LuxuryNav = () => {
   }, [open]);
 
   const linkClass =
-    "relative text-[10px] uppercase tracking-[0.3em] font-medium text-[#f5f3ee]/80 hover:text-[#c9a84c] transition-colors duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-[#c9a84c] after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100 motion-reduce:after:hidden";
+    "relative text-[10px] uppercase tracking-[0.3em] font-medium on-veil-muted hover:text-primary transition-colors duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100 motion-reduce:after:hidden";
 
   return (
     <>
-      <nav className="absolute top-0 inset-x-0 z-50 w-full flex items-center justify-between px-5 md:px-12 py-4 md:py-6 border-b border-[#c9a84c]/10">
+      <nav className="absolute top-0 inset-x-0 z-50 w-full border-b border-primary/10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{ backgroundImage: "var(--veil-nav)" }}
+        />
+        <div className="flex items-center justify-between px-5 md:px-12 py-4 md:py-6">
         <Link
           to="/"
-          className="text-base sm:text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.25em] text-[#c9a84c] font-serif whitespace-nowrap"
+          className="text-base sm:text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.25em] text-primary font-serif whitespace-nowrap"
         >
           RENTEASY <span className="italic font-light">Kenya</span>
         </Link>
@@ -75,7 +81,7 @@ export const LuxuryNav = () => {
               </Link>
               <Link
                 to="/waitlist"
-                className="hidden md:inline-block px-5 md:px-8 py-2.5 border border-[#c9a84c] text-[#c9a84c] text-[10px] uppercase tracking-[0.2em] hover:bg-[#c9a84c] hover:text-[#0d0d0d] transition-all duration-500 motion-reduce:transition-none"
+                className="hidden md:inline-block px-5 md:px-8 py-2.5 border border-primary text-primary text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-background transition-all duration-500 motion-reduce:transition-none"
               >
                 Join Waitlist
               </Link>
@@ -83,25 +89,26 @@ export const LuxuryNav = () => {
           )}
           <button
             onClick={() => setOpen((v) => !v)}
-            className="lg:hidden inline-flex items-center justify-center h-11 w-11 border border-[#c9a84c]/30 text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors touch-manipulation"
+            className="lg:hidden inline-flex items-center justify-center h-11 w-11 border border-primary/30 text-primary hover:bg-primary/10 transition-colors touch-manipulation"
             aria-label={open ? "Close menu" : "Open menu"}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
+        </div>
         </div>
       </nav>
 
       {/* Mobile drawer */}
       <div
         className={cn(
-          "fixed inset-0 z-40 lg:hidden bg-[#0d0d0d]/95 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-40 lg:hidden bg-background/95 backdrop-blur-sm transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setOpen(false)}
       >
         <div
           className={cn(
-            "absolute top-[68px] inset-x-0 bg-[#0d0d0d] border-t border-[#c9a84c]/15 px-6 py-8 transition-transform duration-300",
+            "absolute top-[68px] inset-x-0 bg-background border-t border-primary/15 px-6 py-8 transition-transform duration-300",
             open ? "translate-y-0" : "-translate-y-4"
           )}
           onClick={(e) => e.stopPropagation()}
@@ -113,7 +120,7 @@ export const LuxuryNav = () => {
                   key={item.name}
                   to={item.to}
                   onClick={() => setOpen(false)}
-                  className="text-[11px] uppercase tracking-[0.3em] text-[#f5f3ee]/85 hover:text-[#c9a84c] py-2"
+                  className="text-[11px] uppercase tracking-[0.3em] text-foreground/85 hover:text-primary py-2"
                 >
                   {item.name}
                 </Link>
@@ -122,7 +129,7 @@ export const LuxuryNav = () => {
                   key={item.name}
                   href={item.to}
                   onClick={() => setOpen(false)}
-                  className="text-[11px] uppercase tracking-[0.3em] text-[#f5f3ee]/85 hover:text-[#c9a84c] py-2"
+                  className="text-[11px] uppercase tracking-[0.3em] text-foreground/85 hover:text-primary py-2"
                 >
                   {item.name}
                 </a>
@@ -130,15 +137,15 @@ export const LuxuryNav = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#c9a84c]/15 pt-6">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-[#f5f3ee]/60">
+          <div className="flex items-center justify-between border-t border-primary/15 pt-6">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-foreground/60">
               Theme
             </span>
             <ThemeToggle variant="icon" />
           </div>
 
           {user ? (
-            <div className="mt-6 border-t border-[#c9a84c]/15 pt-6">
+            <div className="mt-6 border-t border-primary/15 pt-6">
               <ProfileDropdown mobile />
             </div>
           ) : (
@@ -146,14 +153,14 @@ export const LuxuryNav = () => {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="w-full text-center py-3 border border-[#c9a84c]/40 text-[#f5f3ee] text-[11px] uppercase tracking-[0.3em] hover:border-[#c9a84c] hover:text-[#c9a84c] transition-colors touch-manipulation"
+                className="w-full text-center py-3 border border-primary/40 text-foreground text-[11px] uppercase tracking-[0.3em] hover:border-primary hover:text-primary transition-colors touch-manipulation"
               >
                 Sign In
               </Link>
               <Link
                 to="/waitlist"
                 onClick={() => setOpen(false)}
-                className="w-full text-center py-3 bg-[#c9a84c] text-[#0d0d0d] text-[11px] uppercase tracking-[0.3em] hover:bg-[#f0d78c] transition-colors touch-manipulation"
+                className="w-full text-center py-3 bg-primary text-background text-[11px] uppercase tracking-[0.3em] hover:bg-accent transition-colors touch-manipulation"
               >
                 Join Waitlist
               </Link>

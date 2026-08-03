@@ -33,7 +33,7 @@ const Index = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-[#0d0d0d] text-[#f5f3ee]"
+      className="min-h-screen bg-background text-foreground"
       style={{ fontFamily: "'Karla', system-ui, sans-serif" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -56,7 +56,7 @@ const Index = () => {
         <Link
           to="/admin/login"
           aria-label="Admin portal"
-          className="text-[10px] uppercase tracking-[0.3em] text-[#f5f3ee]/15 hover:text-[#c9a84c] transition-colors"
+          className="text-[10px] uppercase tracking-[0.3em] text-foreground/15 hover:text-primary transition-colors"
         >
           Admin
         </Link>

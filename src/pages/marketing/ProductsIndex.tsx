@@ -20,22 +20,23 @@ const ProductsIndex = () => (
       path="/products"
     />
 
-    <section className="relative overflow-hidden border-b border-[#c9a84c]/10">
+    <section className="relative overflow-hidden border-b border-primary/10">
       <img
         src={heroEstate}
         alt="Modern Nairobi residential estate"
-        className="absolute inset-0 h-full w-full object-cover opacity-25"
+        className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/85 to-[#0d0d0d]/60" />
+      <div className="absolute inset-0" style={{ backgroundImage: "var(--veil-hero-h)" }} />
+      <div className="absolute inset-0" style={{ backgroundImage: "var(--veil-hero-v)" }} />
       <div className="relative z-10 px-6 md:px-12 lg:px-20 py-20 md:py-28 max-w-4xl">
-        <span className="block text-[10px] uppercase tracking-[0.4em] text-[#c9a84c] mb-6">
+        <span className="block text-[10px] uppercase tracking-[0.4em] text-primary mb-6">
           — The Platform
         </span>
-        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.02]">
+        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-[1.02] on-veil">
           Everything a Kenyan landlord needs,{" "}
-          <span className="italic font-light text-[#f0d78c]">in one place</span>
+          <span className="italic font-light text-accent">in one place</span>
         </h1>
-        <p className="mt-6 max-w-xl text-[#f5f3ee]/60 font-light leading-relaxed">
+        <p className="mt-6 max-w-xl on-veil-muted font-light leading-relaxed">
           From the first listing to the last receipt — rent collection, tenancies,
           a public marketplace, reporting and the conversations in between.
         </p>
@@ -62,18 +63,18 @@ const ProductsIndex = () => (
             <Link
               key={p.slug}
               to={`/products/${p.slug}`}
-              className="group flex flex-col border border-[#c9a84c]/15 bg-[#141414] p-8 transition-colors hover:border-[#c9a84c]/50"
+              className="group flex flex-col border border-primary/15 bg-card p-8 transition-colors hover:border-primary/50"
             >
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#c9a84c]">
+              <span className="text-[9px] uppercase tracking-[0.3em] text-primary">
                 {p.eyebrow}
               </span>
-              <h2 className="mt-4 font-serif text-2xl text-[#f5f3ee] group-hover:text-[#f0d78c] transition-colors">
+              <h2 className="mt-4 font-serif text-2xl text-foreground group-hover:text-accent transition-colors">
                 {p.name}
               </h2>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-[#f5f3ee]/55 font-light">
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground/55 font-light">
                 {p.hero}
               </p>
-              <span className="mt-6 text-[10px] uppercase tracking-[0.3em] text-[#c9a84c]">
+              <span className="mt-6 text-[10px] uppercase tracking-[0.3em] text-primary">
                 Learn more →
               </span>
             </Link>
