@@ -32,7 +32,7 @@ const ArticlePage = () => {
       />
 
       <article>
-        <Section className="!pb-0 relative isolate overflow-hidden !pt-32 md:!pt-40">
+        <Section className="relative isolate overflow-hidden !pt-32 md:!pt-40 !pb-16 md:!pb-20">
           <HeroVeil image={heroArticle} />
           <Link
             to="/resources"

@@ -22,7 +22,7 @@ const ComparePage = () => (
       path="/pricing/compare"
     />
 
-    <Section className="!pb-0 relative isolate overflow-hidden !pt-32 md:!pt-40">
+    <Section className="relative isolate overflow-hidden !pt-32 md:!pt-40 !pb-20 md:!pb-24">
       <HeroVeil image={heroCompare} />
       <span className="block text-[10px] uppercase tracking-[0.4em] text-primary mb-6">
         — Full comparison

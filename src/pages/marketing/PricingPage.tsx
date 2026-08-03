@@ -28,7 +28,7 @@ const PricingPage = () => {
         jsonLd={faqJsonLd(pricingFaqs)}
       />
 
-      <Section className="!pb-0 relative isolate overflow-hidden !pt-32 md:!pt-40">
+      <Section className="relative isolate overflow-hidden !pt-32 md:!pt-40 !pb-20 md:!pb-24">
         <HeroVeil image={heroPricing} />
         <span className="block text-[10px] uppercase tracking-[0.4em] text-primary mb-6">
           — Plans &amp; pricing
@@ -53,7 +53,7 @@ const PricingPage = () => {
               className={`min-h-[44px] px-5 sm:px-7 text-[10px] uppercase tracking-[0.25em] transition-colors ${
                 annual === opt.value
                   ? "bg-primary text-background"
-                  : "text-foreground/60 hover:text-primary"
+                  : "on-veil-muted hover:text-primary"
               }`}
             >
               {opt.label}
