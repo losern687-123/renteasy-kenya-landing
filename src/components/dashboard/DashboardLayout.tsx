@@ -151,9 +151,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <FadeIn>
                 <PageBanner
                   className="mb-6"
-                  eyebrow="Tenant Residence"
-                  title={`Welcome back, ${tenantName}`}
-                  subtitle="Manage your rent payments and track your records"
+                  eyebrow={banner.eyebrow}
+                  title={banner.title}
+                  subtitle={banner.subtitle}
                 />
               </FadeIn>
               {children}
