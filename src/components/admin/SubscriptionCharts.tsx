@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, BarChart, Bar } from "recharts";
 
-const COLORS = ["hsl(var(--muted))", "hsl(215 100% 60%)", "hsl(280 70% 60%)", "hsl(45 90% 50%)"];
+const COLORS = ["hsl(var(--muted))", "hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"];
 
 export function SubscriptionCharts() {
   const { data, isLoading } = useQuery({
@@ -155,8 +155,8 @@ export function SubscriptionCharts() {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="upgrades" fill="hsl(142 76% 36%)" name="Upgrades" />
-                <Bar dataKey="downgrades" fill="hsl(0 72% 50%)" name="Downgrades" />
+                <Bar dataKey="upgrades" fill="hsl(var(--chart-1))" name="Upgrades" />
+                <Bar dataKey="downgrades" fill="hsl(var(--destructive))" name="Downgrades" />
               </BarChart>
             </ResponsiveContainer>
           </div>
