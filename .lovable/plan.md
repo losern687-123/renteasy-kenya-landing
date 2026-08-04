@@ -1,32 +1,32 @@
-## Two fixes first
+# Noir & Gold across every dashboard
 
-**Admin Payments blank page — cause confirmed.** `AdminPayments.tsx` filters with `payment.tenant_name.toLowerCase()`. A query against the live table shows the single existing rent record has a null `tenant_name`, so the component throws on render and React unmounts the tree — the white screen in your screenshot. Fix: null-safe filtering for `tenant_name` / `property_name`, plus an error boundary fallback so an admin page never renders blank again. Also correct the stats maths on that page — it sums `status === 'paid'` / `'pending'` in lowercase while the database now stores title-case `Paid` / `Pending` / `Unpaid` / `Overdue`, so those cards currently read KES 0.
+Bring the dashboards, settings screens and their cards/tables/charts fully in line with the landing page, and make the property background imagery cheap to load.
 
-**Hero eyebrow overlapping the navbar.** The nav is absolutely positioned over the hero, and the hero's content block only has top padding below the `md` breakpoint (`pt-28 md:pt-0`). On desktop "— The Private Collection" slides under the logo row. Fix: keep top padding at all sizes so hero copy always clears the nav bar.
+## 1. One layout pattern everywhere
 
-## Marketing site
+Every dashboard route gets the same three ingredients the landing page uses: fixed property backdrop, editorial banner with gold hairline + serif headline, and scrimmed content area.
 
-Ten new pages, all in the existing Noir & Gold luxury system (Cormorant Garamond headings, Karla body, `#0d0d0d` / `#c9a84c`) — matching the landing page, not the Forest Green spec. Payments copy says "M-Pesa, card and bank transfer via Paystack", which is what the platform actually does.
+- Already wired: Admin, Landlord, Seeker and Tenant shells (`AdminLayout`, `LandlordLayout`, `SeekerLayout`, `DashboardLayout`).
+- Missing the pattern and to be fixed: `SubscriptionSettings`, `Chat`, `TenantReceipt` — wrap them in the matching role layout (or add backdrop + banner directly where a layout would break the page, e.g. the printable receipt keeps a clean print view).
+- Settings screens (`AdminSettings`, `TenantSettings`, `LandlordSettingsTab`, `SubscriptionSettings`) get a consistent banner eyebrow ("Administration", "Tenant Account", "Landlord Portfolio", "Subscription") and identical section spacing.
+- Replace the plain desktop header in `SeekerLayout` with the same sticky scrim header used by the landlord shell so all four shells behave identically.
 
-**Shared shells (built once, reused):**
-- `MarketingLayout` — luxury nav + footer wrapper for every marketing page
-- `ProductPage` template driven by a content object: hero, benefits, feature grid, use-case testimonials, tier availability table, FAQ accordion, closing CTA
-- Reusable `TierMatrix`, `FaqAccordion`, `UseCaseCards`, `EmailCaptureForm`
+## 2. Themed cards, tables and charts
 
-**Product pages** (`/products/…`): rent-tracking, tenant-management, marketplace, analytics, bulk-operations, messaging, services (coming-soon with interest capture). Content follows your brief, with feature claims trimmed where the platform doesn't yet do them (WhatsApp two-way, SMS) — those are labelled "coming soon" rather than sold as live.
+- Introduce a shared "editorial surface" treatment on `Card`-based dashboard panels: translucent card background over the backdrop, gold hairline border, subtle serif card titles. Driven by new tokens (`--surface-card`, `--surface-card-border`, `--hairline-gold`) defined for both light and dark so contrast stays readable in each theme.
+- Tables: gold-tinted header row, hairline row dividers, hover tint, muted-foreground body text — applied via a single shared class so every table (payments, tenants, properties, listings, audit logs, subscriptions, seekers) picks it up.
+- Charts (`RevenueChart`, `PaymentStatusChart`, `PropertyPerformanceChart`, `SubscriptionCharts`): swap remaining literal colours for a shared chart palette built on `--primary` (gold), `--accent` and status tokens; theme the tooltip/legend/grid so they read correctly in both modes.
+- Badges and KPI cards (`MetricCard`, `AnalyticsKPICards`, `SubscriptionBadge`) align to the same gold accent scale instead of ad-hoc colours.
 
-**Pricing** (`/pricing`) — monthly/annual toggle with the 10% annual badge, four cards with Pro highlighted, expandable feature-comparison accordion, pricing FAQ. Existing tiers unchanged. `/pricing/compare` renders the full feature matrix with a sticky header row and quick-link sidebar.
+## 3. Faster, responsive background imagery
 
-**Resources** (`/resources`) — tabbed hub. Blog tab lists 8 articles, each a real written page at `/resources/blog/:slug`. Guides tab lists the six guides as "coming soon" with email capture (no PDFs generated). Newsletter tab holds the signup form.
-
-**Forms** all reuse the existing waitlist path — `send-waitlist-email` edge function with a source/interests field so newsletter, services waitlist and guide interest are distinguishable. No new tables.
-
-**Navigation** — a Products mega-dropdown added to the luxury nav (Platform Features / Services / Resources columns) on desktop, and an expandable section in the existing mobile drawer.
+- Generate resized variants of the backdrop/hero images (approx 640 / 1280 / 1920 wide) and serve them via `srcset` + `sizes` in `EditorialBackdrop`, `PageBanner` and `HeroVeil`, so phones fetch a small file.
+- `EditorialBackdrop` and `PageBanner` stay `loading="lazy"` with explicit `width`/`height` and `decoding="async"`; the landing hero stays eager as the LCP element and gets a matching `<link rel="preload">`.
+- Skip the backdrop image entirely below a small breakpoint where the scrim already hides most of it, falling back to the veil gradient — keeps mobile dashboards light.
 
 ## Technical notes
 
-- New route entries in `src/App.tsx`; all marketing routes public.
-- Per-page `<title>`, meta description and canonical via a small `Seo` component; JSON-LD `Product`/`FAQPage` on product pages; sitemap entries added.
-- Hero/section imagery generated to match the existing architectural photography; screenshots of live dashboards used where the brief asks for interface visuals.
-- Mobile-first, 44px tap targets, `prefers-reduced-motion` respected via the existing global rule.
-- No changes to pricing tiers, database schema, RLS, or any tenant/landlord workflow.
+- New tokens live in `src/index.css` under both `:root` and `.dark`; no hardcoded colour utilities in components.
+- Shared surface/table classes added as Tailwind `@layer components` utilities so existing pages need only a class swap.
+- No backend, query or business-logic changes — presentation only.
+- Verification: capture light and dark screenshots of tenant, landlord, admin, seeker dashboards plus each settings page, and confirm no console errors.
