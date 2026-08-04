@@ -38,29 +38,26 @@ export function SeekerLayout({ children, activeTab, onTabChange, userName }: See
       </Sheet>
 
       <div className="relative z-10 lg:pl-64">
-        {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileOpen(true)}
-            className="shrink-0"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-semibold truncate text-foreground">Property Seeker</h1>
-            <p className="text-xs text-muted-foreground truncate">Find your next home</p>
+        {/* Header — same sticky scrim header used across dashboards */}
+        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+          <div className="flex items-center gap-3 px-4 sm:px-6 py-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden shrink-0"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-semibold truncate text-foreground">Property Seeker</h1>
+              <p className="text-xs text-muted-foreground truncate hidden sm:block">
+                Browse listings and find your next home
+              </p>
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Desktop Header */}
-        <div className="hidden lg:block">
-          <header className="sticky top-0 z-30 border-b border-border bg-background px-6 py-4">
-            <h1 className="text-xl font-semibold text-foreground">Property Seeker Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Browse listings and find your next home</p>
-          </header>
-        </div>
 
         <main className="p-4 lg:p-6 pb-24 lg:pb-6 space-y-6">
           <PageBanner eyebrow="Property Seeker" title="Find your next home" subtitle="Browse curated listings and link to a property with its code" />
