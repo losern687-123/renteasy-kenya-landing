@@ -29,6 +29,35 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const banners: Record<string, { eyebrow: string; title: string; subtitle: string }> = {
+    "/tenant/settings": {
+      eyebrow: "Tenant Account",
+      title: "Settings",
+      subtitle: "Profile, property link, notifications and preferences",
+    },
+    "/tenant/add-payment": {
+      eyebrow: "Tenant Residence",
+      title: "Record a payment",
+      subtitle: "Log a rent payment or pay online",
+    },
+    "/tenant/history": {
+      eyebrow: "Tenant Residence",
+      title: "Payment history",
+      subtitle: "Every rent record and receipt in one place",
+    },
+    "/notifications": {
+      eyebrow: "Tenant Residence",
+      title: "Notifications",
+      subtitle: "Alerts, reminders and updates",
+    },
+  };
+
+  const banner = banners[location.pathname] ?? {
+    eyebrow: "Tenant Residence",
+    title: `Welcome back, ${tenantName}`,
+    subtitle: "Manage your rent payments and track your records",
+  };
+
   return (
     <div className="relative min-h-screen bg-background flex w-full">
       <EditorialBackdrop />
