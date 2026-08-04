@@ -93,7 +93,7 @@ const AdminActivityLogs = () => {
   return (
     <AdminLayout title="Activity Logs" subtitle="Monitor all actions performed on the platform">
       <div className="space-y-6">
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="hairline-gold">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

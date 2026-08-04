@@ -140,7 +140,7 @@ const AdminAuditLogs = () => {
       subtitle="Filter platform events by action type"
     >
       <div className="space-y-6">
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="hairline-gold">
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">

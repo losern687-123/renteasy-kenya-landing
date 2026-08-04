@@ -140,7 +140,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </div>
 
       {/* Profile */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -173,7 +173,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Subscription */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
@@ -192,7 +192,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Appearance */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle>Appearance</CardTitle>
           <CardDescription>Customize how RentEasy looks</CardDescription>
@@ -228,7 +228,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Notifications */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Security */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
@@ -290,7 +290,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50 bg-card/50">
+      <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible account actions</CardDescription>

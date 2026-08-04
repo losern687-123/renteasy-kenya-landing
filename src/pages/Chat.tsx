@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { MessageSquare } from "lucide-react";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 
 interface SelectedConvo {
   id: string;
@@ -82,16 +83,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="relative h-screen flex flex-col bg-background">
+      <EditorialBackdrop />
       {/* Header */}
-      <div className="border-b border-border px-4 py-3 bg-card shrink-0">
-        <h1 className="text-lg font-bold flex items-center gap-2">
+      <div className="relative z-10 border-b hairline-gold px-4 py-3 bg-background/80 backdrop-blur-md shrink-0">
+        <h1 className="font-display text-lg font-semibold flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-primary" />
           Messages
         </h1>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="relative z-10 flex-1 flex overflow-hidden">
         {/* Conversation List */}
         <div
           className={`w-full md:w-80 md:border-r border-border md:block overflow-y-auto ${

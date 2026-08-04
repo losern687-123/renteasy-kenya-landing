@@ -8,15 +8,15 @@ interface PaymentStatusChartProps {
 }
 
 const COLORS = {
-  Paid: "hsl(142 76% 36%)",
-  Pending: "hsl(45 93% 47%)",
-  Overdue: "hsl(0 72% 50%)",
+  Paid: "hsl(var(--chart-1))",
+  Pending: "hsl(var(--chart-2))",
+  Overdue: "hsl(var(--destructive))",
 };
 
 export function PaymentStatusChart({ data, isLoading }: PaymentStatusChartProps) {
   if (isLoading) {
     return (
-      <Card className="border-border/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -30,7 +30,7 @@ export function PaymentStatusChart({ data, isLoading }: PaymentStatusChartProps)
   const filteredData = data.filter(d => d.count > 0);
 
   return (
-    <Card className="border-border/50 bg-card/50">
+    <Card className="hairline-gold">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Payment Status</CardTitle>
       </CardHeader>
@@ -64,10 +64,13 @@ export function PaymentStatusChart({ data, isLoading }: PaymentStatusChartProps)
                     name
                   ]}
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--hairline-gold))",
                     borderRadius: "8px",
+                    color: "hsl(var(--popover-foreground))",
                   }}
+                  itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 />
               </PieChart>
             </ResponsiveContainer>

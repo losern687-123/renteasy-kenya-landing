@@ -139,7 +139,7 @@ export function AnalyticsDashboard({ onUpgrade }: AnalyticsDashboardProps) {
         )}
         
         {canAccessEnterprise ? (
-          <Card className="border-border/50 bg-card/50">
+          <Card className="hairline-gold">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Tenant Retention</CardTitle>
             </CardHeader>
@@ -161,7 +161,7 @@ export function AnalyticsDashboard({ onUpgrade }: AnalyticsDashboardProps) {
       </div>
 
       {/* Recent Payments Table */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <CardTitle className="text-base">Recent Payments</CardTitle>
         </CardHeader>

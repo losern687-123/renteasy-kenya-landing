@@ -10,7 +10,7 @@ interface PropertyPerformanceChartProps {
 export function PropertyPerformanceChart({ data, isLoading }: PropertyPerformanceChartProps) {
   if (isLoading) {
     return (
-      <Card className="border-border/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <Skeleton className="h-5 w-40" />
         </CardHeader>
@@ -22,7 +22,7 @@ export function PropertyPerformanceChart({ data, isLoading }: PropertyPerformanc
   }
 
   return (
-    <Card className="border-border/50 bg-card/50">
+    <Card className="hairline-gold">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Property Performance</CardTitle>
       </CardHeader>
@@ -51,10 +51,13 @@ export function PropertyPerformanceChart({ data, isLoading }: PropertyPerformanc
                     name === "revenue" ? "Collected" : "Expected"
                   ]}
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--hairline-gold))",
                     borderRadius: "8px",
+                    color: "hsl(var(--popover-foreground))",
                   }}
+                  itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 />
                 <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Collected" />
                 <Bar dataKey="expected" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name="Expected" />

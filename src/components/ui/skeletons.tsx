@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={cn("border-border/50 bg-card/50 backdrop-blur-sm", className)}>
+    <Card className={cn("hairline-gold", className)}>
       <CardHeader className="space-y-2">
         <Skeleton className="h-5 w-1/3" />
         <Skeleton className="h-4 w-1/2" />
@@ -18,7 +18,7 @@ export function CardSkeleton({ className }: { className?: string }) {
 
 export function StatCardSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={cn("border-border/50 bg-card/50 backdrop-blur-sm", className)}>
+    <Card className={cn("hairline-gold", className)}>
       <CardContent className="p-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-xl" />
@@ -42,7 +42,7 @@ export function TableSkeleton({
   className?: string;
 }) {
   return (
-    <Card className={cn("backdrop-blur-sm bg-card/50 border-2", className)}>
+    <Card className={cn("hairline-gold border-2", className)}>
       <CardHeader>
         <Skeleton className="h-6 w-40" />
       </CardHeader>
@@ -77,7 +77,7 @@ export function TableSkeleton({
 
 export function FormSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={cn("border-border/50 bg-card/50 backdrop-blur-sm", className)}>
+    <Card className={cn("hairline-gold", className)}>
       <CardHeader>
         <Skeleton className="h-6 w-32" />
         <Skeleton className="h-4 w-48" />

@@ -147,7 +147,7 @@ const AdminLandlords = () => {
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pending Applications
@@ -157,7 +157,7 @@ const AdminLandlords = () => {
               <div className="text-3xl font-bold">{pendingCount}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Approved Landlords
@@ -167,7 +167,7 @@ const AdminLandlords = () => {
               <div className="text-3xl font-bold text-green-600">{approvedCount}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Rejected Applications
@@ -180,7 +180,7 @@ const AdminLandlords = () => {
         </div>
 
         {/* Applications Table */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="hairline-gold">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />

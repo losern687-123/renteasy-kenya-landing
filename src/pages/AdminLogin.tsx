@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield } from "lucide-react";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -50,7 +51,8 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-background p-4">
+      <EditorialBackdrop />
       <div className="w-full max-w-[400px]">
         <div className="text-center mb-8">
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">

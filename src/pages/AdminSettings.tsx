@@ -118,7 +118,7 @@ const AdminSettings = () => {
         </TabsList>
 
         <TabsContent value="appearance" className="space-y-6">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Palette className="h-5 w-5 text-primary" />
@@ -184,7 +184,7 @@ const AdminSettings = () => {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-primary" />
@@ -236,7 +236,7 @@ const AdminSettings = () => {
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-primary" />

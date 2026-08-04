@@ -89,7 +89,7 @@ const PendingVerification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="max-w-2xl w-full hairline-gold">
         <CardHeader className="text-center space-y-4">
           {applicationStatus === 'pending' && (
             <>

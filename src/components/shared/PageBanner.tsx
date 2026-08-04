@@ -1,15 +1,20 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import bannerEstate from "@/assets/hero-estate.jpg";
+import bannerEstate1280 from "@/assets/hero-estate-1280.jpg";
+import bannerEstate640 from "@/assets/hero-estate-640.jpg";
 
 interface PageBannerProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
   image?: string;
+  imageSrcSet?: string;
   actions?: ReactNode;
   className?: string;
 }
+
+const defaultSrcSet = `${bannerEstate640} 640w, ${bannerEstate1280} 1280w, ${bannerEstate} 1920w`;
 
 /**
  * Full-bleed editorial banner used at the top of interior pages and dashboards.
@@ -20,15 +25,19 @@ export const PageBanner = ({
   title,
   subtitle,
   image = bannerEstate,
+  imageSrcSet,
   actions,
   className,
 }: PageBannerProps) => (
-  <section className={cn("relative isolate overflow-hidden rounded-lg border border-border", className)}>
+  <section className={cn("hairline-gold relative isolate overflow-hidden rounded-lg border", className)}>
     <img
       src={image}
+      srcSet={imageSrcSet ?? (image === bannerEstate ? defaultSrcSet : undefined)}
+      sizes="(max-width: 1024px) 100vw, 80vw"
       alt=""
       aria-hidden
       loading="lazy"
+      decoding="async"
       width={1920}
       height={1088}
       className="absolute inset-0 h-full w-full object-cover"
@@ -45,6 +54,5 @@ export const PageBanner = ({
       {subtitle && <p className="mt-2 max-w-2xl text-sm on-veil-muted">{subtitle}</p>}
       {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
     </div>
-
   </section>
 );

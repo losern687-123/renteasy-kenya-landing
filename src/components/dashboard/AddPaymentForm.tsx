@@ -100,7 +100,7 @@ export const AddPaymentForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
+    <Card className="hairline-gold hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle>Add Rent Payment Record</CardTitle>
         <CardDescription>Track your rent payments and keep your records organized</CardDescription>

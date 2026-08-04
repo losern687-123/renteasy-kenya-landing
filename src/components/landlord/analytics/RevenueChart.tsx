@@ -10,7 +10,7 @@ interface RevenueChartProps {
 export function RevenueChart({ data, isLoading }: RevenueChartProps) {
   if (isLoading) {
     return (
-      <Card className="border-border/50">
+      <Card className="hairline-gold">
         <CardHeader>
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -22,7 +22,7 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
   }
 
   return (
-    <Card className="border-border/50 bg-card/50">
+    <Card className="hairline-gold">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Revenue Trend</CardTitle>
       </CardHeader>
@@ -45,10 +45,13 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
                 <Tooltip 
                   formatter={(value: number) => [`KES ${value.toLocaleString()}`, ""]}
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--hairline-gold))",
                     borderRadius: "8px",
+                    color: "hsl(var(--popover-foreground))",
                   }}
+                  itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 />
                 <Legend />
                 <Line 

@@ -272,3 +272,60 @@ html.dark {
   }
 }
 
+
+/* ============================================================
+   Editorial surfaces — dashboards, cards, tables, charts
+   Tokens are theme-aware so contrast holds in light and dark.
+   ============================================================ */
+@layer base {
+  :root {
+    --surface-card: 0 0% 100% / 0.86;
+    --surface-card-border: 33 38% 40% / 0.22;
+    --surface-card-hover: 33 38% 40% / 0.05;
+    --surface-elevated: 60 4% 98% / 0.9;
+    --hairline-gold: 33 38% 40% / 0.28;
+    --table-head: 33 38% 40% / 0.07;
+    --table-row-hover: 33 38% 40% / 0.06;
+  }
+
+  .dark {
+    --surface-card: 0 0% 8% / 0.82;
+    --surface-card-border: 43 55% 55% / 0.18;
+    --surface-card-hover: 43 55% 55% / 0.06;
+    --surface-elevated: 0 0% 11% / 0.9;
+    --hairline-gold: 43 55% 55% / 0.24;
+    --table-head: 43 55% 55% / 0.08;
+    --table-row-hover: 43 55% 55% / 0.07;
+  }
+}
+
+@layer components {
+  /* Translucent panel that lets the property backdrop breathe through */
+  .surface-editorial {
+    background-color: hsl(var(--surface-card));
+    border-color: hsl(var(--surface-card-border));
+    backdrop-filter: blur(10px);
+  }
+
+  .hairline-gold {
+    border-color: hsl(var(--hairline-gold));
+  }
+
+  /* Applied by the Table primitive so every dashboard table matches */
+  .table-editorial thead tr {
+    background-color: hsl(var(--table-head));
+  }
+  .table-editorial thead th {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--hairline-gold));
+  }
+  .table-editorial tbody tr {
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .table-editorial tbody tr:hover {
+    background-color: hsl(var(--table-row-hover));
+  }
+}
