@@ -9,6 +9,8 @@ import { SubscriptionBadge } from "@/components/subscription/SubscriptionBadge";
 import { PricingCard } from "@/components/subscription/PricingCard";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { PageTransition } from "@/components/PageTransition";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
+import { PageBanner } from "@/components/shared/PageBanner";
 import { ArrowLeft, Calendar, CreditCard, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
