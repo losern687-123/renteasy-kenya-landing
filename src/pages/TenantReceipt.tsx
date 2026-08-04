@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Printer, Download, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { EditorialBackdrop } from "@/components/shared/EditorialBackdrop";
 
 interface RentRow {
   id: string;
@@ -101,8 +102,11 @@ export default function TenantReceipt() {
     "—";
 
   return (
-    <div className="min-h-screen bg-muted/30 py-6 sm:py-10 print:bg-white print:py-0">
-      <div className="mx-auto max-w-2xl px-4 print:px-0 print:max-w-none">
+    <div className="relative min-h-screen bg-background py-6 sm:py-10 print:bg-white print:py-0">
+      <div className="print:hidden">
+        <EditorialBackdrop />
+      </div>
+      <div className="relative z-10 mx-auto max-w-2xl px-4 print:px-0 print:max-w-none">
         {/* Non-printable header */}
         <div className="mb-4 flex items-center justify-between print:hidden">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
