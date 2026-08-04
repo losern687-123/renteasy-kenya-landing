@@ -74,7 +74,7 @@ export function AnalyticsKPICards({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, index) => (
-        <Card key={index} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all">
+        <Card key={index} className="hairline-gold hover:shadow-lg transition-all">
           <CardHeader className="pb-2 p-4">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-lg", card.iconBg)}>
               <card.icon className="w-5 h-5 text-white" />
