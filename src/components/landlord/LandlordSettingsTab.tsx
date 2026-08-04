@@ -290,7 +290,7 @@ export default function LandlordSettingsTab({ onUpgrade }: LandlordSettingsTabPr
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50 bg-card/50">
+      <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible account actions</CardDescription>

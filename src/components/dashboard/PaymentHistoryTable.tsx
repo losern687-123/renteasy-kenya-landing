@@ -94,7 +94,7 @@ export const PaymentHistoryTable = ({ onEdit }: { onEdit?: (record: RentRecord) 
   }
 
   return (
-    <Card className="backdrop-blur-sm bg-card/50 border-2">
+    <Card className="hairline-gold border-2">
       <CardHeader>
         <CardTitle>Payment History</CardTitle>
       </CardHeader>

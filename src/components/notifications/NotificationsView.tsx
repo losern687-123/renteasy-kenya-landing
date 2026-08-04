@@ -110,7 +110,7 @@ export function NotificationsView() {
             <Card 
               key={notification.id} 
               className={`border-border/50 transition-all ${
-                !notification.is_read ? "bg-primary/5 border-primary/20" : "bg-card/50"
+                !notification.is_read ? "bg-primary/5 border-primary/20" : "hairline-gold"
               }`}
             >
               <CardContent className="p-4 flex items-start gap-4">

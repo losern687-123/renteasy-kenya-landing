@@ -42,7 +42,7 @@ export function TableSkeleton({
   className?: string;
 }) {
   return (
-    <Card className={cn("backdrop-blur-sm bg-card/50 border-2", className)}>
+    <Card className={cn("hairline-gold border-2", className)}>
       <CardHeader>
         <Skeleton className="h-6 w-40" />
       </CardHeader>
