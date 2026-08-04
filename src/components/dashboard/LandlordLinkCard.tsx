@@ -63,7 +63,7 @@ export const LandlordLinkCard = () => {
   if (loading) return <CardSkeleton />;
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
+    <Card className="hairline-gold hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Link2 className="h-5 w-5 text-primary" />

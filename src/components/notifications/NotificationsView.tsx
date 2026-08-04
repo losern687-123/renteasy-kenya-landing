@@ -142,7 +142,7 @@ export function NotificationsView() {
           ))}
         </div>
       ) : (
-        <Card className="border-border/50 bg-card/50">
+        <Card className="hairline-gold">
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
               <Bell className="w-8 h-8 text-muted-foreground" />

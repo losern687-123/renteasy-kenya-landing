@@ -8,7 +8,7 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="w-full max-w-md hairline-gold">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <FileQuestion className="h-8 w-8 text-primary" />

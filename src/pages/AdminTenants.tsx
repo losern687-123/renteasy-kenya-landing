@@ -92,7 +92,7 @@ const AdminTenants = () => {
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Tenants
@@ -102,7 +102,7 @@ const AdminTenants = () => {
               <div className="text-3xl font-bold">{totalTenants}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Active Tenants
@@ -115,7 +115,7 @@ const AdminTenants = () => {
         </div>
 
         {/* Tenants Table */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="hairline-gold">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

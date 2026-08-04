@@ -75,7 +75,7 @@ export function SubscriptionOverviewCard({
   const showUpgrade = tierName !== "custom" && tierName !== "enterprise";
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card className="hairline-gold">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -183,7 +183,7 @@ export function ReportsTab({ onUpgrade }: ReportsTabProps) {
 
       {/* Date Range Selector (Pro+) */}
       {canAccessPro && (
-        <Card className="border-border/50 bg-card/50">
+        <Card className="hairline-gold">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -214,7 +214,7 @@ export function ReportsTab({ onUpgrade }: ReportsTabProps) {
         <h3 className="text-lg font-semibold mb-4">Quick Reports</h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {reports.map((report) => (
-            <Card key={report.title} className="border-border/50 bg-card/50">
+            <Card key={report.title} className="hairline-gold">
               <CardHeader className="pb-2">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
                   <report.icon className="w-5 h-5 text-primary" />

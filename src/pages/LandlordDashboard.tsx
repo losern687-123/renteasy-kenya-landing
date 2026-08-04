@@ -288,7 +288,7 @@ export default function LandlordDashboard() {
             <StaggerContainer staggerDelay={0.1}>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StaggerItem>
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all">
+                  <Card className="hairline-gold hover:shadow-lg transition-all">
                     <CardHeader className="pb-2 p-4">
                       <div className="w-12 h-12 bg-gradient-hero rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <Home className="w-6 h-6 text-white" />
@@ -304,7 +304,7 @@ export default function LandlordDashboard() {
                 </StaggerItem>
 
                 <StaggerItem>
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all">
+                  <Card className="hairline-gold hover:shadow-lg transition-all">
                     <CardHeader className="pb-2 p-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <Users className="w-6 h-6 text-white" />
@@ -318,7 +318,7 @@ export default function LandlordDashboard() {
                 </StaggerItem>
 
                 <StaggerItem>
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all">
+                  <Card className="hairline-gold hover:shadow-lg transition-all">
                     <CardHeader className="pb-2 p-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <DollarSign className="w-6 h-6 text-white" />
@@ -335,7 +335,7 @@ export default function LandlordDashboard() {
                 </StaggerItem>
 
                 <StaggerItem>
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all">
+                  <Card className="hairline-gold hover:shadow-lg transition-all">
                     <CardHeader className="pb-2 p-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2 shadow-lg">
                         <Receipt className="w-6 h-6 text-white" />
@@ -354,7 +354,7 @@ export default function LandlordDashboard() {
 
             {/* Quick Actions */}
             <FadeIn delay={0.3}>
-              <Card className="border-border/50 bg-card/50">
+              <Card className="hairline-gold">
                 <CardHeader>
                   <CardTitle className="text-base">Quick Actions</CardTitle>
                 </CardHeader>

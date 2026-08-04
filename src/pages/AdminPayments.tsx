@@ -106,7 +106,7 @@ const AdminPayments = () => {
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Payments
@@ -116,7 +116,7 @@ const AdminPayments = () => {
               <div className="text-3xl font-bold">KES {totalAmount.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Paid
@@ -128,7 +128,7 @@ const AdminPayments = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="hairline-gold">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pending
@@ -143,7 +143,7 @@ const AdminPayments = () => {
         </div>
 
         {/* Payments Table */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="hairline-gold">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
