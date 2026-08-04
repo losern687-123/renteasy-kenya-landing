@@ -42,8 +42,9 @@ export default function SubscriptionSettings() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-subtle">
-        <header className="border-b hairline-gold backdrop-blur-xl sticky top-0 z-50">
+      <div className="relative min-h-screen bg-background">
+        <EditorialBackdrop />
+        <header className="relative z-10 border-b hairline-gold bg-background/80 backdrop-blur-xl sticky top-0">
           <div className="container mx-auto px-4 sm:px-6 py-4">
             <div className="flex items-center gap-4">
               <Button 
@@ -54,14 +55,20 @@ export default function SubscriptionSettings() {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold">Plan & Billing</h1>
+                <h1 className="text-xl font-semibold">Plan & Billing</h1>
                 <p className="text-sm text-muted-foreground">Manage your subscription</p>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <main className="relative z-10 container mx-auto px-4 sm:px-6 py-8 space-y-8">
+          <PageBanner
+            eyebrow="Subscription"
+            title="Plan & Billing"
+            subtitle="Review your usage, compare tiers and upgrade when you're ready"
+          />
+
           {/* Current Plan Card */}
           <Card className="border-primary/30">
             <CardHeader>
