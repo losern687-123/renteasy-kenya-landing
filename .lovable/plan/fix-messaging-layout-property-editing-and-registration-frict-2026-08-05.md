@@ -35,4 +35,5 @@ The "Email not confirmed" login error happens because new signups must click a c
 - `src/pages/LandlordDashboard.tsx` (messages case) + `src/components/chat/ChatWindow.tsx` sizing classes.
 - New `src/components/landlord/EditPropertyDialog.tsx`, wired into `src/components/landlord/PropertiesTable.tsx` via an update against the existing `properties` columns (no schema change, existing RLS already scopes updates to the owning landlord).
 - Auth settings changed via the backend auth config tool: `auto_confirm_email: true`, `password_hibp_enabled: false`.
-- `PasswordRequirements.tsx` / `PasswordStrengthIndicator.tsx` drop the `breached` props; `Auth.tsx` drops the `breachedPassword` state and its toast branch.
+- `PasswordRequirements.tsx` / `PasswordStrengthIndicator.tsx` drop the `breached` props; `Auth.tsx` drops the `breachedPassword` state and its toast branch.  
+Ensure no security issues arise after these changes and no breaking of any workflows on the platform currenlty
