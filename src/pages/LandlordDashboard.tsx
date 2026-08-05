@@ -478,15 +478,15 @@ export default function LandlordDashboard() {
               <h2 className="text-2xl font-bold">Messages</h2>
               <p className="text-muted-foreground">Chat with property seekers and tenants</p>
             </div>
-            <Card className="overflow-hidden" style={{ height: "calc(100vh - 280px)" }}>
-              <div className="flex h-full">
-                <div className="w-full md:w-80 md:border-r border-border overflow-y-auto">
+            <Card className="overflow-hidden" style={{ height: "calc(100vh - 220px)", minHeight: "520px" }}>
+              <div className="flex h-full w-full">
+                <div className="w-full md:w-72 lg:w-80 shrink-0 md:border-r border-border overflow-y-auto">
                   <ConversationList
                     selectedId={selectedConvo?.id}
                     onSelect={(c) => setSelectedConvo(c)}
                   />
                 </div>
-                <div className="hidden md:flex flex-1">
+                <div className="hidden md:flex flex-1 min-w-0 h-full">
                   {selectedConvo ? (
                     <ChatWindow
                       conversationId={selectedConvo.id}
@@ -501,6 +501,7 @@ export default function LandlordDashboard() {
                 </div>
               </div>
             </Card>
+
           </div>
         );
 
