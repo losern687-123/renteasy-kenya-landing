@@ -1,13 +1,9 @@
 import { useMemo } from "react";
-import { Check, X, ShieldAlert, Lightbulb } from "lucide-react";
+import { Check, X, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PasswordRequirementsProps {
   password: string;
-  /** Set when the backend rejected the password as found in known breach lists */
-  breached?: boolean;
-  /** The exact password value that was flagged as breached */
-  breachedValue?: string;
 }
 
 interface Requirement {
@@ -16,14 +12,7 @@ interface Requirement {
   met: boolean;
 }
 
-const COMMON_PATTERNS = [
-  "password", "123456", "qwerty", "letmein", "admin", "welcome",
-  "iloveyou", "abc123", "kenya", "nairobi", "rent",
-];
-
-export function PasswordRequirements({ password, breached, breachedValue }: PasswordRequirementsProps) {
-  const lower = password.toLowerCase();
-
+export function PasswordRequirements({ password }: PasswordRequirementsProps) {
   const requirements = useMemo((): Requirement[] => [
     {
       label: "At least 8 characters",
@@ -50,17 +39,7 @@ export function PasswordRequirements({ password, breached, breachedValue }: Pass
       hint: "Add a symbol, e.g. ! ? @ # $",
       met: /[^A-Za-z0-9]/.test(password),
     },
-    {
-      label: "No common words or sequences",
-      hint: "Avoid words like “password”, “qwerty” or “nairobi”",
-      met: password.length > 0 && !COMMON_PATTERNS.some((p) => lower.includes(p)),
-    },
-    {
-      label: "Not found in known data breaches",
-      hint: "This exact password has leaked online — pick a different one",
-      met: !(breached && breachedValue === password),
-    },
-  ], [password, lower, breached, breachedValue]);
+  ], [password]);
 
   const unmet = requirements.filter((r) => !r.met);
   const allMet = unmet.length === 0;
@@ -102,16 +81,6 @@ export function PasswordRequirements({ password, breached, breachedValue }: Pass
           </li>
         ))}
       </ul>
-
-      {breached && breachedValue === password && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-          <ShieldAlert className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span className="leading-snug">
-            This password appeared in a public data breach. Even if it looks strong, it must be
-            changed before you can continue.
-          </span>
-        </div>
-      )}
 
       {!allMet && (
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
