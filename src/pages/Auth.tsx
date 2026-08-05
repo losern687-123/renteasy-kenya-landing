@@ -218,21 +218,11 @@ export default function Auth() {
                 />
                 {!isLogin && (
                   <>
-                    <PasswordStrengthIndicator
-                      password={password}
-                      breached={!!breachedPassword}
-                      breachedValue={breachedPassword ?? undefined}
-                    />
-                    <PasswordRequirements
-                      password={password}
-                      breached={!!breachedPassword}
-                      breachedValue={breachedPassword ?? undefined}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Avoid common passwords — we check against known breach lists.
-                    </p>
+                    <PasswordStrengthIndicator password={password} />
+                    <PasswordRequirements password={password} />
                   </>
                 )}
+
               </div>
 
               <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
