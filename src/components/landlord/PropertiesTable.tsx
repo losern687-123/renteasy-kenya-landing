@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { VacancyStatusBadge } from "./VacancyStatusBadge";
-import { Store, Copy, Check, MapPin, BedDouble, Users } from "lucide-react";
+import { Store, Copy, Check, MapPin, BedDouble, Users, Pencil } from "lucide-react";
+import { EditPropertyDialog } from "./EditPropertyDialog";
 
 interface Property {
   id: string;
@@ -19,7 +20,10 @@ interface Property {
   property_code: string;
   property_type: string | null;
   bedrooms: number | null;
+  bathrooms: number | null;
   capacity: number | null;
+  deposit: number | null;
+  description: string | null;
 }
 
 interface PropertiesTableProps {
@@ -37,6 +41,7 @@ export default function PropertiesTable({ refresh, onListProperty }: PropertiesT
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Property | null>(null);
 
   useEffect(() => { loadProperties(); }, [user, refresh]);
 
@@ -45,7 +50,7 @@ export default function PropertiesTable({ refresh, onListProperty }: PropertiesT
     setLoading(true);
     const { data, error } = await supabase
       .from("properties")
-      .select("id, name, location, rent_amount, occupancy_status, available_for_listing, property_code, property_type, bedrooms, capacity")
+      .select("id, name, location, rent_amount, occupancy_status, available_for_listing, property_code, property_type, bedrooms, bathrooms, capacity, deposit, description")
       .eq("landlord_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -127,6 +132,9 @@ export default function PropertiesTable({ refresh, onListProperty }: PropertiesT
                     <span className="font-bold">{p.property_code}</span>
                   </button>
                   <div className="flex items-center gap-1">
+                    <Button size="sm" variant="ghost" className="text-xs h-7 gap-1" onClick={() => setEditing(p)}>
+                      <Pencil className="w-3 h-3" /> Edit
+                    </Button>
                     {p.occupancy_status !== "vacant" ? (
                       <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => updateOccupancy(p.id, "vacant")}>
                         Mark vacant
@@ -148,6 +156,13 @@ export default function PropertiesTable({ refresh, onListProperty }: PropertiesT
           </div>
         )}
       </CardContent>
+
+      <EditPropertyDialog
+        property={editing}
+        open={!!editing}
+        onOpenChange={(o) => { if (!o) setEditing(null); }}
+        onSaved={loadProperties}
+      />
     </Card>
   );
 }

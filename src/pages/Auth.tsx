@@ -33,7 +33,7 @@ export default function Auth() {
   const [role, setRole] = useState<'tenant' | 'landlord' | 'property_seeker'>('tenant');
   const [nationalId, setNationalId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [breachedPassword, setBreachedPassword] = useState<string | null>(null);
+  
 
 
   if (user && !loading) {
@@ -88,16 +88,10 @@ export default function Auth() {
           const msg = (error.message || "").toLowerCase();
           if (msg.includes("already registered") || msg.includes("already been registered")) {
             toast({ title: "Account exists", description: "This email is already registered. Please log in instead.", variant: "destructive" });
-          } else if (msg.includes("weak") || msg.includes("pwned") || msg.includes("easy to guess")) {
-            setBreachedPassword(password);
-            toast({
-              title: "Choose a stronger password",
-              description: "That password has appeared in known data breaches. Check the password checklist below — try a longer, unique passphrase (e.g. 3 unrelated words plus a number and symbol).",
-              variant: "destructive",
-            });
           } else {
             toast({ title: "Registration failed", description: error.message, variant: "destructive" });
           }
+
         }
       }
     } finally {
@@ -218,21 +212,11 @@ export default function Auth() {
                 />
                 {!isLogin && (
                   <>
-                    <PasswordStrengthIndicator
-                      password={password}
-                      breached={!!breachedPassword}
-                      breachedValue={breachedPassword ?? undefined}
-                    />
-                    <PasswordRequirements
-                      password={password}
-                      breached={!!breachedPassword}
-                      breachedValue={breachedPassword ?? undefined}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Avoid common passwords — we check against known breach lists.
-                    </p>
+                    <PasswordStrengthIndicator password={password} />
+                    <PasswordRequirements password={password} />
                   </>
                 )}
+
               </div>
 
               <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
