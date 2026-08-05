@@ -137,7 +137,7 @@ export function ChatWindow({ conversationId, otherUserName, otherUserPhone, list
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full min-w-0 flex-1">
       {/* Header */}
       <div className="border-b border-border px-4 py-3 flex items-center gap-3 bg-card shrink-0">
         {onBack && (
