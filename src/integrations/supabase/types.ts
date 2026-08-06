@@ -1235,6 +1235,7 @@ export type Database = {
       generate_landlord_code: { Args: never; Returns: string }
       generate_property_code: { Args: never; Returns: string }
       generate_unique_landlord_id: { Args: never; Returns: string }
+      get_listing_contact: { Args: { _listing_id: string }; Returns: Json }
       get_listing_landlord_name: {
         Args: { _listing_id: string }
         Returns: string
