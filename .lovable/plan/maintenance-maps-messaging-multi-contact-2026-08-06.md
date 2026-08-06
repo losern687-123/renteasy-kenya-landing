@@ -13,11 +13,13 @@ Built in one pass, on top of the existing Noir & Gold design system. No contract
 New "Maintenance" section for landlords and tenants.
 
 **Tenant — Report an Issue**
+
 - Button on the tenant dashboard opens a form: issue type (Plumbing, Electrical, Appliance, Heating, Structural, Other), description, 1–3 photos, severity, and a location note ("bathroom, under sink") with an optional pin on the property map.
 - On submit: request created as **Open**, confirmation shown, and a maintenance thread opens automatically containing the photos, description and a system message "Maintenance request created".
 - Free-tier tenants can always report (unlimited), with 1 photo and no severity selector.
 
 **Landlord — Schedule Maintenance** (Pro/Enterprise)
+
 - Create a task against a property: title, type, description, severity, target date.
 - Dashboard list with severity-first ordering, status filters, and per-property grouping. Emergency items are pinned at the top and can't be dismissed until actioned.
 
@@ -29,6 +31,7 @@ Open → Assigned → In Progress → On Hold (with reason) → Completed, plus 
 **Analytics**: Pro sees issues per month and average resolution time over 6 months; Enterprise sees 12+ month trends, recurring-issue detection per property, and cost-per-property ROI. Bulk task creation is Enterprise-only.
 
 **Tier gating**
+
 - Free: tenant reporting + thread + status visibility + rating. Severity, task creation, costs and analytics show as locked cards with "Upgrade to unlock".
 - Pro: everything above, full severity + workflow + costs + 6-month analytics.
 - Enterprise: bulk task creation, 12-month analytics, recurring-issue insights, warranty notes.
@@ -49,7 +52,8 @@ Uses OpenStreetMap tiles with Nominatim for address search and Overpass for near
 - Real-time delivery, read receipts, typing indicators, photo/video/document attachments, pinned messages, timestamps, and a participant list.
 - Automatic system messages for every status change, assignment, work start, photo upload and completion.
 - History window follows the tier: Free = current month, Pro = 6 months, Enterprise = full history. Older messages show an upgrade prompt rather than disappearing silently.
-- Users can delete their own messages (rendered as "[deleted]"); system messages can't be deleted.
+- Users can delete their own messages (rendered as "[deleted]"); system messages can't be deleted.  
+I'd like for the seekers messages and tenants messages should be separated on the landlord dashboard on the messages tab
 
 ## 5. WhatsApp + multi-contact
 

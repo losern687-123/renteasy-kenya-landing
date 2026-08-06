@@ -10,6 +10,9 @@ import { FloatingThemeToggle } from "@/components/FloatingThemeToggle";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TenantDashboard from "./pages/TenantDashboard";
+import TenantMaintenance from "./pages/TenantMaintenance";
+import LandlordMaintenance from "./pages/LandlordMaintenance";
+
 import TenantSettings from "./pages/TenantSettings";
 import TenantAddPayment from "./pages/TenantAddPayment";
 import TenantHistory from "./pages/TenantHistory";
@@ -125,6 +128,24 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            <Route
+              path="/tenant/maintenance"
+              element={
+                <RouteGuard allowedRoles={['tenant']}>
+                  <TenantMaintenance />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/landlord/maintenance"
+              element={
+                <RouteGuard allowedRoles={['landlord']} requireApprovedLandlord={true}>
+                  <LandlordMaintenance />
+                </RouteGuard>
+              }
+            />
+
+
             
             {/* Landlord Routes */}
             <Route 
