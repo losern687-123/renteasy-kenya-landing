@@ -125,6 +125,24 @@ const App = () => (
                 </RouteGuard>
               } 
             />
+            <Route
+              path="/tenant/maintenance"
+              element={
+                <RouteGuard allowedRoles={['tenant']}>
+                  <TenantMaintenance />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/landlord/maintenance"
+              element={
+                <RouteGuard allowedRoles={['landlord']} requireApprovedLandlord={true}>
+                  <LandlordMaintenance />
+                </RouteGuard>
+              }
+            />
+
+
             
             {/* Landlord Routes */}
             <Route 
