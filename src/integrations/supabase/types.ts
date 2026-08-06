@@ -46,6 +46,7 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
+          conversation_type: string
           created_at: string
           id: string
           landlord_id: string
@@ -54,6 +55,7 @@ export type Database = {
           seeker_id: string
         }
         Insert: {
+          conversation_type?: string
           created_at?: string
           id?: string
           landlord_id: string
@@ -62,6 +64,7 @@ export type Database = {
           seeker_id: string
         }
         Update: {
+          conversation_type?: string
           created_at?: string
           id?: string
           landlord_id?: string
@@ -99,6 +102,8 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          is_deleted: boolean
+          is_pinned: boolean
           is_read: boolean | null
           sender_id: string
         }
@@ -107,6 +112,8 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          is_deleted?: boolean
+          is_pinned?: boolean
           is_read?: boolean | null
           sender_id: string
         }
@@ -115,6 +122,8 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          is_deleted?: boolean
+          is_pinned?: boolean
           is_read?: boolean | null
           sender_id?: string
         }
@@ -131,6 +140,41 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_click_events: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          listing_id: string | null
+          method: string
+          seeker_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          listing_id?: string | null
+          method: string
+          seeker_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          listing_id?: string | null
+          method?: string
+          seeker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_click_events_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "property_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -242,6 +286,231 @@ export type Database = {
           },
         ]
       }
+      maintenance_attachments: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message_id: string | null
+          request_id: string
+          stage: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message_id?: string | null
+          request_id: string
+          stage?: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message_id?: string | null
+          request_id?: string
+          stage?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_attachments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_messages: {
+        Row: {
+          attachments: Json
+          content: string
+          created_at: string
+          id: string
+          is_deleted: boolean
+          is_pinned: boolean
+          is_system: boolean
+          read_by: string[]
+          request_id: string
+          sender_id: string | null
+        }
+        Insert: {
+          attachments?: Json
+          content?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          is_pinned?: boolean
+          is_system?: boolean
+          read_by?: string[]
+          request_id: string
+          sender_id?: string | null
+        }
+        Update: {
+          attachments?: Json
+          content?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          is_pinned?: boolean
+          is_system?: boolean
+          read_by?: string[]
+          request_id?: string
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          request_id: string
+          tenant_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          request_id: string
+          tenant_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          request_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_ratings_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_requests: {
+        Row: {
+          actual_cost: number | null
+          assigned_at: string | null
+          assigned_to: string | null
+          cancel_reason: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string
+          hold_reason: string | null
+          id: string
+          issue_type: string
+          landlord_id: string
+          latitude: number | null
+          location_note: string | null
+          longitude: number | null
+          payment_status: string | null
+          property_id: string | null
+          quoted_cost: number | null
+          severity: string
+          source: string
+          started_at: string | null
+          status: string
+          target_date: string | null
+          tenant_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          cancel_reason?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string
+          hold_reason?: string | null
+          id?: string
+          issue_type?: string
+          landlord_id: string
+          latitude?: number | null
+          location_note?: string | null
+          longitude?: number | null
+          payment_status?: string | null
+          property_id?: string | null
+          quoted_cost?: number | null
+          severity?: string
+          source?: string
+          started_at?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          cancel_reason?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          hold_reason?: string | null
+          id?: string
+          issue_type?: string
+          landlord_id?: string
+          latitude?: number | null
+          location_note?: string | null
+          longitude?: number | null
+          payment_status?: string | null
+          property_id?: string | null
+          quoted_cost?: number | null
+          severity?: string
+          source?: string
+          started_at?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -313,46 +582,67 @@ export type Database = {
       }
       profiles: {
         Row: {
+          contacts_logged_in_only: boolean
           created_at: string
           current_tier: string | null
           email: string
+          email_visible: boolean
           id: string
           landlord_code: string | null
           landlord_id: string | null
           name: string
           payment_alerts_enabled: boolean | null
+          phone: string | null
+          phone_visible: boolean
+          preferred_contact_method: string
           rent_reminders_enabled: boolean | null
           theme_preference: string | null
           updated_at: string
           verification_fee_paid: boolean
+          whatsapp_number: string | null
+          whatsapp_visible: boolean
         }
         Insert: {
+          contacts_logged_in_only?: boolean
           created_at?: string
           current_tier?: string | null
           email: string
+          email_visible?: boolean
           id: string
           landlord_code?: string | null
           landlord_id?: string | null
           name: string
           payment_alerts_enabled?: boolean | null
+          phone?: string | null
+          phone_visible?: boolean
+          preferred_contact_method?: string
           rent_reminders_enabled?: boolean | null
           theme_preference?: string | null
           updated_at?: string
           verification_fee_paid?: boolean
+          whatsapp_number?: string | null
+          whatsapp_visible?: boolean
         }
         Update: {
+          contacts_logged_in_only?: boolean
           created_at?: string
           current_tier?: string | null
           email?: string
+          email_visible?: boolean
           id?: string
           landlord_code?: string | null
           landlord_id?: string | null
           name?: string
           payment_alerts_enabled?: boolean | null
+          phone?: string | null
+          phone_visible?: boolean
+          preferred_contact_method?: string
           rent_reminders_enabled?: boolean | null
           theme_preference?: string | null
           updated_at?: string
           verification_fee_paid?: boolean
+          whatsapp_number?: string | null
+          whatsapp_visible?: boolean
         }
         Relationships: []
       }
@@ -365,10 +655,14 @@ export type Database = {
           created_at: string
           deposit: number | null
           description: string | null
+          formatted_address: string | null
           id: string
           landlord_id: string
+          latitude: number | null
           location: string
+          longitude: number | null
           name: string
+          neighbourhood: string | null
           occupancy_status: string | null
           property_code: string
           property_type: string | null
@@ -383,10 +677,14 @@ export type Database = {
           created_at?: string
           deposit?: number | null
           description?: string | null
+          formatted_address?: string | null
           id?: string
           landlord_id: string
+          latitude?: number | null
           location: string
+          longitude?: number | null
           name: string
+          neighbourhood?: string | null
           occupancy_status?: string | null
           property_code?: string
           property_type?: string | null
@@ -401,10 +699,14 @@ export type Database = {
           created_at?: string
           deposit?: number | null
           description?: string | null
+          formatted_address?: string | null
           id?: string
           landlord_id?: string
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           name?: string
+          neighbourhood?: string | null
           occupancy_status?: string | null
           property_code?: string
           property_type?: string | null
@@ -940,6 +1242,10 @@ export type Database = {
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_maintenance_access: {
+        Args: { _request_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
