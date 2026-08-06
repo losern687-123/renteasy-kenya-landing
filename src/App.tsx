@@ -10,6 +10,9 @@ import { FloatingThemeToggle } from "@/components/FloatingThemeToggle";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TenantDashboard from "./pages/TenantDashboard";
+import TenantMaintenance from "./pages/TenantMaintenance";
+import LandlordMaintenance from "./pages/LandlordMaintenance";
+
 import TenantSettings from "./pages/TenantSettings";
 import TenantAddPayment from "./pages/TenantAddPayment";
 import TenantHistory from "./pages/TenantHistory";
